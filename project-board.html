@@ -362,13 +362,23 @@ const STAGES=[
 ];
 
 /* ── PROJECTS ───────────────────────────────────── */
-let projects=[
+const DEFAULT_PROJECTS=[
   {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",duration:"120 dias",progress:62,responsible:1,collabs:[3,5,8]},
   {id:2,name:"Res. Parque das Flores",stage:"andamento",date:"2026-01-15",duration:"90 dias",progress:35,responsible:4,collabs:[2,6,9,11]},
   {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",duration:"60 dias",progress:78,responsible:3,collabs:[1,7]},
   {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",duration:"45 dias",progress:100,responsible:11,collabs:[4,6,12,10]}
 ];
-let nextId=5;
+function loadProjects(){
+  const saved=localStorage.getItem('latitud_projects');
+  if(saved){try{return JSON.parse(saved)}catch(e){}}
+  return JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+}
+function saveProjects(){
+  localStorage.setItem('latitud_projects',JSON.stringify(projects));
+  localStorage.setItem('latitud_nextId',nextId);
+}
+let projects=loadProjects();
+let nextId=parseInt(localStorage.getItem('latitud_nextId'))||projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
 let editingId=null;
 
 /* ── HELPERS ─────────────────────────────────────── */
@@ -408,7 +418,7 @@ function render(){
       e.preventDefault();lane.classList.remove('drag-over');
       const id=+e.dataTransfer.getData('text/plain');
       const proj=projects.find(p=>p.id===id);
-      if(proj){proj.stage=stage.key;render()}
+      if(proj){proj.stage=stage.key;saveProjects();render()}
     });
 
     lane.innerHTML=`
@@ -486,11 +496,11 @@ function toggleMenu(id){
 function closeAllMenus(){document.querySelectorAll('.ctx-menu.open').forEach(m=>m.classList.remove('open'))}
 function moveProject(id,stage){
   const p=projects.find(x=>x.id===id);
-  if(p){p.stage=stage;render()}
+  if(p){p.stage=stage;saveProjects();render()}
 }
 function removeProject(id){
   if(confirm('Tem certeza que deseja remover este projeto?')){
-    projects=projects.filter(p=>p.id!==id);render();
+    projects=projects.filter(p=>p.id!==id);saveProjects();render();
   }
 }
 
@@ -588,6 +598,7 @@ function saveProject(){
     projects.push(data);
   }
   closeModal();
+  saveProjects();
   render();
 }
 
