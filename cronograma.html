@@ -51,9 +51,48 @@ body{
 }
 .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
+/* FILTERS BAR */
+.filters-bar{
+  display:flex;align-items:center;gap:16px;
+  padding:10px 28px;background:var(--surface);
+  border-bottom:1px solid #2e2818;flex-wrap:wrap;
+}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem;
+  color:var(--text-dim);letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;
+}
+.filter-chips{display:flex;gap:4px}
+.filter-chip{
+  padding:4px 12px;border-radius:14px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
+  border:1px solid #3a3020;background:transparent;color:var(--text-dim);
+  transition:all .2s;white-space:nowrap;
+}
+.filter-chip:hover{border-color:#5a5030;color:var(--text)}
+.filter-chip.active{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.1)}
+.filter-chip.active-green{border-color:var(--green);color:var(--green);background:rgba(143,207,106,.1)}
+.filter-chip.active-blue{border-color:var(--blue);color:var(--blue);background:rgba(107,175,212,.1)}
+.filter-input{
+  padding:4px 10px;border-radius:6px;border:1px solid #3a3020;
+  background:var(--surface2);color:var(--text);
+  font-family:'Barlow',sans-serif;font-size:.78rem;
+  outline:none;transition:border-color .2s;
+}
+.filter-input:focus{border-color:var(--orange)}
+.filter-sep{width:1px;height:24px;background:#2e2818;flex-shrink:0}
+.filter-sort{
+  padding:4px 12px;border-radius:14px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
+  border:1px solid #3a3020;background:transparent;color:var(--text-dim);
+  transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:4px;
+}
+.filter-sort:hover{border-color:#5a5030;color:var(--text)}
+.filter-sort.active{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.1)}
+
 /* GANTT LAYOUT */
 .gantt-wrapper{
-  display:flex;height:calc(100vh - 58px);overflow:hidden;
+  display:flex;height:calc(100vh - 58px - 48px);overflow:hidden;
 }
 
 /* SIDEBAR */
@@ -136,7 +175,7 @@ body{
   border-right:1px solid rgba(255,255,255,.03);
 }
 .day-cell.weekend{color:rgba(154,144,128,.25)}
-.day-cell.today-cell{color:var(--orange);font-weight:700}
+.day-cell.today-cell{color:var(--green);font-weight:700;background:rgba(143,207,106,.1);border-radius:4px}
 .timeline-body{
   flex:1;overflow:auto;position:relative;
 }
@@ -259,6 +298,37 @@ body{
   </div>
 </header>
 
+<div class="filters-bar">
+  <div class="filter-group">
+    <span class="filter-label">Etapa:</span>
+    <div class="filter-chips" id="stageFilters">
+      <button class="filter-chip active" data-stage="all" onclick="setStageFilter('all')">Todos</button>
+      <button class="filter-chip" data-stage="andamento" onclick="setStageFilter('andamento')">🔥 Em Andamento</button>
+      <button class="filter-chip" data-stage="garantia" onclick="setStageFilter('garantia')">⚠️ Garantia</button>
+      <button class="filter-chip" data-stage="standby" onclick="setStageFilter('standby')">⏸️ Stand-by</button>
+    </div>
+  </div>
+
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <span class="filter-label">Período:</span>
+    <input type="date" class="filter-input" id="filterDateFrom" onchange="applyFilters()" title="Data início">
+    <span style="color:var(--text-dim);font-size:.75rem">até</span>
+    <input type="date" class="filter-input" id="filterDateTo" onchange="applyFilters()" title="Data fim">
+    <button class="filter-chip" onclick="clearDateFilter()" title="Limpar filtro de data" style="font-size:.7rem">✕</button>
+  </div>
+
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <span class="filter-label">Ordenar:</span>
+    <button class="filter-sort active" id="sortDate" onclick="setSortMode('date')">📅 Data Início</button>
+    <button class="filter-sort" id="sortName" onclick="setSortMode('name')">🔤 Nome</button>
+    <button class="filter-sort" id="sortProgress" onclick="setSortMode('progress')">📊 Progresso</button>
+  </div>
+</div>
+
 <div class="gantt-wrapper">
   <!-- Sidebar -->
   <div class="gantt-sidebar">
@@ -312,48 +382,114 @@ const STAGE_COLORS = { andamento:'#F5841F', garantia:'#8fcf6a', standby:'#6bafd4
 const STAGE_LABELS = { andamento:'Em andamento', garantia:'Garantia', standby:'Stand-by' };
 const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-function loadProjects(){
+function loadAllProjects(){
   try{ const d=localStorage.getItem('latitud_projects'); if(d){ const p=JSON.parse(d); if(Array.isArray(p)&&p.length) return p; } }catch(e){}
-  return DEFAULT_PROJECTS;
+  return DEFAULT_PROJECTS.slice();
 }
 function loadTeam(){
   try{ const d=localStorage.getItem('projetoctrl_team'); if(d){ const t=JSON.parse(d); if(Array.isArray(t)&&t.length) return t; } }catch(e){}
-  return DEFAULT_TEAM;
+  return DEFAULT_TEAM.slice();
 }
 
-const projects = loadProjects().slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+const allProjects = loadAllProjects();
 const team = loadTeam();
 const teamMap = {};
 team.forEach(t=>teamMap[t.id]=t);
+
+/* ── FILTER / SORT STATE ──────────────────────────────── */
+let activeStageFilter = 'all';
+let sortMode = 'date';
+let filterDateFrom = '';
+let filterDateTo = '';
+
+function getFilteredProjects(){
+  let list = allProjects.slice();
+
+  // Filter by stage
+  if(activeStageFilter !== 'all'){
+    list = list.filter(p => p.stage === activeStageFilter);
+  }
+
+  // Filter by date range
+  if(filterDateFrom){
+    const from = new Date(filterDateFrom+'T00:00:00');
+    list = list.filter(p => new Date(p.endDate+'T00:00:00') >= from);
+  }
+  if(filterDateTo){
+    const to = new Date(filterDateTo+'T00:00:00');
+    list = list.filter(p => new Date(p.date+'T00:00:00') <= to);
+  }
+
+  // Sort
+  if(sortMode === 'date'){
+    list.sort((a,b) => new Date(a.date) - new Date(b.date));
+  } else if(sortMode === 'name'){
+    list.sort((a,b) => a.name.localeCompare(b.name,'pt-BR'));
+  } else if(sortMode === 'progress'){
+    list.sort((a,b) => b.progress - a.progress);
+  }
+
+  return list;
+}
+
+function setStageFilter(stage){
+  activeStageFilter = stage;
+  document.querySelectorAll('#stageFilters .filter-chip').forEach(c => {
+    c.classList.remove('active','active-green','active-blue');
+    if(c.dataset.stage === stage){
+      if(stage === 'garantia') c.classList.add('active-green');
+      else if(stage === 'standby') c.classList.add('active-blue');
+      else c.classList.add('active');
+    }
+  });
+  applyFilters();
+}
+
+function setSortMode(mode){
+  sortMode = mode;
+  document.querySelectorAll('.filter-sort').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  applyFilters();
+}
+
+function clearDateFilter(){
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  filterDateFrom = '';
+  filterDateTo = '';
+  applyFilters();
+}
+
+function applyFilters(){
+  filterDateFrom = document.getElementById('filterDateFrom').value;
+  filterDateTo = document.getElementById('filterDateTo').value;
+  renderGantt();
+}
 
 /* ── TIMELINE CALCULATIONS ────────────────────────────── */
 const DAY_WIDTH = 28;
 const ROW_H = 48;
 
-// Find range
-let minDate = Infinity, maxDate = -Infinity;
-projects.forEach(p=>{
+// Compute global range from ALL projects (unfiltered) for stable header
+let gMinDate = Infinity, gMaxDate = -Infinity;
+allProjects.forEach(p=>{
   const s = new Date(p.date).getTime();
   const e = new Date(p.endDate).getTime();
-  if(s<minDate) minDate=s;
-  if(e>maxDate) maxDate=e;
+  if(s<gMinDate) gMinDate=s;
+  if(e>gMaxDate) gMaxDate=e;
 });
-
-// Add 15 days padding on each side
 const PAD = 15*86400000;
-const rangeStart = new Date(minDate - PAD);
-rangeStart.setDate(1); // snap to 1st of month
-const rangeEnd = new Date(maxDate + PAD);
-rangeEnd.setMonth(rangeEnd.getMonth()+1, 0); // snap to end of month
+const rangeStart = new Date(gMinDate - PAD);
+rangeStart.setDate(1);
+const rangeEnd = new Date(gMaxDate + PAD);
+rangeEnd.setMonth(rangeEnd.getMonth()+1, 0);
 
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 const totalDays = daysBetween(rangeStart, rangeEnd) + 1;
 const totalWidth = totalDays * DAY_WIDTH;
 
 function dateToX(dateStr){
-  const d = new Date(dateStr);
-  const days = daysBetween(rangeStart, d);
-  return days * DAY_WIDTH;
+  return daysBetween(rangeStart, new Date(dateStr)) * DAY_WIDTH;
 }
 
 /* ── ISO WEEK HELPER (ISO 8601) ──────────────────────── */
@@ -372,7 +508,7 @@ function getISOWeekMonday(date){
   return d;
 }
 
-/* ── BUILD HEADER (3 rows: Month, Week, Day) ─────────── */
+/* ── BUILD HEADER (3 rows: Month, Week, Day) — once ──── */
 function buildHeader(){
   const monthsRow = document.getElementById('monthsRow');
   const weeksRow = document.getElementById('weeksRow');
@@ -406,7 +542,6 @@ function buildHeader(){
   }
 
   // ROW 2: ISO Weeks
-  // Find the Monday of the week that contains rangeStart
   let weekStart = getISOWeekMonday(rangeStart);
   while(weekStart <= rangeEnd){
     const weekEnd = new Date(weekStart);
@@ -451,11 +586,22 @@ function buildHeader(){
   }
 }
 
-/* ── BUILD GRID LINES ─────────────────────────────────── */
-function buildGridLines(){
-  const container = document.getElementById('gridLines');
-  container.style.width = totalWidth + 'px';
-  container.style.height = (projects.length * ROW_H) + 'px';
+/* ── RENDER GANTT (sidebar + bars + grid + today) ─────── */
+function renderGantt(){
+  const projects = getFilteredProjects();
+  const sidebarRows = document.getElementById('sidebarRows');
+  const timelineRows = document.getElementById('timelineRows');
+  const gridLines = document.getElementById('gridLines');
+
+  sidebarRows.innerHTML = '';
+  timelineRows.innerHTML = '';
+  gridLines.innerHTML = '';
+
+  const rowCount = projects.length;
+
+  // Grid lines
+  gridLines.style.width = totalWidth + 'px';
+  gridLines.style.height = (rowCount * ROW_H) + 'px';
 
   let cur = new Date(rangeStart);
   while(cur <= rangeEnd){
@@ -464,16 +610,14 @@ function buildGridLines(){
     const daysInMonth = new Date(year, month+1, 0).getDate();
     const startOfMonth = new Date(year, month, 1);
 
-    // month boundary line
     const mx = daysBetween(rangeStart, startOfMonth) * DAY_WIDTH;
     if(mx > 0){
       const ml = document.createElement('div');
       ml.className = 'grid-line month-line';
       ml.style.left = mx + 'px';
-      container.appendChild(ml);
+      gridLines.appendChild(ml);
     }
 
-    // weekly lines
     const visStart = startOfMonth < rangeStart ? rangeStart : startOfMonth;
     const visEnd = new Date(year, month, daysInMonth);
     const actualEnd = visEnd > rangeEnd ? rangeEnd : visEnd;
@@ -483,54 +627,43 @@ function buildGridLines(){
         const line = document.createElement('div');
         line.className = 'grid-line';
         line.style.left = x + 'px';
-        container.appendChild(line);
+        gridLines.appendChild(line);
       }
     }
-
     cur.setMonth(cur.getMonth()+1);
     cur.setDate(1);
   }
-}
 
-/* ── BUILD SIDEBAR ────────────────────────────────────── */
-function buildSidebar(){
-  const container = document.getElementById('sidebarRows');
-  projects.forEach(p=>{
-    const row = document.createElement('div');
-    row.className = 'sidebar-row';
+  // Sidebar + Bars
+  timelineRows.style.width = totalWidth + 'px';
+  timelineRows.style.height = (rowCount * ROW_H) + 'px';
+
+  projects.forEach((p, i) => {
+    // Sidebar row
+    const sRow = document.createElement('div');
+    sRow.className = 'sidebar-row';
     const color = STAGE_COLORS[p.stage] || '#888';
     const label = STAGE_LABELS[p.stage] || p.stage;
     const resp = teamMap[p.responsible];
     const respName = resp ? resp.name : '—';
-
-    row.innerHTML = `
+    sRow.innerHTML = `
       <div class="sidebar-info">
         <div class="sidebar-name">${p.name}</div>
         <div class="sidebar-responsible">${respName}</div>
       </div>
       <span class="stage-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${label}</span>
     `;
-    container.appendChild(row);
-  });
-}
+    sidebarRows.appendChild(sRow);
 
-/* ── BUILD BARS ───────────────────────────────────────── */
-function buildBars(){
-  const container = document.getElementById('timelineRows');
-  container.style.width = totalWidth + 'px';
-  container.style.height = (projects.length * ROW_H) + 'px';
+    // Timeline row background
+    const tRow = document.createElement('div');
+    tRow.className = 'timeline-row';
+    timelineRows.appendChild(tRow);
 
-  projects.forEach((p, i)=>{
-    // row background
-    const row = document.createElement('div');
-    row.className = 'timeline-row';
-    container.appendChild(row);
-
-    // bar
+    // Bar
     const x = dateToX(p.date);
     const x2 = dateToX(p.endDate);
     const w = Math.max(x2 - x, DAY_WIDTH);
-    const color = STAGE_COLORS[p.stage] || '#888';
 
     const bar = document.createElement('div');
     bar.className = 'gantt-bar';
@@ -541,7 +674,6 @@ function buildBars(){
     bar.style.background = color + '33';
     bar.style.border = '1px solid ' + color + '55';
 
-    // progress fill
     const prog = document.createElement('div');
     prog.className = 'gantt-bar-progress';
     prog.style.width = p.progress + '%';
@@ -549,42 +681,42 @@ function buildBars(){
     if(p.progress >= 100) prog.style.borderRadius = '6px';
     bar.appendChild(prog);
 
-    // label
     const lbl = document.createElement('div');
     lbl.className = 'gantt-bar-label';
     lbl.textContent = p.name;
     bar.appendChild(lbl);
 
-    // tooltip events
     bar.addEventListener('mouseenter', e => showTooltip(e, p));
     bar.addEventListener('mousemove', e => moveTooltip(e));
     bar.addEventListener('mouseleave', hideTooltip);
 
-    container.appendChild(bar);
+    timelineRows.appendChild(bar);
   });
-}
 
-/* ── TODAY LINE ────────────────────────────────────────── */
-function buildTodayLine(){
+  // Today line
   const today = new Date();
   today.setHours(0,0,0,0);
-  if(today < rangeStart || today > rangeEnd) return;
+  if(today >= rangeStart && today <= rangeEnd){
+    const tx = daysBetween(rangeStart, today) * DAY_WIDTH;
 
-  const x = daysBetween(rangeStart, today) * DAY_WIDTH;
+    const line = document.createElement('div');
+    line.className = 'today-line';
+    line.style.left = tx + 'px';
+    line.style.height = (rowCount * ROW_H) + 'px';
+    timelineRows.appendChild(line);
 
-  // line in body
-  const line = document.createElement('div');
-  line.className = 'today-line';
-  line.style.left = x + 'px';
-  line.style.height = (projects.length * ROW_H) + 'px';
-  document.getElementById('timelineRows').appendChild(line);
+    const tlabel = document.createElement('div');
+    tlabel.className = 'today-label';
+    tlabel.style.left = tx + 'px';
+    tlabel.textContent = 'Hoje — ' + today.getDate() + '/' + (today.getMonth()+1);
+    timelineRows.appendChild(tlabel);
+  }
 
-  // label in header area (positioned via the body's today line)
-  const label = document.createElement('div');
-  label.className = 'today-label';
-  label.style.left = x + 'px';
-  label.textContent = 'Hoje — ' + today.getDate() + '/' + (today.getMonth()+1);
-  document.getElementById('timelineRows').appendChild(label);
+  // Show empty message
+  if(rowCount === 0){
+    sidebarRows.innerHTML = '<div style="padding:20px 16px;color:var(--text-dim);font-size:.85rem">Nenhum projeto encontrado</div>';
+    timelineRows.style.height = ROW_H + 'px';
+  }
 }
 
 /* ── TOOLTIP ──────────────────────────────────────────── */
@@ -613,7 +745,6 @@ function showTooltip(e, p){
 function moveTooltip(e){
   let x = e.clientX + 14;
   let y = e.clientY + 14;
-  const rect = tooltip.getBoundingClientRect();
   if(x + 260 > window.innerWidth) x = e.clientX - 270;
   if(y + 180 > window.innerHeight) y = e.clientY - 160;
   tooltip.style.left = x + 'px';
@@ -631,9 +762,7 @@ function setupScroll(){
   const header = document.getElementById('timelineHeader');
 
   body.addEventListener('scroll', ()=>{
-    // sync horizontal scroll with header
     header.scrollLeft = body.scrollLeft;
-    // sync vertical scroll with sidebar
     sidebarRows.scrollTop = body.scrollTop;
   });
 
@@ -649,10 +778,7 @@ function setupScroll(){
 
 /* ── INIT ─────────────────────────────────────────────── */
 buildHeader();
-buildGridLines();
-buildSidebar();
-buildBars();
-buildTodayLine();
+renderGantt();
 setupScroll();
 </script>
 </body>
