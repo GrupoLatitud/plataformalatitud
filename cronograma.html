@@ -333,7 +333,22 @@ body{
 
 <div class="gantt-tooltip" id="tooltip"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
 /* ── DATA ─────────────────────────────────────────────── */
 const DEFAULT_PROJECTS=[
   {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",endDate:"2026-03-10",progress:62,responsible:1,collabs:[3,5,8]},
@@ -374,18 +389,9 @@ const HOLIDAYS = new Set([
   '2028-11-20','2028-12-24','2028-12-25','2028-12-29','2028-12-30','2028-12-31'
 ]);
 
-function loadAllProjects(){
-  try{ const d=localStorage.getItem('latitud_projects'); if(d){ const p=JSON.parse(d); if(Array.isArray(p)&&p.length) return p; } }catch(e){}
-  return DEFAULT_PROJECTS.slice();
-}
-function loadTeam(){
-  try{ const d=localStorage.getItem('projetoctrl_team'); if(d){ const t=JSON.parse(d); if(Array.isArray(t)&&t.length) return t; } }catch(e){}
-  return DEFAULT_TEAM.slice();
-}
-
-const allProjects = loadAllProjects();
-const team = loadTeam();
-const teamMap = {};
+let allProjects = DEFAULT_PROJECTS.slice();
+let team = DEFAULT_TEAM.slice();
+let teamMap = {};
 team.forEach(t=>teamMap[t.id]=t);
 
 /* ── FILTER / SORT STATE ──────────────────────────────── */
@@ -742,10 +748,30 @@ function setupScroll(){
   }
 }
 
-/* ── INIT ─────────────────────────────────────────────── */
-buildHeader();
-renderGantt();
-setupScroll();
+/* ── INIT (Firebase) ──────────────────────────────────── */
+let dataLoaded=0;
+function tryInit(){
+  dataLoaded++;
+  if(dataLoaded>=2){
+    teamMap={};
+    team.forEach(t=>teamMap[t.id]=t);
+    buildHeader();
+    renderGantt();
+    setupScroll();
+  }
+}
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)&&d.length) allProjects=d;
+  if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
+  else tryInit();
+});
+db.ref('team').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)&&d.length) team=d;
+  if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
+  else tryInit();
+});
 </script>
 </body>
 </html>

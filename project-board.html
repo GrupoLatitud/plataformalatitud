@@ -350,8 +350,42 @@ body{
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-/* ── TEAM (shared via localStorage) ────────────── */
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+/* ── MIGRAÇÃO localStorage → Firebase (roda 1x) ── */
+(function migrateOnce(){
+  if(localStorage.getItem('firebase_migrated')) return;
+  const lsProj=localStorage.getItem('latitud_projects');
+  const lsTeam=localStorage.getItem('projetoctrl_team');
+  const lsNextId=localStorage.getItem('latitud_nextId');
+  if(lsProj||lsTeam){
+    db.ref().once('value',snap=>{
+      const data=snap.val();
+      if(!data||!data.projects){
+        if(lsProj) try{db.ref('projects').set(JSON.parse(lsProj))}catch(e){}
+        if(lsTeam) try{db.ref('team').set(JSON.parse(lsTeam))}catch(e){}
+        if(lsNextId) db.ref('nextId').set(parseInt(lsNextId));
+      }
+      localStorage.setItem('firebase_migrated','1');
+    });
+  }
+})();
+
+/* ── TEAM (shared via Firebase) ────────────── */
 const DEFAULT_TEAM=[
   {id:1,name:"Carlos Mendes",role:"Encarregado",color:"#F5841F",photo:""},
   {id:2,name:"Beatriz Lima",role:"Arquiteta",color:"#F5C242",photo:""},
@@ -366,13 +400,7 @@ const DEFAULT_TEAM=[
   {id:11,name:"Helena Ramos",role:"Coordenadora",color:"#c5a55a",photo:""},
   {id:12,name:"Ivan Lopes",role:"Técnico",color:"#8ab5f5",photo:""}
 ];
-let TEAM=[];
-function loadTeam(){
-  const stored=localStorage.getItem('projetoctrl_team');
-  if(stored){try{TEAM=JSON.parse(stored)}catch(e){TEAM=[...DEFAULT_TEAM]}}
-  else{TEAM=[...DEFAULT_TEAM];localStorage.setItem('projetoctrl_team',JSON.stringify(TEAM))}
-}
-loadTeam();
+let TEAM=[...DEFAULT_TEAM];
 
 const STAGES=[
   {key:"andamento",label:"Em Andamento",icon:"🟢",color:"#8fcf6a"},
@@ -387,17 +415,12 @@ const DEFAULT_PROJECTS=[
   {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",endDate:"2025-10-19",progress:78,responsible:3,collabs:[1,7]},
   {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",endDate:"2025-06-19",progress:100,responsible:11,collabs:[4,6,12,10]}
 ];
-function loadProjects(){
-  const saved=localStorage.getItem('latitud_projects');
-  if(saved){try{return JSON.parse(saved)}catch(e){}}
-  return JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
-}
 function saveProjects(){
-  localStorage.setItem('latitud_projects',JSON.stringify(projects));
-  localStorage.setItem('latitud_nextId',nextId);
+  db.ref('projects').set(projects);
+  db.ref('nextId').set(nextId);
 }
-let projects=loadProjects();
-let nextId=parseInt(localStorage.getItem('latitud_nextId'))||projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
+let projects=JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+let nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
 let editingId=null;
 
 /* ── HELPERS ─────────────────────────────────────── */
@@ -639,8 +662,22 @@ function saveProject(){
   render();
 }
 
-/* ── INIT ────────────────────────────────────────── */
-render();
+/* ── INIT (Firebase) ─────────────────────────────── */
+db.ref('team').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)&&d.length) TEAM=d;
+  render();
+});
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)&&d.length) projects=d;
+  nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
+  render();
+});
+db.ref('nextId').on('value',snap=>{
+  const d=snap.val();
+  if(d) nextId=d;
+});
 </script>
 </body>
 </html>

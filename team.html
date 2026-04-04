@@ -371,7 +371,22 @@ body{
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
 /* ── DEFAULT TEAM ──────────────────────────────── */
 const DEFAULT_TEAM=[
   {id:1,name:"Carlos Mendes",role:"Encarregado",color:"#F5841F",photo:""},
@@ -417,16 +432,8 @@ let editingId=null;
 let selectedColor=COLORS[0];
 let currentPhoto="";
 
-function loadTeam(){
-  const stored=localStorage.getItem('projetoctrl_team');
-  if(stored){
-    try{team=JSON.parse(stored)}catch(e){team=[...DEFAULT_TEAM]}
-  }else{
-    team=[...DEFAULT_TEAM];
-    saveTeam();
-  }
-}
-function saveTeam(){localStorage.setItem('projetoctrl_team',JSON.stringify(team))}
+function loadTeam(){/* loaded via Firebase */}
+function saveTeam(){ db.ref('team').set(team); }
 function nextId(){return team.length?Math.max(...team.map(t=>t.id))+1:1}
 function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 
@@ -483,9 +490,8 @@ function renderOrgChart(){
     return;
   }
 
-  // Lê projetos do localStorage (mesma fonte do project-board)
-  let projects=[];
-  try{ const s=localStorage.getItem('latitud_projects'); if(s) projects=JSON.parse(s); }catch(e){}
+  // Lê projetos do cache Firebase
+  let projects=window._fbProjects||[];
 
   // Monta mapa: encarregado id → Set de ids de colaboradores vinculados via projetos
   const encCollabMap={};
@@ -639,8 +645,18 @@ function saveMember(){
   saveTeam();closeModal();render();
 }
 
-/* ── INIT ──────────────────────────────────────── */
-loadTeam();render();
+/* ── INIT (Firebase) ──────────────────────────── */
+window._fbProjects=[];
+db.ref('team').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)&&d.length) team=d;
+  render();
+});
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d&&Array.isArray(d)) window._fbProjects=d;
+  render();
+});
 </script>
 </body>
 </html>
