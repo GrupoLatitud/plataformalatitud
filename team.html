@@ -647,17 +647,19 @@ function saveMember(){
 
 /* ── INIT (Firebase) ──────────────────────────── */
 window._fbProjects=[];
+let _fbReady=false;
 db.ref('team').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length){ team=d; }
-  else{ team=[...DEFAULT_TEAM]; db.ref('team').set(team); }
-  render();
-});
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) team=arr; }
+  _fbReady=true; render();
+}, err=>{ _fbReady=true; render(); });
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)) window._fbProjects=d;
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); window._fbProjects=arr; }
   render();
-});
+}, err=>{ render(); });
+// Fallback
+setTimeout(()=>{ if(!_fbReady){ _fbReady=true; render(); } }, 3000);
 </script>
 </body>
 </html>

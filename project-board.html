@@ -663,19 +663,24 @@ function saveProject(){
 }
 
 /* ── INIT (Firebase) ─────────────────────────────── */
-db.ref('team').on('value',snap=>{
+let _fbReady=false;
+function fbRender(){ _fbReady=true; render(); }
+
+db.ref('team').on('value', snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length){ TEAM=d; }
-  else{ TEAM=[...DEFAULT_TEAM]; db.ref('team').set(TEAM); }
-  render();
-});
-db.ref('projects').on('value',snap=>{
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) TEAM=arr; }
+  fbRender();
+}, err=>{ console.warn('Firebase team error:',err); fbRender(); });
+
+db.ref('projects').on('value', snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length){ projects=d; }
-  else{ projects=JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); db.ref('projects').set(projects); }
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) projects=arr; }
   nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
-  render();
-});
+  fbRender();
+}, err=>{ console.warn('Firebase projects error:',err); fbRender(); });
+
+// Fallback: se Firebase não responder em 3s, renderiza com defaults
+setTimeout(()=>{ if(!_fbReady){ console.warn('Firebase timeout, usando defaults'); render(); } }, 3000);
 </script>
 </body>
 </html>

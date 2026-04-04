@@ -760,20 +760,22 @@ function tryInit(){
     setupScroll();
   }
 }
+function fbRefresh(){
+  teamMap={}; team.forEach(t=>teamMap[t.id]=t);
+  buildHeader(); renderGantt(); setupScroll();
+}
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length) allProjects=d;
-  else allProjects=DEFAULT_PROJECTS.slice();
-  if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
-  else tryInit();
-});
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) allProjects=arr; }
+  if(dataLoaded>=2) fbRefresh(); else tryInit();
+}, err=>{ tryInit(); });
 db.ref('team').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length) team=d;
-  else team=DEFAULT_TEAM.slice();
-  if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
-  else tryInit();
-});
+  if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) team=arr; }
+  if(dataLoaded>=2) fbRefresh(); else tryInit();
+}, err=>{ tryInit(); });
+// Fallback
+setTimeout(()=>{ if(dataLoaded<2){ dataLoaded=2; fbRefresh(); } }, 3000);
 </script>
 </body>
 </html>
