@@ -102,6 +102,8 @@ body{
 }
 .card:active{cursor:grabbing}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.card.overdue{border:1.5px solid #f05050;background:rgba(240,80,80,.08)}
+.card.overdue .card-accent{background:#f05050 !important}
 .card-accent{height:2px;width:100%}
 .card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}
@@ -460,9 +462,10 @@ function renderCard(p,stage){
   const visCollabs=collabs.slice(0,3);
   const extraCount=collabs.length-3;
   const sc=stageColor(p.stage);
+  const isOverdue=p.endDate && p.progress<100 && new Date(p.endDate+'T23:59:59')<new Date();
 
   return `
-    <div class="card" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${p.id}')" id="card-${p.id}">
+    <div class="card${isOverdue?' overdue':''}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${p.id}')" id="card-${p.id}">
       <div class="card-accent" style="background:${sc}"></div>
       <div class="card-body">
         <div class="card-header">
