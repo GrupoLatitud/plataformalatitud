@@ -64,8 +64,8 @@ body{
   overflow:hidden;
 }
 .sidebar-header{
-  height:60px;min-height:60px;
-  display:flex;align-items:center;padding:0 16px;
+  height:84px;min-height:84px;
+  display:flex;align-items:flex-end;padding:0 16px 8px;
   border-bottom:1px solid #2e2818;
   font-family:'Barlow Condensed',sans-serif;font-weight:700;
   font-size:.95rem;color:var(--text-dim);letter-spacing:.5px;
@@ -99,7 +99,7 @@ body{
   flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;
 }
 .timeline-header{
-  height:60px;min-height:60px;
+  height:84px;min-height:84px;
   border-bottom:1px solid #2e2818;
   overflow:hidden;position:relative;
 }
@@ -107,23 +107,36 @@ body{
   height:100%;display:flex;flex-direction:column;position:absolute;top:0;left:0;
 }
 .months-row{
-  height:30px;display:flex;align-items:center;
+  height:28px;display:flex;align-items:center;
 }
 .month-cell{
-  height:30px;display:flex;align-items:center;justify-content:center;
+  height:28px;display:flex;align-items:center;justify-content:center;
   font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem;
   color:var(--text-dim);border-right:1px solid #2e2818;
   border-bottom:1px solid rgba(255,255,255,.05);
   letter-spacing:.3px;white-space:nowrap;
 }
+.weeks-row{
+  height:28px;display:flex;align-items:center;
+}
+.week-cell{
+  height:28px;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:500;font-size:.7rem;
+  color:var(--orange);opacity:.7;
+  border-right:1px solid rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.04);
+  white-space:nowrap;letter-spacing:.2px;
+}
 .days-row{
-  height:30px;display:flex;align-items:center;
+  height:28px;display:flex;align-items:center;
 }
 .day-cell{
-  height:30px;display:flex;align-items:center;justify-content:center;
+  height:28px;display:flex;align-items:center;justify-content:center;
   font-size:.62rem;color:rgba(154,144,128,.5);
   border-right:1px solid rgba(255,255,255,.03);
 }
+.day-cell.weekend{color:rgba(154,144,128,.25)}
+.day-cell.today-cell{color:var(--orange);font-weight:700}
 .timeline-body{
   flex:1;overflow:auto;position:relative;
 }
@@ -157,7 +170,7 @@ body{
   border-left:1px dashed var(--orange);
 }
 .today-label{
-  position:absolute;top:-58px;transform:translateX(-50%);
+  position:absolute;top:-82px;transform:translateX(-50%);
   background:var(--orange);color:#fff;
   padding:2px 8px;border-radius:4px;
   font-size:.65rem;font-weight:600;
@@ -258,6 +271,7 @@ body{
     <div class="timeline-header" id="timelineHeader">
       <div class="timeline-header-inner" id="timelineHeaderInner">
         <div class="months-row" id="monthsRow"></div>
+        <div class="weeks-row" id="weeksRow"></div>
         <div class="days-row" id="daysRow"></div>
       </div>
     </div>
@@ -342,14 +356,33 @@ function dateToX(dateStr){
   return days * DAY_WIDTH;
 }
 
-/* ── BUILD MONTHS & DAYS HEADER ───────────────────────── */
+/* ── ISO WEEK HELPER (ISO 8601) ──────────────────────── */
+function getISOWeek(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function getISOWeekMonday(date){
+  const d = new Date(date);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+/* ── BUILD HEADER (3 rows: Month, Week, Day) ─────────── */
 function buildHeader(){
   const monthsRow = document.getElementById('monthsRow');
+  const weeksRow = document.getElementById('weeksRow');
   const daysRow = document.getElementById('daysRow');
   const headerInner = document.getElementById('timelineHeaderInner');
   headerInner.style.width = totalWidth + 'px';
 
-  // months
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // ROW 1: Months
   let cur = new Date(rangeStart);
   while(cur <= rangeEnd){
     const year = cur.getFullYear();
@@ -357,7 +390,6 @@ function buildHeader(){
     const daysInMonth = new Date(year, month+1, 0).getDate();
     const startOfMonth = new Date(year, month, 1);
     const endOfMonth = new Date(year, month, daysInMonth);
-
     const visStart = startOfMonth < rangeStart ? rangeStart : startOfMonth;
     const visEnd = endOfMonth > rangeEnd ? rangeEnd : endOfMonth;
     const visDays = daysBetween(visStart, visEnd) + 1;
@@ -369,20 +401,53 @@ function buildHeader(){
     cell.textContent = MONTH_NAMES[month] + ' ' + year;
     monthsRow.appendChild(cell);
 
-    // day ticks inside this month
-    for(let d=visStart.getDate(); d<=visEnd.getDate(); d++){
-      const dc = document.createElement('div');
-      dc.className = 'day-cell';
-      dc.style.width = DAY_WIDTH + 'px';
-      dc.style.minWidth = DAY_WIDTH + 'px';
-      if(d % 7 === 1 || d === 1){
-        dc.textContent = d;
-      }
-      daysRow.appendChild(dc);
-    }
-
     cur.setMonth(cur.getMonth()+1);
     cur.setDate(1);
+  }
+
+  // ROW 2: ISO Weeks
+  // Find the Monday of the week that contains rangeStart
+  let weekStart = getISOWeekMonday(rangeStart);
+  while(weekStart <= rangeEnd){
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    const visStart = weekStart < rangeStart ? rangeStart : weekStart;
+    const visEnd = weekEnd > rangeEnd ? rangeEnd : weekEnd;
+    const visDays = daysBetween(visStart, visEnd) + 1;
+
+    if(visDays > 0){
+      const wNum = getISOWeek(weekStart);
+      const cell = document.createElement('div');
+      cell.className = 'week-cell';
+      cell.style.width = (visDays * DAY_WIDTH) + 'px';
+      cell.style.minWidth = (visDays * DAY_WIDTH) + 'px';
+      cell.textContent = 'S' + wNum;
+      cell.title = 'Semana ' + wNum + ' — ' +
+        weekStart.getDate() + ' ' + MONTH_NAMES[weekStart.getMonth()] +
+        ' a ' + weekEnd.getDate() + ' ' + MONTH_NAMES[weekEnd.getMonth()];
+      weeksRow.appendChild(cell);
+    }
+
+    weekStart = new Date(weekStart);
+    weekStart.setDate(weekStart.getDate() + 7);
+  }
+
+  // ROW 3: Days
+  let dayCur = new Date(rangeStart);
+  while(dayCur <= rangeEnd){
+    const dc = document.createElement('div');
+    dc.className = 'day-cell';
+    dc.style.width = DAY_WIDTH + 'px';
+    dc.style.minWidth = DAY_WIDTH + 'px';
+    dc.textContent = dayCur.getDate();
+    const dow = dayCur.getDay();
+    if(dow === 0 || dow === 6) dc.classList.add('weekend');
+    if(dayCur.getTime() === today.getTime()) dc.classList.add('today-cell');
+    daysRow.appendChild(dc);
+
+    dayCur = new Date(dayCur);
+    dayCur.setDate(dayCur.getDate() + 1);
   }
 }
 
