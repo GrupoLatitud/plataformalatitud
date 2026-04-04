@@ -410,11 +410,15 @@ allProjects.filter(p=>p.date&&p.endDate).forEach(p=>{
 if(gMinDate===Infinity){ gMinDate=Date.now()-90*86400000; gMaxDate=Date.now()+90*86400000; }
 const PAD = 15*86400000;
 const rangeStart = new Date(gMinDate - PAD);
-rangeStart.setDate(1);
+rangeStart.setDate(1); rangeStart.setHours(0,0,0,0);
 const rangeEnd = new Date(gMaxDate + PAD);
-rangeEnd.setMonth(rangeEnd.getMonth()+1, 0);
+rangeEnd.setMonth(rangeEnd.getMonth()+1, 0); rangeEnd.setHours(0,0,0,0);
 
-function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function daysBetween(a,b){
+  const d1=new Date(a); d1.setHours(0,0,0,0);
+  const d2=new Date(b); d2.setHours(0,0,0,0);
+  return Math.round((d2-d1)/86400000);
+}
 const totalDays = daysBetween(rangeStart, rangeEnd) + 1;
 const totalWidth = totalDays * DAY_WIDTH;
 
@@ -625,11 +629,11 @@ function renderGantt(){
     timelineRows.appendChild(bar);
   });
 
-  // Today line
+  // Today line — centered in the day cell
   const today = new Date();
   today.setHours(0,0,0,0);
   if(today >= rangeStart && today <= rangeEnd){
-    const tx = daysBetween(rangeStart, today) * DAY_WIDTH;
+    const tx = daysBetween(rangeStart, today) * DAY_WIDTH + Math.floor(DAY_WIDTH / 2);
 
     const line = document.createElement('div');
     line.className = 'today-line';
