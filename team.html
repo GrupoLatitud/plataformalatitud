@@ -480,13 +480,32 @@ function renderOrgChart(){
     return;
   }
 
+  // Lê projetos do localStorage (mesma fonte do project-board)
+  let projects=[];
+  try{ const s=localStorage.getItem('latitud_projects'); if(s) projects=JSON.parse(s); }catch(e){}
+
+  // Monta mapa: encarregado id → Set de ids de colaboradores vinculados via projetos
+  const encCollabMap={};
+  encarregados.forEach(e=>encCollabMap[e.id]=new Set());
+  projects.forEach(p=>{
+    if(p.responsible && encCollabMap[p.responsible]){
+      (p.collabs||[]).forEach(cId=>{
+        const m=team.find(t=>t.id===cId);
+        if(m && (m.role==='Operação'||m.role==='Empreiteiro')){
+          encCollabMap[p.responsible].add(cId);
+        }
+      });
+    }
+  });
+
   function avatarHtml(m,size){
     if(m.photo) return `<img src="${m.photo}" alt="${m.name}">`;
     return initials(m.name);
   }
 
   chart.innerHTML=encarregados.map(enc=>{
-    const linked=team.filter(t=>t.linkedTo===enc.id&&(t.role==='Operação'||t.role==='Empreiteiro'));
+    const linkedIds=encCollabMap[enc.id];
+    const linked=team.filter(t=>linkedIds.has(t.id));
 
     const membersHtml=linked.length
       ? linked.map(m=>`
