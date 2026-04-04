@@ -298,12 +298,17 @@ body{
 
     <div class="field">
       <label>Data de Início</label>
-      <input type="date" id="fDate">
+      <input type="date" id="fDate" onchange="calcDuration()">
+    </div>
+
+    <div class="field">
+      <label>Data Final</label>
+      <input type="date" id="fEndDate" onchange="calcDuration()">
     </div>
 
     <div class="field">
       <label>Duração Estimada</label>
-      <input type="text" id="fDuration" placeholder="Ex: 45 dias">
+      <div id="fDurationDisplay" style="padding:8px 12px;background:#1e1a12;border-radius:6px;color:#ccc;font-size:.85rem">—</div>
     </div>
 
     <div class="field">
@@ -363,10 +368,10 @@ const STAGES=[
 
 /* ── PROJECTS ───────────────────────────────────── */
 const DEFAULT_PROJECTS=[
-  {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",duration:"120 dias",progress:62,responsible:1,collabs:[3,5,8]},
-  {id:2,name:"Res. Parque das Flores",stage:"andamento",date:"2026-01-15",duration:"90 dias",progress:35,responsible:4,collabs:[2,6,9,11]},
-  {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",duration:"60 dias",progress:78,responsible:3,collabs:[1,7]},
-  {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",duration:"45 dias",progress:100,responsible:11,collabs:[4,6,12,10]}
+  {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",endDate:"2026-03-10",progress:62,responsible:1,collabs:[3,5,8]},
+  {id:2,name:"Res. Parque das Flores",stage:"andamento",date:"2026-01-15",endDate:"2026-04-15",progress:35,responsible:4,collabs:[2,6,9,11]},
+  {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",endDate:"2025-10-19",progress:78,responsible:3,collabs:[1,7]},
+  {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",endDate:"2025-06-19",progress:100,responsible:11,collabs:[4,6,12,10]}
 ];
 function loadProjects(){
   const saved=localStorage.getItem('latitud_projects');
@@ -393,6 +398,18 @@ function tempoEmCampo(dateStr){
   return days+"d";
 }
 function stageColor(key){return STAGES.find(s=>s.key===key)?.color||"#F5841F"}
+function calcDurationStr(dateStr,endDateStr){
+  if(!dateStr||!endDateStr)return"—";
+  const d1=new Date(dateStr+'T00:00:00');const d2=new Date(endDateStr+'T00:00:00');
+  const days=Math.round((d2-d1)/864e5);
+  if(days<0)return"—";
+  return days+" dias";
+}
+function calcDuration(){
+  const d=document.getElementById('fDate').value;
+  const e=document.getElementById('fEndDate').value;
+  document.getElementById('fDurationDisplay').textContent=calcDurationStr(d,e);
+}
 
 /* ── RENDER ──────────────────────────────────────── */
 function render(){
@@ -457,8 +474,9 @@ function renderCard(p,stage){
         </div>
         <div class="card-meta">
           <div><div class="meta-label">Início</div><div class="meta-value">${formatDate(p.date)}</div></div>
-          <div><div class="meta-label">Duração</div><div class="meta-value">${p.duration}</div></div>
-          <div style="grid-column:1/-1"><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
+          <div><div class="meta-label">Final</div><div class="meta-value">${formatDate(p.endDate)}</div></div>
+          <div><div class="meta-label">Duração</div><div class="meta-value">${calcDurationStr(p.date,p.endDate)}</div></div>
+          <div><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
         </div>
         ${resp?`
         <div class="card-responsavel">
@@ -545,7 +563,8 @@ function openModal(proj){
   document.getElementById('fName').value='';
   document.getElementById('fStage').value='andamento';
   document.getElementById('fDate').value='';
-  document.getElementById('fDuration').value='';
+  document.getElementById('fEndDate').value='';
+  document.getElementById('fDurationDisplay').textContent='—';
   document.getElementById('fProgress').value=0;
   document.getElementById('progressVal').textContent='0%';
   selectedResp=null;
@@ -557,7 +576,8 @@ function openModal(proj){
     document.getElementById('fName').value=proj.name;
     document.getElementById('fStage').value=proj.stage;
     document.getElementById('fDate').value=proj.date;
-    document.getElementById('fDuration').value=proj.duration;
+    document.getElementById('fEndDate').value=proj.endDate||'';
+    calcDuration();
     document.getElementById('fProgress').value=proj.progress;
     document.getElementById('progressVal').textContent=proj.progress+'%';
     selectedResp=proj.responsible;
@@ -584,7 +604,7 @@ function saveProject(){
     name,
     stage:document.getElementById('fStage').value,
     date:document.getElementById('fDate').value,
-    duration:document.getElementById('fDuration').value,
+    endDate:document.getElementById('fEndDate').value,
     progress:+document.getElementById('fProgress').value,
     responsible:selectedResp,
     collabs:[...selectedCollabs]
