@@ -137,6 +137,11 @@ body{
   width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;
+  overflow:hidden;
+}
+.avatar.has-photo{
+  border:2px solid;
+  background:transparent !important;
 }
 .resp-name{font-size:.78rem;font-weight:600;line-height:1.15}
 .resp-role{font-size:.62rem;color:var(--text-dim)}
@@ -146,6 +151,9 @@ body{
 .card-collabs .avatar{
   width:24px;height:24px;font-size:.58rem;
   border:2px solid var(--surface2);margin-left:-6px;
+}
+.card-collabs .avatar.has-photo{
+  border:2px solid;margin-left:-6px;
 }
 .card-collabs .avatar:first-child{margin-left:0}
 .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
@@ -484,12 +492,12 @@ function renderCard(p,stage){
         </div>
         ${resp?`
         <div class="card-responsavel">
-          <div class="avatar" style="background:${resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
+          <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
           <div><div class="resp-name">${resp.name}</div><div class="resp-role">${resp.role}</div></div>
         </div>`:''}
         ${collabs.length?`
         <div class="card-collabs">
-          ${visCollabs.map(c=>`<div class="avatar" style="background:${c.color}" title="${c.name}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>`).join('')}
+          ${visCollabs.map(c=>`<div class="avatar${c.photo?' has-photo':''}" style="${c.photo?'border-color:'+c.color:'background:'+c.color}" title="${c.name}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>`).join('')}
           ${extraCount>0?`<span class="collab-badge">+${extraCount}</span>`:''}
         </div>`:''}
         <div class="ctx-menu" id="ctx-${p.id}">
@@ -532,7 +540,7 @@ let selectedCollabs=new Set();
 
 function avatarHTML(t,size){
   const s=size||24;
-  if(t.photo)return `<div class="avatar" style="background:${t.color};width:${s}px;height:${s}px"><img src="${t.photo}" alt="${t.name}"></div>`;
+  if(t.photo)return `<div class="avatar has-photo" style="border-color:${t.color};width:${s}px;height:${s}px"><img src="${t.photo}" alt="${t.name}"></div>`;
   return `<div class="avatar" style="background:${t.color};width:${s}px;height:${s}px">${initials(t.name)}</div>`;
 }
 function buildChips(){
