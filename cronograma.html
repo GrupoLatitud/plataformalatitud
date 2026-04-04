@@ -161,6 +161,7 @@ body{
 }
 .day-cell.weekend{color:rgba(154,144,128,.25)}
 .day-cell.today-cell{color:var(--green);font-weight:700;background:rgba(143,207,106,.1);border-radius:4px}
+.day-cell.holiday{color:#f05050;font-weight:700}
 .timeline-body{
   flex:1;overflow:auto;position:relative;
 }
@@ -349,6 +350,19 @@ const DEFAULT_TEAM=[
 const STAGE_COLORS = { andamento:'#8fcf6a', garantia:'#F5841F', standby:'#6bafd4' };
 const STAGE_LABELS = { andamento:'Em andamento', garantia:'Garantia', standby:'Stand-by' };
 const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const HOLIDAYS = new Set([
+  '2026-04-03','2026-04-21','2026-05-01','2026-06-04','2026-05-24',
+  '2026-09-07','2026-10-12','2026-10-24','2026-11-02','2026-11-15',
+  '2026-11-20','2026-12-24','2026-12-25','2026-12-29','2026-12-30','2026-12-31',
+  '2027-01-01','2027-02-08','2027-02-09','2027-02-10','2027-03-26',
+  '2027-04-21','2027-05-01','2027-05-24','2027-05-27',
+  '2027-09-07','2027-10-12','2027-10-24','2027-11-02','2027-11-15',
+  '2027-11-20','2027-12-24','2027-12-25','2027-12-29','2027-12-30','2027-12-31',
+  '2028-01-01','2028-02-28','2028-02-29','2028-03-01','2028-04-14',
+  '2028-04-21','2028-05-01','2028-05-24','2028-06-15',
+  '2028-09-07','2028-10-12','2028-10-24','2028-11-02','2028-11-15',
+  '2028-11-20','2028-12-24','2028-12-25','2028-12-29','2028-12-30','2028-12-31'
+]);
 
 function loadAllProjects(){
   try{ const d=localStorage.getItem('latitud_projects'); if(d){ const p=JSON.parse(d); if(Array.isArray(p)&&p.length) return p; } }catch(e){}
@@ -515,6 +529,7 @@ function buildHeader(){
     if(dow === 0 || dow === 6) dc.classList.add('weekend');
     const dcStr = dayCur.getFullYear()+'-'+(dayCur.getMonth()+1).toString().padStart(2,'0')+'-'+dayCur.getDate().toString().padStart(2,'0');
     if(dcStr === todayStr) dc.classList.add('today-cell');
+    if(HOLIDAYS.has(dcStr)) dc.classList.add('holiday');
     daysRow.appendChild(dc);
 
     dayCur = new Date(dayCur);
