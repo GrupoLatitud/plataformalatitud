@@ -219,6 +219,54 @@ body{
 .empty-state .icon{font-size:2.5rem;margin-bottom:10px;opacity:.4}
 .empty-state p{font-size:.95rem}
 
+/* ORG CHART */
+.org-section{margin-top:40px}
+.org-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.2rem;
+  margin-bottom:18px;display:flex;align-items:center;gap:8px;
+}
+.org-title span{color:var(--orange)}
+.org-row{
+  display:flex;align-items:flex-start;gap:0;margin-bottom:16px;
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  overflow:hidden;
+}
+.org-leader{
+  min-width:200px;padding:16px 20px;
+  border-right:2px solid var(--orange);
+  display:flex;align-items:center;gap:12px;
+  background:rgba(245,132,31,.05);
+}
+.org-leader-avatar{
+  width:44px;height:44px;border-radius:50%;overflow:hidden;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;color:#fff;
+}
+.org-leader-avatar img{width:100%;height:100%;object-fit:cover}
+.org-leader-info{display:flex;flex-direction:column;gap:1px}
+.org-leader-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+}
+.org-leader-role{font-size:.7rem;color:var(--orange);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.org-members{
+  flex:1;display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;align-items:center;
+}
+.org-member-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid #2e2818;
+  border-radius:8px;padding:6px 12px 6px 6px;
+}
+.org-member-avatar{
+  width:30px;height:30px;border-radius:50%;overflow:hidden;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.65rem;color:#fff;
+}
+.org-member-avatar img{width:100%;height:100%;object-fit:cover}
+.org-member-info{display:flex;flex-direction:column;gap:0}
+.org-member-name{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem}
+.org-member-role{font-size:.62rem;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.org-empty{color:var(--text-dim);font-size:.78rem;font-style:italic;padding:4px 0}
+
 @media(max-width:600px){
   .header{padding:0 14px;gap:10px;flex-wrap:wrap;height:auto;padding:10px 14px}
   .nav{margin-left:0}
@@ -254,6 +302,11 @@ body{
   </div>
 
   <div class="team-grid" id="teamGrid"></div>
+
+  <div class="org-section">
+    <div class="org-title"><span>📋</span> Organograma da Equipe</div>
+    <div id="orgChart"></div>
+  </div>
 </main>
 
 <!-- MODAL -->
@@ -296,6 +349,13 @@ body{
       </select>
     </div>
 
+    <div class="field" id="linkedField" style="display:none">
+      <label>Vinculado ao Encarregado</label>
+      <select id="fLinkedTo">
+        <option value="">Nenhum</option>
+      </select>
+    </div>
+
     <div class="field" id="colorField" style="display:none">
       <label>Cor de Identificação</label>
       <div class="color-grid" id="colorGrid"></div>
@@ -330,6 +390,22 @@ const ROLE_COLORS={"Encarregado":"#F5841F","Operação":"#8fcf6a","Empreiteiro":
 function autoSelectColor(){
   const role=document.getElementById('fRole').value;
   if(ROLE_COLORS[role]){selectedColor=ROLE_COLORS[role];renderColors()}
+  const linkedField=document.getElementById('linkedField');
+  if(role==='Operação'||role==='Empreiteiro'){
+    linkedField.style.display='';
+    populateEncarregados();
+  }else{
+    linkedField.style.display='none';
+    document.getElementById('fLinkedTo').value='';
+  }
+}
+function populateEncarregados(){
+  const select=document.getElementById('fLinkedTo');
+  const currentVal=select.value;
+  const encarregados=team.filter(t=>t.role==='Encarregado'&&t.id!==editingId);
+  select.innerHTML='<option value="">Nenhum</option>'+
+    encarregados.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  select.value=currentVal;
 }
 
 /* ── STATE ─────────────────────────────────────── */
@@ -390,6 +466,51 @@ function render(){
       </div>
     </div>`;
   }).join('');
+
+  renderOrgChart();
+}
+
+/* ── ORG CHART ────────────────────────────────── */
+function renderOrgChart(){
+  const chart=document.getElementById('orgChart');
+  const encarregados=team.filter(t=>t.role==='Encarregado');
+
+  if(!encarregados.length){
+    chart.innerHTML='<div class="org-empty">Nenhum encarregado cadastrado.</div>';
+    return;
+  }
+
+  function avatarHtml(m,size){
+    if(m.photo) return `<img src="${m.photo}" alt="${m.name}">`;
+    return initials(m.name);
+  }
+
+  chart.innerHTML=encarregados.map(enc=>{
+    const linked=team.filter(t=>t.linkedTo===enc.id&&(t.role==='Operação'||t.role==='Empreiteiro'));
+
+    const membersHtml=linked.length
+      ? linked.map(m=>`
+        <div class="org-member-chip">
+          <div class="org-member-avatar" style="background:${m.color}">${avatarHtml(m)}</div>
+          <div class="org-member-info">
+            <div class="org-member-name">${m.name}</div>
+            <div class="org-member-role" style="color:${m.color}">${m.role}</div>
+          </div>
+        </div>`).join('')
+      : '<div class="org-empty">Nenhum vinculado</div>';
+
+    return `
+    <div class="org-row">
+      <div class="org-leader">
+        <div class="org-leader-avatar" style="background:${enc.color}">${avatarHtml(enc)}</div>
+        <div class="org-leader-info">
+          <div class="org-leader-name">${enc.name}</div>
+          <div class="org-leader-role">Encarregado</div>
+        </div>
+      </div>
+      <div class="org-members">${membersHtml}</div>
+    </div>`;
+  }).join('');
 }
 
 /* ── COLOR PICKER ──────────────────────────────── */
@@ -438,6 +559,8 @@ function openModal(member){
   document.getElementById('modalTitle').textContent='Novo Colaborador';
   document.getElementById('fName').value='';
   document.getElementById('fRole').value='';
+  document.getElementById('fLinkedTo').value='';
+  document.getElementById('linkedField').style.display='none';
   selectedColor=COLORS[0];
   currentPhoto="";
 
@@ -448,6 +571,12 @@ function openModal(member){
     document.getElementById('fRole').value=member.role;
     selectedColor=member.color;
     currentPhoto=member.photo||"";
+    // Show linkedTo for Operação/Empreiteiro
+    if(member.role==='Operação'||member.role==='Empreiteiro'){
+      document.getElementById('linkedField').style.display='';
+      populateEncarregados();
+      document.getElementById('fLinkedTo').value=member.linkedTo||'';
+    }
   }
 
   document.getElementById('photoInput').value="";
@@ -476,11 +605,14 @@ function saveMember(){
   if(!name){alert('Informe o nome do colaborador.');return}
   if(!role){alert('Informe o cargo / função.');return}
 
+  const linkedTo=document.getElementById('fLinkedTo').value;
+  const linkedToId=linkedTo?parseInt(linkedTo):null;
+
   if(editingId){
     const m=team.find(t=>t.id===editingId);
-    if(m){m.name=name;m.role=role;m.color=selectedColor;m.photo=currentPhoto}
+    if(m){m.name=name;m.role=role;m.color=selectedColor;m.photo=currentPhoto;m.linkedTo=linkedToId}
   }else{
-    team.push({id:nextId(),name,role,color:selectedColor,photo:currentPhoto});
+    team.push({id:nextId(),name,role,color:selectedColor,photo:currentPhoto,linkedTo:linkedToId});
   }
   saveTeam();closeModal();render();
 }
