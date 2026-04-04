@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJETOCTRL — Gestão de Projetos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  display:flex;align-items:center;gap:24px;
+  padding:0 28px;height:58px;
+  backdrop-filter:blur(8px);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap;
+}
+.logo svg{height:32px;width:auto}
+.logo-text{
+  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.5rem;
+  color:#fff;letter-spacing:2px;
+}
+.nav{display:flex;gap:4px;margin-left:16px}
+.nav a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
+  transition:color .2s,background .2s;letter-spacing:.3px;
+}
+.nav a:hover{color:var(--text);background:var(--surface2)}
+.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.counters{display:flex;gap:10px;margin-left:auto}
+.counter-pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);padding:5px 14px;border-radius:20px;
+  font-size:.82rem;font-weight:500;white-space:nowrap;
+}
+.counter-pill .dot{width:8px;height:8px;border-radius:50%}
+.btn-new{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  white-space:nowrap;transition:background .2s;
+}
+.btn-new:hover{background:#e0750f}
+
+/* BOARD */
+.board{padding:20px 28px;display:flex;flex-direction:column;gap:18px}
+
+/* LANE */
+.lane{
+  display:flex;border-radius:var(--radius);overflow:hidden;
+  background:var(--surface);min-height:210px;
+  border:1px solid #2e2818;transition:background .2s;
+}
+.lane.drag-over{background:#2a2510}
+.lane-sidebar{
+  width:140px;min-width:140px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:18px 10px;text-align:center;
+  border-right:1px solid #2e2818;
+}
+.lane-icon{font-size:1.8rem}
+.lane-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  text-transform:uppercase;letter-spacing:.8px;
+}
+.lane-count{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.2rem;
+  line-height:1;
+}
+.lane-cards{
+  display:flex;gap:14px;padding:16px;
+  overflow-x:auto;flex:1;align-items:flex-start;
+}
+.lane-cards::-webkit-scrollbar{height:6px}
+.lane-cards::-webkit-scrollbar-track{background:transparent}
+.lane-cards::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+
+/* CARD */
+.card{
+  width:210px;min-width:210px;flex-shrink:0;
+  background:var(--surface2);border-radius:var(--radius);
+  overflow:hidden;cursor:grab;position:relative;
+  transition:transform .15s,box-shadow .15s;
+}
+.card:active{cursor:grabbing}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.card-accent{height:2px;width:100%}
+.card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}
+.card-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;
+  line-height:1.2;flex:1;
+}
+.card-menu-btn{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:1.1rem;padding:0 2px;line-height:1;
+}
+.card-menu-btn:hover{color:var(--text)}
+
+/* Progress */
+.progress-wrap{display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:5px;background:#1a1610;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s}
+.progress-pct{font-size:.75rem;font-weight:600;min-width:30px;text-align:right}
+
+/* Meta grid */
+.card-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
+.meta-label{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px}
+.meta-value{font-size:.78rem;font-weight:500}
+
+/* Responsavel */
+.card-responsavel{
+  display:flex;align-items:center;gap:8px;
+  background:#1a1610;border-radius:6px;padding:6px 8px;margin-top:2px;
+}
+.avatar{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.resp-name{font-size:.78rem;font-weight:600;line-height:1.15}
+.resp-role{font-size:.62rem;color:var(--text-dim)}
+
+/* Colaboradores */
+.card-collabs{display:flex;align-items:center;gap:0;margin-top:2px}
+.card-collabs .avatar{
+  width:24px;height:24px;font-size:.58rem;
+  border:2px solid var(--surface2);margin-left:-6px;
+}
+.card-collabs .avatar:first-child{margin-left:0}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.collab-badge{
+  font-size:.6rem;font-weight:600;color:var(--text-dim);
+  margin-left:4px;
+}
+
+/* CONTEXT MENU */
+.ctx-menu{
+  position:absolute;top:28px;right:8px;z-index:50;
+  background:#1a1610;border:1px solid #2e2818;border-radius:8px;
+  padding:4px 0;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);
+  display:none;
+}
+.ctx-menu.open{display:block}
+.ctx-item{
+  padding:7px 14px;font-size:.82rem;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  transition:background .15s;white-space:nowrap;
+}
+.ctx-item:hover{background:var(--surface2)}
+.ctx-item.danger{color:#f07070}
+.ctx-sep{height:1px;background:#2e2818;margin:3px 0}
+
+/* MODAL OVERLAY */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
+  width:520px;max-width:94vw;max-height:90vh;overflow-y:auto;
+  padding:28px 30px 24px;
+}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+.modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;
+  margin-bottom:20px;
+}
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:.78rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  margin-bottom:5px;
+}
+.field input[type="text"],.field input[type="date"],.field select{
+  width:100%;background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:9px 12px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--orange)}
+.range-wrap{display:flex;align-items:center;gap:12px}
+.range-wrap input[type="range"]{
+  flex:1;-webkit-appearance:none;height:6px;
+  background:#1a1610;border-radius:3px;outline:none;
+}
+.range-wrap input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;
+  background:var(--orange);border-radius:50%;cursor:pointer;
+}
+.range-val{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:1.1rem;min-width:40px;text-align:right;
+}
+
+/* Chips */
+.chips-label{margin-bottom:8px}
+.chips-grid{display:grid;gap:6px}
+.chips-grid.cols-2{grid-template-columns:1fr 1fr}
+.chips-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:2px solid transparent;
+  border-radius:8px;padding:7px 10px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.chip.selected{border-color:var(--orange);background:#2a2010}
+.chip .avatar{width:24px;height:24px;font-size:.6rem}
+.chip-info{line-height:1.2}
+.chip-name{font-size:.8rem;font-weight:600}
+.chip-role{font-size:.62rem;color:var(--text-dim)}
+.chip-check{
+  margin-left:auto;width:16px;height:16px;border-radius:4px;
+  border:2px solid #3a3020;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:transparent;transition:all .15s;flex-shrink:0;
+}
+.chip.selected .chip-check{border-color:var(--orange);background:var(--orange);color:#fff}
+
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.btn-cancel{
+  background:transparent;border:1px solid #3a3020;color:var(--text-dim);
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow',sans-serif;font-weight:500;font-size:.88rem;
+}
+.btn-save{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 22px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+}
+.btn-save:hover{background:#e0750f}
+
+@media(max-width:600px){
+  .header{padding:0 14px;gap:10px}
+  .counters{display:none}
+  .board{padding:12px}
+  .lane{flex-direction:column}
+  .lane-sidebar{width:100%;min-width:100%;flex-direction:row;border-right:none;border-bottom:1px solid #2e2818;padding:10px 16px}
+  .lane-cards{padding:12px}
+  .modal{padding:20px 16px}
+  .chips-grid.cols-3{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="project-board.html" class="logo">
+    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/><g><path class="cls-2" d="M121.94,119.06s3.28,.78,2.91,2.89"/><path class="cls-2" d="M120.1,123.46s2.19,.13,3.11-.27-2.88,0-2.88,0l-.22,.27Z"/><path class="cls-2" d="M144.86,118.97c-6.46-5.15-11.81-15.53-11.81-15.53-1.55-1.27-.45-2.41-.45-2.41,4.58-.53,7.8-3.15,10.54-4.86,2.74-1.72-1.14-11.19-1.14-11.19,0,0,0-5.11,.16-5.19,.16-.08,.65-2.12,.65-2.12,0,0,.26-3.24-.42-5.15-1.11-.85-2.44-.81-3.69-.27-.3,.46-.66,1.09-1.01,1.96,0,.05,.02,.11,.02,.16,.02,.48-.08,.98-.25,1.46,0,.04-.02,.08-.03,.12,0,.02,0,.03,0,.05,0,0,0,0,0,0,.01,.07,0,.13-.02,.19,0,0,0,0,0,.01-.13,.68,0,1.42,.19,2.08,.1,.34,.26,.65,.4,.96,.11,.11,.19,.17,.19,.17l.12,1.06c.74,1.55-.82,10.05-.69,11.28,.12,1.23-.9,1.43-1.35,1.96-.43,.51-8.72,1.31-9.5,1.38,0,0,0,0,0,0,0,0,0,0,0,0-.03,0-.05,0-.05,0v-.03s-.01-.01-.02-.02c0,0-.02-.02-.03-.03-.07-.23-.07-.43-.05-.66-.06-.49,.2-1.03,.29-1.52-.04-.34-.08-.7-.11-1.12-.27-3.44,.14-4.2,.41-4.58,.22-.31,.65-.76,1.46-1.1,.23-.37,.52-.71,.87-.99v-.16s-.08-.05-.12-.08h-.25l-.08-.05-.7-.4s-1.79,.01-2.63,.01c-.38,0-.73-.04-1.06-.11-.26,.05-.53,.08-.82,.08-3.03,0-4.64-4.73-4.64-4.73-4.17,.25-4.86,4.33-4.86,4.33-.53,1.63,0,4.66,0,4.66,1.27-.61,3.06,3.27,3.06,3.27,.74,4.13-2.37,4.29-2.37,4.29h-4.86c-7.4,6.5-6.78,20.26-6.78,20.26-.04,3.6,14.1,10.83,14.1,10.83,.74,.94,3.31,2.17,3.31,2.17,2.08-.08,2.74-.78,2.74-.78,1.31-.29,1.55-.41,1.55-.41v-.65h.98v.45c-.08,.69,1.23,2.04,1.23,2.04,8.42,3.31,12.09,9.32,12.09,9.32v5.31c-4.25,1.55-5.43,4.9-5.43,4.9,.33,1.55,3.43,3.19,3.43,3.19l2.45-.04c1.8,0,4.29,3.06,4.29,3.06,3.06,4.29,3.47,9.72,3.47,9.72-.98,1.35-.08,2.9-.08,2.9l-.04,4.37-.08,.82c0,3.27,.49,3.19,1.23,3.47,.74,.29,2.25,.04,2.66,0,.41-.04,1.59-.94,1.96-1.14,.37-.2,.74-1.1,.94-2.29,.2-1.18-.57-2.04-.57-2.04,0,0-.08-1.88-.04-3.68,.04-1.8-1.02-3.15-1.02-3.15-1.39-.45-4.17-20.92-4.17-20.92-.37-1.84,11.44-7.64,11.44-7.64,1.88-1.14,2.08-5.8,2.08-5.8-.08-2.9-17.08-11.48-17.08-11.48Zm-20.29,4.22h-2.89v.27h-2.78s-6.41-4.66-8.77-8.39c-.86-1.36,0-2.18,0-2.18l1.69-3.65s.71-2.72,2.18,0c0,0,4.41,9.04,10.13,10.9v.33s.16,.16,.33,.43c.3,.49,.64,1.35,.11,2.3Zm22.61,13.24s-.6-2.4-1.14-2.94l-.54-.54v-1.36h.82s4.52,1.04,4.36,1.58c-.16,.54-3.49,3.27-3.49,3.27Z"/><path class="cls-2" d="M129.35,84.77c-.86-.19-.96-.41-.96-.41-2.33-6.03-9.74-4.74-9.74-4.74l.3,3.15,4.68,2.86,4.75-1.14-1.18,2.66c.14-.57,2.33-1.37,2.33-1.37,.5-.13,.25-.6,.1-.83-.1-.05-.19-.11-.28-.17Z"/><path class="cls-2" d="M139.41,96.35c-.11-.52-.9-.3-.79,.22,.96,4.53,1.96,9.12-.11,13.5-1.39,2.93-3.39,5.48-4.33,8.62-.15,.51,.64,.73,.79,.22,1.11-3.72,3.83-6.66,5.02-10.33,1.29-3.96,.25-8.27-.58-12.22Z"/><path class="cls-2" d="M125.19,154.89c-3.32-8.55-6.88-18.42-1.92-27.09,.3-.52-.5-.99-.8-.47-5.09,8.9-1.59,18.99,1.83,27.8,.21,.55,1.11,.31,.89-.25Z"/><path class="cls-2" d="M144.47,59.7c.24,2.93-1.29,5.94-2.34,8.58-.58,1.45-1.12,2.93-1.41,4.47-.31,1.7-.15,3.46-.77,5.1-.14,.36,.45,.52,.58,.16,.66-1.72,.47-3.57,.83-5.35,.36-1.8,1.06-3.5,1.75-5.2,.84-2.06,1.79-4.33,1.94-6.6-.22-.38-.42-.76-.59-1.17Z"/></g></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+  </a>
+  <nav class="nav">
+    <a href="project-board.html" class="active">Projetos</a>
+    <a href="team.html">Equipe</a>
+  </nav>
+  <div class="counters" id="counters"></div>
+  <button class="btn-new" onclick="openModal()">+ Novo Projeto</button>
+</header>
+
+<main class="board" id="board"></main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Novo Projeto</div>
+
+    <div class="field">
+      <label>Nome do Projeto</label>
+      <input type="text" id="fName" placeholder="Ex: Residencial Aurora">
+    </div>
+
+    <div class="field">
+      <label>Etapa</label>
+      <select id="fStage">
+        <option value="andamento">Em Andamento</option>
+        <option value="standby">Stand-by</option>
+        <option value="garantia">Retorno Garantia</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Data de Início</label>
+      <input type="date" id="fDate">
+    </div>
+
+    <div class="field">
+      <label>Duração Estimada</label>
+      <input type="text" id="fDuration" placeholder="Ex: 45 dias">
+    </div>
+
+    <div class="field">
+      <label>Avanço</label>
+      <div class="range-wrap">
+        <input type="range" id="fProgress" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'">
+        <span class="range-val" id="progressVal">0%</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="chips-label">Responsável</label>
+      <div class="chips-grid cols-2" id="chipsResp"></div>
+    </div>
+
+    <div class="field">
+      <label class="chips-label">Colaboradores</label>
+      <div class="chips-grid cols-3" id="chipsCollab"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveProject()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── TEAM (shared via localStorage) ────────────── */
+const DEFAULT_TEAM=[
+  {id:1,name:"Carlos Mendes",role:"Encarregado",color:"#F5841F",photo:""},
+  {id:2,name:"Beatriz Lima",role:"Arquiteta",color:"#F5C242",photo:""},
+  {id:3,name:"Rafael Souza",role:"Engenheiro",color:"#6bafd4",photo:""},
+  {id:4,name:"Patrícia Alves",role:"Gestora",color:"#8fcf6a",photo:""},
+  {id:5,name:"Ana Ferreira",role:"Projetista",color:"#d47fb5",photo:""},
+  {id:6,name:"Bruno Costa",role:"Técnico",color:"#f07070",photo:""},
+  {id:7,name:"Carla Nunes",role:"Supervisora",color:"#a08cf5",photo:""},
+  {id:8,name:"Diego Rocha",role:"Operacional",color:"#f5b07a",photo:""},
+  {id:9,name:"Fábio Matos",role:"Auxiliar",color:"#70d4c0",photo:""},
+  {id:10,name:"Gisele Pinto",role:"Administradora",color:"#f5d47a",photo:""},
+  {id:11,name:"Helena Ramos",role:"Coordenadora",color:"#c5a55a",photo:""},
+  {id:12,name:"Ivan Lopes",role:"Técnico",color:"#8ab5f5",photo:""}
+];
+let TEAM=[];
+function loadTeam(){
+  const stored=localStorage.getItem('projetoctrl_team');
+  if(stored){try{TEAM=JSON.parse(stored)}catch(e){TEAM=[...DEFAULT_TEAM]}}
+  else{TEAM=[...DEFAULT_TEAM];localStorage.setItem('projetoctrl_team',JSON.stringify(TEAM))}
+}
+loadTeam();
+
+const STAGES=[
+  {key:"andamento",label:"Em Andamento",icon:"🔥",color:"#F5841F"},
+  {key:"garantia",label:"Retorno Garantia",icon:"🛡️",color:"#8fcf6a"},
+  {key:"standby",label:"Stand-by",icon:"⏸️",color:"#6bafd4"}
+];
+
+/* ── PROJECTS ───────────────────────────────────── */
+let projects=[
+  {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",duration:"120 dias",progress:62,responsible:1,collabs:[3,5,8]},
+  {id:2,name:"Res. Parque das Flores",stage:"andamento",date:"2026-01-15",duration:"90 dias",progress:35,responsible:4,collabs:[2,6,9,11]},
+  {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",duration:"60 dias",progress:78,responsible:3,collabs:[1,7]},
+  {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",duration:"45 dias",progress:100,responsible:11,collabs:[4,6,12,10]}
+];
+let nextId=5;
+let editingId=null;
+
+/* ── HELPERS ─────────────────────────────────────── */
+function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function daysBetween(a,b){return Math.max(0,Math.round((b-a)/864e5))}
+function tempoEmCampo(dateStr){
+  if(!dateStr)return "—";
+  const d=new Date(dateStr);const now=new Date();
+  const days=daysBetween(d,now);
+  if(days>365){const y=Math.floor(days/365);const m=Math.floor((days%365)/30);return y+"a "+m+"m"}
+  if(days>30){const m=Math.floor(days/30);const dd=days%30;return m+"m "+dd+"d"}
+  return days+"d";
+}
+function stageColor(key){return STAGES.find(s=>s.key===key)?.color||"#F5841F"}
+
+/* ── RENDER ──────────────────────────────────────── */
+function render(){
+  loadTeam();
+  const board=document.getElementById('board');
+  board.innerHTML='';
+
+  // Counters
+  const counters=document.getElementById('counters');
+  counters.innerHTML=STAGES.map(s=>{
+    const c=projects.filter(p=>p.stage===s.key).length;
+    return `<div class="counter-pill"><span class="dot" style="background:${s.color}"></span>${s.label}: <strong>${c}</strong></div>`;
+  }).join('');
+
+  STAGES.forEach(stage=>{
+    const items=projects.filter(p=>p.stage===stage.key);
+    const lane=document.createElement('div');
+    lane.className='lane';
+    lane.dataset.stage=stage.key;
+    lane.addEventListener('dragover',e=>{e.preventDefault();lane.classList.add('drag-over')});
+    lane.addEventListener('dragleave',()=>lane.classList.remove('drag-over'));
+    lane.addEventListener('drop',e=>{
+      e.preventDefault();lane.classList.remove('drag-over');
+      const id=+e.dataTransfer.getData('text/plain');
+      const proj=projects.find(p=>p.id===id);
+      if(proj){proj.stage=stage.key;render()}
+    });
+
+    lane.innerHTML=`
+      <div class="lane-sidebar">
+        <div class="lane-icon">${stage.icon}</div>
+        <div class="lane-title" style="color:${stage.color}">${stage.label}</div>
+        <div class="lane-count" style="color:${stage.color}">${items.length}</div>
+      </div>
+      <div class="lane-cards">${items.map(p=>renderCard(p,stage)).join('')}</div>
+    `;
+    board.appendChild(lane);
+  });
+
+  // Close context menus on outside click
+  document.addEventListener('click',closeAllMenus);
+}
+
+function renderCard(p,stage){
+  const resp=TEAM.find(t=>t.id===p.responsible);
+  const collabs=p.collabs.map(id=>TEAM.find(t=>t.id===id)).filter(Boolean);
+  const visCollabs=collabs.slice(0,3);
+  const extraCount=collabs.length-3;
+  const sc=stageColor(p.stage);
+
+  return `
+    <div class="card" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${p.id}')" id="card-${p.id}">
+      <div class="card-accent" style="background:${sc}"></div>
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-name">${p.name}</div>
+          <button class="card-menu-btn" onclick="event.stopPropagation();toggleMenu(${p.id})">⋯</button>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%;background:${sc}"></div></div>
+          <span class="progress-pct" style="color:${sc}">${p.progress}%</span>
+        </div>
+        <div class="card-meta">
+          <div><div class="meta-label">Início</div><div class="meta-value">${formatDate(p.date)}</div></div>
+          <div><div class="meta-label">Duração</div><div class="meta-value">${p.duration}</div></div>
+          <div style="grid-column:1/-1"><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
+        </div>
+        ${resp?`
+        <div class="card-responsavel">
+          <div class="avatar" style="background:${resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
+          <div><div class="resp-name">${resp.name}</div><div class="resp-role">${resp.role}</div></div>
+        </div>`:''}
+        ${collabs.length?`
+        <div class="card-collabs">
+          ${visCollabs.map(c=>`<div class="avatar" style="background:${c.color}" title="${c.name}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>`).join('')}
+          ${extraCount>0?`<span class="collab-badge">+${extraCount}</span>`:''}
+        </div>`:''}
+        <div class="ctx-menu" id="ctx-${p.id}">
+          <div class="ctx-item" onclick="editProject(${p.id})">✏️ Editar projeto</div>
+          <div class="ctx-sep"></div>
+          ${STAGES.filter(s=>s.key!==p.stage).map(s=>`<div class="ctx-item" onclick="moveProject(${p.id},'${s.key}')">→ ${s.label}</div>`).join('')}
+          <div class="ctx-sep"></div>
+          <div class="ctx-item danger" onclick="removeProject(${p.id})">🗑 Remover projeto</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function formatDate(d){
+  if(!d)return"—";
+  const [y,m,dd]=d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+/* ── CONTEXT MENU ────────────────────────────────── */
+function toggleMenu(id){
+  closeAllMenus();
+  const el=document.getElementById('ctx-'+id);
+  if(el)el.classList.toggle('open');
+}
+function closeAllMenus(){document.querySelectorAll('.ctx-menu.open').forEach(m=>m.classList.remove('open'))}
+function moveProject(id,stage){
+  const p=projects.find(x=>x.id===id);
+  if(p){p.stage=stage;render()}
+}
+function removeProject(id){
+  if(confirm('Tem certeza que deseja remover este projeto?')){
+    projects=projects.filter(p=>p.id!==id);render();
+  }
+}
+
+/* ── MODAL ───────────────────────────────────────── */
+let selectedResp=null;
+let selectedCollabs=new Set();
+
+function avatarHTML(t,size){
+  const s=size||24;
+  if(t.photo)return `<div class="avatar" style="background:${t.color};width:${s}px;height:${s}px"><img src="${t.photo}" alt="${t.name}"></div>`;
+  return `<div class="avatar" style="background:${t.color};width:${s}px;height:${s}px">${initials(t.name)}</div>`;
+}
+function buildChips(){
+  loadTeam();
+  // Responsável
+  const respEl=document.getElementById('chipsResp');
+  respEl.innerHTML=TEAM.map(t=>`
+    <div class="chip ${selectedResp===t.id?'selected':''}" onclick="selectResp(${t.id})">
+      ${avatarHTML(t)}
+      <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
+    </div>`).join('');
+
+  // Colaboradores
+  const collEl=document.getElementById('chipsCollab');
+  collEl.innerHTML=TEAM.map(t=>`
+    <div class="chip ${selectedCollabs.has(t.id)?'selected':''}" onclick="toggleCollab(${t.id})">
+      ${avatarHTML(t)}
+      <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
+      <div class="chip-check">✓</div>
+    </div>`).join('');
+}
+
+function selectResp(id){selectedResp=id;buildChips()}
+function toggleCollab(id){
+  if(selectedCollabs.has(id))selectedCollabs.delete(id);else selectedCollabs.add(id);
+  buildChips();
+}
+
+function openModal(proj){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Novo Projeto';
+  document.getElementById('fName').value='';
+  document.getElementById('fStage').value='andamento';
+  document.getElementById('fDate').value='';
+  document.getElementById('fDuration').value='';
+  document.getElementById('fProgress').value=0;
+  document.getElementById('progressVal').textContent='0%';
+  selectedResp=null;
+  selectedCollabs=new Set();
+
+  if(proj){
+    editingId=proj.id;
+    document.getElementById('modalTitle').textContent='Editar Projeto';
+    document.getElementById('fName').value=proj.name;
+    document.getElementById('fStage').value=proj.stage;
+    document.getElementById('fDate').value=proj.date;
+    document.getElementById('fDuration').value=proj.duration;
+    document.getElementById('fProgress').value=proj.progress;
+    document.getElementById('progressVal').textContent=proj.progress+'%';
+    selectedResp=proj.responsible;
+    selectedCollabs=new Set(proj.collabs);
+  }
+
+  buildChips();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+
+function editProject(id){
+  closeAllMenus();
+  const p=projects.find(x=>x.id===id);
+  if(p)openModal(p);
+}
+
+function saveProject(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){alert('Informe o nome do projeto.');return}
+
+  const data={
+    name,
+    stage:document.getElementById('fStage').value,
+    date:document.getElementById('fDate').value,
+    duration:document.getElementById('fDuration').value,
+    progress:+document.getElementById('fProgress').value,
+    responsible:selectedResp,
+    collabs:[...selectedCollabs]
+  };
+
+  if(editingId){
+    const p=projects.find(x=>x.id===editingId);
+    if(p)Object.assign(p,data);
+  }else{
+    data.id=nextId++;
+    projects.push(data);
+  }
+  closeModal();
+  render();
+}
+
+/* ── INIT ────────────────────────────────────────── */
+render();
+</script>
+</body>
+</html>

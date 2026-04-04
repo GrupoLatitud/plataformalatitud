@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJETOCTRL — Equipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  display:flex;align-items:center;gap:20px;
+  padding:0 28px;height:58px;
+  backdrop-filter:blur(8px);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap;
+}
+.logo svg{height:32px;width:auto}
+.logo-text{
+  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.5rem;
+  color:#fff;letter-spacing:2px;
+}
+.nav{display:flex;gap:4px;margin-left:16px}
+.nav a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
+  transition:color .2s,background .2s;letter-spacing:.3px;
+}
+.nav a:hover{color:var(--text);background:var(--surface2)}
+.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.team-count{
+  font-size:.85rem;color:var(--text-dim);
+  display:flex;align-items:center;gap:6px;
+}
+.team-count strong{color:var(--text);font-size:1.1rem}
+.btn-new{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  white-space:nowrap;transition:background .2s;
+}
+.btn-new:hover{background:#e0750f}
+
+/* GRID */
+.page-body{padding:28px}
+.page-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;
+  margin-bottom:6px;
+}
+.page-sub{color:var(--text-dim);font-size:.88rem;margin-bottom:24px}
+.search-bar{
+  display:flex;align-items:center;gap:10px;margin-bottom:24px;
+}
+.search-bar input{
+  flex:1;max-width:360px;background:var(--surface);border:1px solid #2e2818;
+  color:var(--text);padding:9px 14px 9px 36px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239a9080' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:12px center;
+}
+.search-bar input:focus{outline:none;border-color:var(--orange)}
+
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+
+/* CARD */
+.member-card{
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  overflow:hidden;transition:transform .15s,box-shadow .15s;
+  position:relative;
+}
+.member-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.card-banner{
+  height:60px;position:relative;
+  background:linear-gradient(135deg,var(--surface2),#1a1610);
+}
+.card-color-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+.card-avatar-wrap{
+  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  width:60px;height:60px;border-radius:50%;
+  border:3px solid var(--surface);overflow:hidden;
+  background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+}
+.card-avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.card-avatar-wrap .initials{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:1.2rem;color:#fff;
+}
+.card-info{padding:38px 16px 16px;text-align:center}
+.card-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;
+  margin-bottom:2px;
+}
+.card-role{
+  font-size:.78rem;color:var(--text-dim);margin-bottom:10px;
+}
+.card-role-badge{
+  display:inline-block;padding:3px 10px;border-radius:12px;
+  font-size:.72rem;font-weight:600;
+}
+.card-actions{
+  display:flex;justify-content:center;gap:6px;margin-top:10px;
+}
+.card-actions button{
+  background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);
+  padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;
+  font-family:'Barlow',sans-serif;transition:all .15s;
+}
+.card-actions button:hover{color:var(--text);border-color:#4a4030}
+.card-actions button.danger:hover{color:#f07070;border-color:#f07070}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
+  width:460px;max-width:94vw;max-height:90vh;overflow-y:auto;
+  padding:28px 30px 24px;
+}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+.modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;
+  margin-bottom:20px;
+}
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:.78rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  margin-bottom:5px;
+}
+.field input[type="text"],.field select{
+  width:100%;background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:9px 12px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--orange)}
+
+/* Photo upload */
+.photo-upload{
+  display:flex;align-items:center;gap:16px;
+}
+.photo-preview{
+  width:72px;height:72px;border-radius:50%;overflow:hidden;
+  background:var(--surface2);border:2px dashed #3a3020;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;transition:border-color .2s;
+  position:relative;
+}
+.photo-preview:hover{border-color:var(--orange)}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-preview .placeholder{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--text-dim);
+}
+.photo-preview .placeholder svg{opacity:.5}
+.photo-preview .placeholder span{font-size:.6rem;text-transform:uppercase;letter-spacing:.3px}
+.photo-upload-info{flex:1}
+.photo-upload-info .hint{font-size:.75rem;color:var(--text-dim);margin-top:4px;line-height:1.3}
+.photo-btns{display:flex;gap:6px;margin-top:6px}
+.photo-btns button{
+  background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);
+  padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.75rem;
+  font-family:'Barlow',sans-serif;transition:all .15s;
+}
+.photo-btns button:hover{color:var(--text);border-color:#4a4030}
+
+/* Color picker */
+.color-grid{display:flex;flex-wrap:wrap;gap:6px}
+.color-swatch{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:border-color .15s,transform .15s;
+}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch.selected{border-color:#fff;transform:scale(1.15)}
+
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.btn-cancel{
+  background:transparent;border:1px solid #3a3020;color:var(--text-dim);
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow',sans-serif;font-weight:500;font-size:.88rem;
+}
+.btn-save{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 22px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+}
+.btn-save:hover{background:#e0750f}
+
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--text-dim);
+}
+.empty-state .icon{font-size:2.5rem;margin-bottom:10px;opacity:.4}
+.empty-state p{font-size:.95rem}
+
+@media(max-width:600px){
+  .header{padding:0 14px;gap:10px;flex-wrap:wrap;height:auto;padding:10px 14px}
+  .nav{margin-left:0}
+  .page-body{padding:16px}
+  .team-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .modal{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="project-board.html" class="logo">
+    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/><g><path class="cls-2" d="M121.94,119.06s3.28,.78,2.91,2.89"/><path class="cls-2" d="M120.1,123.46s2.19,.13,3.11-.27-2.88,0-2.88,0l-.22,.27Z"/><path class="cls-2" d="M144.86,118.97c-6.46-5.15-11.81-15.53-11.81-15.53-1.55-1.27-.45-2.41-.45-2.41,4.58-.53,7.8-3.15,10.54-4.86,2.74-1.72-1.14-11.19-1.14-11.19,0,0,0-5.11,.16-5.19,.16-.08,.65-2.12,.65-2.12,0,0,.26-3.24-.42-5.15-1.11-.85-2.44-.81-3.69-.27-.3,.46-.66,1.09-1.01,1.96,0,.05,.02,.11,.02,.16,.02,.48-.08,.98-.25,1.46,0,.04-.02,.08-.03,.12,0,.02,0,.03,0,.05,0,0,0,0,0,0,.01,.07,0,.13-.02,.19,0,0,0,0,0,.01-.13,.68,0,1.42,.19,2.08,.1,.34,.26,.65,.4,.96,.11,.11,.19,.17,.19,.17l.12,1.06c.74,1.55-.82,10.05-.69,11.28,.12,1.23-.9,1.43-1.35,1.96-.43,.51-8.72,1.31-9.5,1.38,0,0,0,0,0,0,0,0,0,0,0,0-.03,0-.05,0-.05,0v-.03s-.01-.01-.02-.02c0,0-.02-.02-.03-.03-.07-.23-.07-.43-.05-.66-.06-.49,.2-1.03,.29-1.52-.04-.34-.08-.7-.11-1.12-.27-3.44,.14-4.2,.41-4.58,.22-.31,.65-.76,1.46-1.1,.23-.37,.52-.71,.87-.99v-.16s-.08-.05-.12-.08h-.25l-.08-.05-.7-.4s-1.79,.01-2.63,.01c-.38,0-.73-.04-1.06-.11-.26,.05-.53,.08-.82,.08-3.03,0-4.64-4.73-4.64-4.73-4.17,.25-4.86,4.33-4.86,4.33-.53,1.63,0,4.66,0,4.66,1.27-.61,3.06,3.27,3.06,3.27,.74,4.13-2.37,4.29-2.37,4.29h-4.86c-7.4,6.5-6.78,20.26-6.78,20.26-.04,3.6,14.1,10.83,14.1,10.83,.74,.94,3.31,2.17,3.31,2.17,2.08-.08,2.74-.78,2.74-.78,1.31-.29,1.55-.41,1.55-.41v-.65h.98v.45c-.08,.69,1.23,2.04,1.23,2.04,8.42,3.31,12.09,9.32,12.09,9.32v5.31c-4.25,1.55-5.43,4.9-5.43,4.9,.33,1.55,3.43,3.19,3.43,3.19l2.45-.04c1.8,0,4.29,3.06,4.29,3.06,3.06,4.29,3.47,9.72,3.47,9.72-.98,1.35-.08,2.9-.08,2.9l-.04,4.37-.08,.82c0,3.27,.49,3.19,1.23,3.47,.74,.29,2.25,.04,2.66,0,.41-.04,1.59-.94,1.96-1.14,.37-.2,.74-1.1,.94-2.29,.2-1.18-.57-2.04-.57-2.04,0,0-.08-1.88-.04-3.68,.04-1.8-1.02-3.15-1.02-3.15-1.39-.45-4.17-20.92-4.17-20.92-.37-1.84,11.44-7.64,11.44-7.64,1.88-1.14,2.08-5.8,2.08-5.8-.08-2.9-17.08-11.48-17.08-11.48Zm-20.29,4.22h-2.89v.27h-2.78s-6.41-4.66-8.77-8.39c-.86-1.36,0-2.18,0-2.18l1.69-3.65s.71-2.72,2.18,0c0,0,4.41,9.04,10.13,10.9v.33s.16,.16,.33,.43c.3,.49,.64,1.35,.11,2.3Zm22.61,13.24s-.6-2.4-1.14-2.94l-.54-.54v-1.36h.82s4.52,1.04,4.36,1.58c-.16,.54-3.49,3.27-3.49,3.27Z"/><path class="cls-2" d="M129.35,84.77c-.86-.19-.96-.41-.96-.41-2.33-6.03-9.74-4.74-9.74-4.74l.3,3.15,4.68,2.86,4.75-1.14-1.18,2.66c.14-.57,2.33-1.37,2.33-1.37,.5-.13,.25-.6,.1-.83-.1-.05-.19-.11-.28-.17Z"/><path class="cls-2" d="M139.41,96.35c-.11-.52-.9-.3-.79,.22,.96,4.53,1.96,9.12-.11,13.5-1.39,2.93-3.39,5.48-4.33,8.62-.15,.51,.64,.73,.79,.22,1.11-3.72,3.83-6.66,5.02-10.33,1.29-3.96,.25-8.27-.58-12.22Z"/><path class="cls-2" d="M125.19,154.89c-3.32-8.55-6.88-18.42-1.92-27.09,.3-.52-.5-.99-.8-.47-5.09,8.9-1.59,18.99,1.83,27.8,.21,.55,1.11,.31,.89-.25Z"/><path class="cls-2" d="M144.47,59.7c.24,2.93-1.29,5.94-2.34,8.58-.58,1.45-1.12,2.93-1.41,4.47-.31,1.7-.15,3.46-.77,5.1-.14,.36,.45,.52,.58,.16,.66-1.72,.47-3.57,.83-5.35,.36-1.8,1.06-3.5,1.75-5.2,.84-2.06,1.79-4.33,1.94-6.6-.22-.38-.42-.76-.59-1.17Z"/></g></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+  </a>
+  <nav class="nav">
+    <a href="project-board.html">Projetos</a>
+    <a href="team.html" class="active">Equipe</a>
+  </nav>
+  <div class="header-right">
+    <div class="team-count">Membros: <strong id="totalCount">0</strong></div>
+    <button class="btn-new" onclick="openModal()">+ Novo Colaborador</button>
+  </div>
+</header>
+
+<main class="page-body">
+  <h1 class="page-title">Equipe do Projeto</h1>
+  <p class="page-sub">Gerencie os colaboradores, suas fotos, cargos e cores de identificação.</p>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Buscar por nome ou cargo..." oninput="render()">
+  </div>
+
+  <div class="team-grid" id="teamGrid"></div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Novo Colaborador</div>
+
+    <div class="field">
+      <label>Foto</label>
+      <div class="photo-upload">
+        <div class="photo-preview" id="photoPreview" onclick="document.getElementById('photoInput').click()">
+          <div class="placeholder" id="photoPlaceholder">
+            <svg width="22" height="22" fill="none" stroke="#9a9080" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M3 16.8V7.2c0-1.12 0-1.68.218-2.108a2 2 0 0 1 .874-.874C4.52 4 5.08 4 6.2 4h1.055c.123 0 .184 0 .24-.006a1 1 0 0 0 .725-.485c.03-.048.056-.103.109-.214.106-.21.158-.316.222-.406a2 2 0 0 1 1.45-.97C10.066 2.91 10.14 2.91 10.286 2.91h3.428c.147 0 .22 0 .286.009a2 2 0 0 1 1.45.97c.063.09.115.195.221.406.053.11.08.166.11.214a1 1 0 0 0 .724.485c.056.006.117.006.24.006H17.8c1.12 0 1.68 0 2.108.218a2 2 0 0 1 .874.874C21 6.52 21 7.08 21 8.2v8.6c0 1.12 0 1.68-.218 2.108a2 2 0 0 1-.874.874C19.48 20 18.92 20 17.8 20H6.2c-1.12 0-1.68 0-2.108-.218a2 2 0 0 1-.874-.874C3 18.48 3 17.92 3 16.8Z"/></svg>
+            <span>Adicionar</span>
+          </div>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+        <div class="photo-upload-info">
+          <div class="hint">Clique no círculo ou use o botão para enviar uma foto. Formatos aceitos: JPG, PNG. A imagem será armazenada localmente.</div>
+          <div class="photo-btns">
+            <button type="button" onclick="document.getElementById('photoInput').click()">Escolher Arquivo</button>
+            <button type="button" onclick="clearPhoto()">Limpar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nome Completo</label>
+      <input type="text" id="fName" placeholder="Ex: Carlos Mendes">
+    </div>
+
+    <div class="field">
+      <label>Cargo / Função</label>
+      <input type="text" id="fRole" placeholder="Ex: Engenheiro Civil">
+    </div>
+
+    <div class="field">
+      <label>Cor de Identificação</label>
+      <div class="color-grid" id="colorGrid"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveMember()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DEFAULT TEAM ──────────────────────────────── */
+const DEFAULT_TEAM=[
+  {id:1,name:"Carlos Mendes",role:"Encarregado",color:"#F5841F",photo:""},
+  {id:2,name:"Beatriz Lima",role:"Arquiteta",color:"#F5C242",photo:""},
+  {id:3,name:"Rafael Souza",role:"Engenheiro",color:"#6bafd4",photo:""},
+  {id:4,name:"Patrícia Alves",role:"Gestora",color:"#8fcf6a",photo:""},
+  {id:5,name:"Ana Ferreira",role:"Projetista",color:"#d47fb5",photo:""},
+  {id:6,name:"Bruno Costa",role:"Técnico",color:"#f07070",photo:""},
+  {id:7,name:"Carla Nunes",role:"Supervisora",color:"#a08cf5",photo:""},
+  {id:8,name:"Diego Rocha",role:"Operacional",color:"#f5b07a",photo:""},
+  {id:9,name:"Fábio Matos",role:"Auxiliar",color:"#70d4c0",photo:""},
+  {id:10,name:"Gisele Pinto",role:"Administradora",color:"#f5d47a",photo:""},
+  {id:11,name:"Helena Ramos",role:"Coordenadora",color:"#c5a55a",photo:""},
+  {id:12,name:"Ivan Lopes",role:"Técnico",color:"#8ab5f5",photo:""}
+];
+
+const COLORS=["#F5841F","#F5C242","#6bafd4","#8fcf6a","#d47fb5","#f07070","#a08cf5","#f5b07a","#70d4c0","#f5d47a","#c5a55a","#8ab5f5","#e06050","#50b0a0","#b080e0","#e0a050"];
+
+/* ── STATE ─────────────────────────────────────── */
+let team=[];
+let editingId=null;
+let selectedColor=COLORS[0];
+let currentPhoto="";
+
+function loadTeam(){
+  const stored=localStorage.getItem('projetoctrl_team');
+  if(stored){
+    try{team=JSON.parse(stored)}catch(e){team=[...DEFAULT_TEAM]}
+  }else{
+    team=[...DEFAULT_TEAM];
+    saveTeam();
+  }
+}
+function saveTeam(){localStorage.setItem('projetoctrl_team',JSON.stringify(team))}
+function nextId(){return team.length?Math.max(...team.map(t=>t.id))+1:1}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+
+/* ── RENDER ────────────────────────────────────── */
+function render(){
+  const query=document.getElementById('searchInput').value.toLowerCase().trim();
+  let filtered=team;
+  if(query){
+    filtered=team.filter(t=>t.name.toLowerCase().includes(query)||t.role.toLowerCase().includes(query));
+  }
+
+  document.getElementById('totalCount').textContent=team.length;
+
+  const grid=document.getElementById('teamGrid');
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty-state"><div class="icon">👥</div><p>${query?'Nenhum colaborador encontrado.':'Nenhum colaborador cadastrado ainda.'}</p></div>`;
+    return;
+  }
+
+  grid.innerHTML=filtered.map(m=>{
+    const avatarContent=m.photo
+      ?`<img src="${m.photo}" alt="${m.name}">`
+      :`<div class="initials" style="color:#fff;background:${m.color};width:100%;height:100%;display:flex;align-items:center;justify-content:center">${initials(m.name)}</div>`;
+    return `
+    <div class="member-card">
+      <div class="card-banner">
+        <div class="card-color-bar" style="background:${m.color}"></div>
+        <div class="card-avatar-wrap" style="border-color:var(--surface)">
+          ${avatarContent}
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-name">${m.name}</div>
+        <div class="card-role">${m.role}</div>
+        <div><span class="card-role-badge" style="background:${m.color}22;color:${m.color}">${m.role}</span></div>
+        <div class="card-actions">
+          <button onclick="editMember(${m.id})">✏️ Editar</button>
+          <button class="danger" onclick="removeMember(${m.id})">🗑 Remover</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── COLOR PICKER ──────────────────────────────── */
+function renderColors(){
+  document.getElementById('colorGrid').innerHTML=COLORS.map(c=>
+    `<div class="color-swatch ${selectedColor===c?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+  ).join('');
+}
+function pickColor(c){selectedColor=c;renderColors()}
+
+/* ── PHOTO ─────────────────────────────────────── */
+function handlePhoto(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(file.size>2*1024*1024){alert('A imagem deve ter no máximo 2 MB.');return}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    currentPhoto=ev.target.result;
+    updatePhotoPreview();
+  };
+  reader.readAsDataURL(file);
+}
+function clearPhoto(){
+  currentPhoto="";
+  document.getElementById('photoInput').value="";
+  updatePhotoPreview();
+}
+function updatePhotoPreview(){
+  const preview=document.getElementById('photoPreview');
+  const placeholder=document.getElementById('photoPlaceholder');
+  const existing=preview.querySelector('img');
+  if(existing)existing.remove();
+  if(currentPhoto){
+    placeholder.style.display='none';
+    const img=document.createElement('img');
+    img.src=currentPhoto;
+    preview.appendChild(img);
+  }else{
+    placeholder.style.display='flex';
+  }
+}
+
+/* ── MODAL ─────────────────────────────────────── */
+function openModal(member){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Novo Colaborador';
+  document.getElementById('fName').value='';
+  document.getElementById('fRole').value='';
+  selectedColor=COLORS[0];
+  currentPhoto="";
+
+  if(member){
+    editingId=member.id;
+    document.getElementById('modalTitle').textContent='Editar Colaborador';
+    document.getElementById('fName').value=member.name;
+    document.getElementById('fRole').value=member.role;
+    selectedColor=member.color;
+    currentPhoto=member.photo||"";
+  }
+
+  document.getElementById('photoInput').value="";
+  updatePhotoPreview();
+  renderColors();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+
+function editMember(id){
+  const m=team.find(t=>t.id===id);
+  if(m)openModal(m);
+}
+
+function removeMember(id){
+  const m=team.find(t=>t.id===id);
+  if(!m)return;
+  if(!confirm(`Remover ${m.name} da equipe?`))return;
+  team=team.filter(t=>t.id!==id);
+  saveTeam();render();
+}
+
+function saveMember(){
+  const name=document.getElementById('fName').value.trim();
+  const role=document.getElementById('fRole').value.trim();
+  if(!name){alert('Informe o nome do colaborador.');return}
+  if(!role){alert('Informe o cargo / função.');return}
+
+  if(editingId){
+    const m=team.find(t=>t.id===editingId);
+    if(m){m.name=name;m.role=role;m.color=selectedColor;m.photo=currentPhoto}
+  }else{
+    team.push({id:nextId(),name,role,color:selectedColor,photo:currentPhoto});
+  }
+  saveTeam();closeModal();render();
+}
+
+/* ── INIT ──────────────────────────────────────── */
+loadTeam();render();
+</script>
+</body>
+</html>
