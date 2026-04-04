@@ -537,17 +537,19 @@ function avatarHTML(t,size){
 }
 function buildChips(){
   loadTeam();
-  // Responsável
+  // Responsável — somente Encarregados
   const respEl=document.getElementById('chipsResp');
-  respEl.innerHTML=TEAM.map(t=>`
+  const encarregados=TEAM.filter(t=>t.role==='Encarregado');
+  respEl.innerHTML=encarregados.map(t=>`
     <div class="chip ${selectedResp===t.id?'selected':''}" onclick="selectResp(${t.id})">
       ${avatarHTML(t)}
       <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
-    </div>`).join('');
+    </div>`).join('')||('<div style="color:var(--text-dim);font-size:.8rem;padding:8px">Nenhum Encarregado cadastrado</div>');
 
-  // Colaboradores
+  // Colaboradores — somente Operação e Empreiteiro
   const collEl=document.getElementById('chipsCollab');
-  collEl.innerHTML=TEAM.map(t=>`
+  const opEmpr=TEAM.filter(t=>t.role==='Operação'||t.role==='Empreiteiro');
+  collEl.innerHTML=opEmpr.map(t=>`
     <div class="chip ${selectedCollabs.has(t.id)?'selected':''}" onclick="toggleCollab(${t.id})">
       ${avatarHTML(t)}
       <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
