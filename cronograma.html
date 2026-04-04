@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATITUD — Cronograma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+  --sidebar-w:260px;--row-h:48px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow:hidden;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  display:flex;align-items:center;gap:24px;
+  padding:0 28px;height:58px;
+  backdrop-filter:blur(8px);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap;
+}
+.logo svg{height:32px;width:auto}
+.nav{display:flex;gap:4px;margin-left:16px}
+.nav a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
+  transition:color .2s,background .2s;letter-spacing:.3px;
+}
+.nav a:hover{color:var(--text);background:var(--surface2)}
+.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+
+.header-right{display:flex;gap:10px;margin-left:auto;align-items:center}
+.legend{display:flex;gap:14px;align-items:center}
+.legend-item{
+  display:flex;align-items:center;gap:5px;
+  font-size:.78rem;font-weight:500;color:var(--text-dim);white-space:nowrap;
+}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* GANTT LAYOUT */
+.gantt-wrapper{
+  display:flex;height:calc(100vh - 58px);overflow:hidden;
+}
+
+/* SIDEBAR */
+.gantt-sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:var(--surface);border-right:1px solid #2e2818;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.sidebar-header{
+  height:60px;min-height:60px;
+  display:flex;align-items:center;padding:0 16px;
+  border-bottom:1px solid #2e2818;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:.95rem;color:var(--text-dim);letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.sidebar-rows{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+}
+.sidebar-rows::-webkit-scrollbar{display:none}
+.sidebar-row{
+  height:var(--row-h);display:flex;align-items:center;gap:10px;
+  padding:0 16px;border-bottom:1px solid #1a1610;
+}
+.sidebar-row:nth-child(even){background:rgba(255,255,255,.015)}
+.sidebar-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sidebar-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sidebar-responsible{
+  font-size:.72rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.stage-badge{
+  padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:600;
+  font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px;
+  text-transform:uppercase;white-space:nowrap;flex-shrink:0;
+}
+
+/* TIMELINE */
+.gantt-timeline{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+.timeline-header{
+  height:60px;min-height:60px;
+  border-bottom:1px solid #2e2818;
+  overflow:hidden;position:relative;
+}
+.timeline-header-inner{
+  height:100%;display:flex;flex-direction:column;position:absolute;top:0;left:0;
+}
+.months-row{
+  height:30px;display:flex;align-items:center;
+}
+.month-cell{
+  height:30px;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem;
+  color:var(--text-dim);border-right:1px solid #2e2818;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  letter-spacing:.3px;white-space:nowrap;
+}
+.days-row{
+  height:30px;display:flex;align-items:center;
+}
+.day-cell{
+  height:30px;display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;color:rgba(154,144,128,.5);
+  border-right:1px solid rgba(255,255,255,.03);
+}
+.timeline-body{
+  flex:1;overflow:auto;position:relative;
+}
+.timeline-body::-webkit-scrollbar{height:8px;width:8px}
+.timeline-body::-webkit-scrollbar-track{background:var(--bg)}
+.timeline-body::-webkit-scrollbar-thumb{background:#3a3020;border-radius:4px}
+.timeline-body::-webkit-scrollbar-thumb:hover{background:#4a4030}
+.timeline-rows{
+  position:relative;
+}
+.timeline-row{
+  height:var(--row-h);position:relative;
+  border-bottom:1px solid #1a1610;
+}
+.timeline-row:nth-child(even){background:rgba(255,255,255,.015)}
+
+/* Grid lines */
+.grid-lines{
+  position:absolute;top:0;left:0;height:100%;pointer-events:none;z-index:0;
+}
+.grid-line{
+  position:absolute;top:0;height:100%;width:1px;
+  background:rgba(255,255,255,.03);
+}
+.grid-line.month-line{background:rgba(255,255,255,.06)}
+
+/* Today line */
+.today-line{
+  position:absolute;top:0;height:100%;width:2px;z-index:5;
+  background:var(--orange);opacity:.6;
+  border-left:1px dashed var(--orange);
+}
+.today-label{
+  position:absolute;top:-58px;transform:translateX(-50%);
+  background:var(--orange);color:#fff;
+  padding:2px 8px;border-radius:4px;
+  font-size:.65rem;font-weight:600;
+  font-family:'Barlow Condensed',sans-serif;
+  white-space:nowrap;z-index:6;
+}
+
+/* Bars */
+.gantt-bar{
+  position:absolute;top:8px;height:calc(var(--row-h) - 16px);
+  border-radius:6px;cursor:pointer;
+  transition:filter .2s;z-index:2;
+  overflow:hidden;
+}
+.gantt-bar:hover{filter:brightness(1.25);z-index:3}
+.gantt-bar-progress{
+  position:absolute;top:0;left:0;height:100%;
+  border-radius:6px 0 0 6px;
+  pointer-events:none;
+}
+.gantt-bar-label{
+  position:absolute;top:0;left:8px;height:100%;
+  display:flex;align-items:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.72rem;
+  color:rgba(255,255,255,.9);white-space:nowrap;
+  pointer-events:none;z-index:1;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+/* Tooltip */
+.gantt-tooltip{
+  position:fixed;z-index:200;
+  background:#1a1610;border:1px solid #3a3020;
+  border-radius:8px;padding:10px 14px;
+  font-size:.78rem;color:var(--text);
+  pointer-events:none;opacity:0;transition:opacity .15s;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  max-width:260px;
+}
+.gantt-tooltip.visible{opacity:1}
+.gantt-tooltip .tt-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;
+  margin-bottom:6px;
+}
+.gantt-tooltip .tt-row{
+  display:flex;justify-content:space-between;gap:12px;
+  color:var(--text-dim);line-height:1.6;
+}
+.gantt-tooltip .tt-row span:last-child{color:var(--text);font-weight:500}
+
+/* Sync scroll */
+.gantt-timeline .timeline-body{
+  overflow-x:auto;overflow-y:auto;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .gantt-sidebar{display:none}
+  :root{--sidebar-w:0px}
+  .gantt-bar-label{font-size:.68rem}
+  .header{padding:0 14px;gap:12px}
+  .nav a{padding:6px 10px;font-size:.82rem}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="project-board.html" class="logo">
+    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/><g><path class="cls-2" d="M121.94,119.06s3.28,.78,2.91,2.89"/><path class="cls-2" d="M120.1,123.46s2.19,.13,3.11-.27-2.88,0-2.88,0l-.22,.27Z"/><path class="cls-2" d="M144.86,118.97c-6.46-5.15-11.81-15.53-11.81-15.53-1.55-1.27-.45-2.41-.45-2.41,4.58-.53,7.8-3.15,10.54-4.86,2.74-1.72-1.14-11.19-1.14-11.19,0,0,0-5.11,.16-5.19,.16-.08,.65-2.12,.65-2.12,0,0,.26-3.24-.42-5.15-1.11-.85-2.44-.81-3.69-.27-.3,.46-.66,1.09-1.01,1.96,0,.05,.02,.11,.02,.16,.02,.48-.08,.98-.25,1.46,0,.04-.02,.08-.03,.12,0,.02,0,.03,0,.05,0,0,0,0,0,0,.01,.07,0,.13-.02,.19,0,0,0,0,0,.01-.13,.68,0,1.42,.19,2.08,.1,.34,.26,.65,.4,.96,.11,.11,.19,.17,.19,.17l.12,1.06c.74,1.55-.82,10.05-.69,11.28,.12,1.23-.9,1.43-1.35,1.96-.43,.51-8.72,1.31-9.5,1.38,0,0,0,0,0,0,0,0,0,0,0,0-.03,0-.05,0-.05,0v-.03s-.01-.01-.02-.02c0,0-.02-.02-.03-.03-.07-.23-.07-.43-.05-.66-.06-.49,.2-1.03,.29-1.52-.04-.34-.08-.7-.11-1.12-.27-3.44,.14-4.2,.41-4.58,.22-.31,.65-.76,1.46-1.1,.23-.37,.52-.71,.87-.99v-.16s-.08-.05-.12-.08h-.25l-.08-.05-.7-.4s-1.79,.01-2.63,.01c-.38,0-.73-.04-1.06-.11-.26,.05-.53,.08-.82,.08-3.03,0-4.64-4.73-4.64-4.73-4.17,.25-4.86,4.33-4.86,4.33-.53,1.63,0,4.66,0,4.66,1.27-.61,3.06,3.27,3.06,3.27,.74,4.13-2.37,4.29-2.37,4.29h-4.86c-7.4,6.5-6.78,20.26-6.78,20.26-.04,3.6,14.1,10.83,14.1,10.83,.74,.94,3.31,2.17,3.31,2.17,2.08-.08,2.74-.78,2.74-.78,1.31-.29,1.55-.41,1.55-.41v-.65h.98v.45c-.08,.69,1.23,2.04,1.23,2.04,8.42,3.31,12.09,9.32,12.09,9.32v5.31c-4.25,1.55-5.43,4.9-5.43,4.9,.33,1.55,3.43,3.19,3.43,3.19l2.45-.04c1.8,0,4.29,3.06,4.29,3.06,3.06,4.29,3.47,9.72,3.47,9.72-.98,1.35-.08,2.9-.08,2.9l-.04,4.37-.08,.82c0,3.27,.49,3.19,1.23,3.47,.74,.29,2.25,.04,2.66,0,.41-.04,1.59-.94,1.96-1.14,.37-.2,.74-1.1,.94-2.29,.2-1.18-.57-2.04-.57-2.04,0,0-.08-1.88-.04-3.68,.04-1.8-1.02-3.15-1.02-3.15-1.39-.45-4.17-20.92-4.17-20.92-.37-1.84,11.44-7.64,11.44-7.64,1.88-1.14,2.08-5.8,2.08-5.8-.08-2.9-17.08-11.48-17.08-11.48Zm-20.29,4.22h-2.89v.27h-2.78s-6.41-4.66-8.77-8.39c-.86-1.36,0-2.18,0-2.18l1.69-3.65s.71-2.72,2.18,0c0,0,4.41,9.04,10.13,10.9v.33s.16,.16,.33,.43c.3,.49,.64,1.35,.11,2.3Zm22.61,13.24s-.6-2.4-1.14-2.94l-.54-.54v-1.36h.82s4.52,1.04,4.36,1.58c-.16,.54-3.49,3.27-3.49,3.27Z"/><path class="cls-2" d="M129.35,84.77c-.86-.19-.96-.41-.96-.41-2.33-6.03-9.74-4.74-9.74-4.74l.3,3.15,4.68,2.86,4.75-1.14-1.18,2.66c.14-.57,2.33-1.37,2.33-1.37,.5-.13,.25-.6,.1-.83-.1-.05-.19-.11-.28-.17Z"/><path class="cls-2" d="M139.41,96.35c-.11-.52-.9-.3-.79,.22,.96,4.53,1.96,9.12-.11,13.5-1.39,2.93-3.39,5.48-4.33,8.62-.15,.51,.64,.73,.79,.22,1.11-3.72,3.83-6.66,5.02-10.33,1.29-3.96,.25-8.27-.58-12.22Z"/><path class="cls-2" d="M125.19,154.89c-3.32-8.55-6.88-18.42-1.92-27.09,.3-.52-.5-.99-.8-.47-5.09,8.9-1.59,18.99,1.83,27.8,.21,.55,1.11,.31,.89-.25Z"/><path class="cls-2" d="M144.47,59.7c.24,2.93-1.29,5.94-2.34,8.58-.58,1.45-1.12,2.93-1.41,4.47-.31,1.7-.15,3.46-.77,5.1-.14,.36,.45,.52,.58,.16,.66-1.72,.47-3.57,.83-5.35,.36-1.8,1.06-3.5,1.75-5.2,.84-2.06,1.79-4.33,1.94-6.6-.22-.38-.42-.76-.59-1.17Z"/></g></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+  </a>
+
+  <nav class="nav">
+    <a href="project-board.html">Projetos</a>
+    <a href="cronograma.html" class="active">Cronograma</a>
+    <a href="team.html">Equipe</a>
+  </nav>
+
+  <div class="header-right">
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#F5841F"></span>Em andamento</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#8fcf6a"></span>Garantia</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#6bafd4"></span>Stand-by</div>
+    </div>
+  </div>
+</header>
+
+<div class="gantt-wrapper">
+  <!-- Sidebar -->
+  <div class="gantt-sidebar">
+    <div class="sidebar-header">Projetos</div>
+    <div class="sidebar-rows" id="sidebarRows"></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="gantt-timeline">
+    <div class="timeline-header" id="timelineHeader">
+      <div class="timeline-header-inner" id="timelineHeaderInner">
+        <div class="months-row" id="monthsRow"></div>
+        <div class="days-row" id="daysRow"></div>
+      </div>
+    </div>
+    <div class="timeline-body" id="timelineBody">
+      <div class="grid-lines" id="gridLines"></div>
+      <div class="timeline-rows" id="timelineRows"></div>
+    </div>
+  </div>
+</div>
+
+<div class="gantt-tooltip" id="tooltip"></div>
+
+<script>
+/* ── DATA ─────────────────────────────────────────────── */
+const DEFAULT_PROJECTS=[
+  {id:1,name:"Edifício Monteiro",stage:"andamento",date:"2025-11-10",endDate:"2026-03-10",progress:62,responsible:1,collabs:[3,5,8]},
+  {id:2,name:"Res. Parque das Flores",stage:"andamento",date:"2026-01-15",endDate:"2026-04-15",progress:35,responsible:4,collabs:[2,6,9,11]},
+  {id:3,name:"Galpão Industrial TKS",stage:"standby",date:"2025-08-20",endDate:"2025-10-19",progress:78,responsible:3,collabs:[1,7]},
+  {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",endDate:"2025-06-19",progress:100,responsible:11,collabs:[4,6,12,10]}
+];
+
+const DEFAULT_TEAM=[
+  {id:1,name:"Carlos Mendes",role:"Encarregado",color:"#F5841F",photo:""},
+  {id:2,name:"Beatriz Lima",role:"Arquiteta",color:"#F5C242",photo:""},
+  {id:3,name:"Rafael Souza",role:"Engenheiro",color:"#6bafd4",photo:""},
+  {id:4,name:"Patrícia Alves",role:"Gestora",color:"#8fcf6a",photo:""},
+  {id:5,name:"Ana Ferreira",role:"Projetista",color:"#d47fb5",photo:""},
+  {id:6,name:"Bruno Costa",role:"Técnico",color:"#f07070",photo:""},
+  {id:7,name:"Carla Nunes",role:"Supervisora",color:"#a08cf5",photo:""},
+  {id:8,name:"Diego Rocha",role:"Operacional",color:"#f5b07a",photo:""},
+  {id:9,name:"Fábio Matos",role:"Auxiliar",color:"#70d4c0",photo:""},
+  {id:10,name:"Gisele Pinto",role:"Administradora",color:"#f5d47a",photo:""},
+  {id:11,name:"Helena Ramos",role:"Coordenadora",color:"#c5a55a",photo:""},
+  {id:12,name:"Ivan Lopes",role:"Técnico",color:"#8ab5f5",photo:""}
+];
+
+const STAGE_COLORS = { andamento:'#F5841F', garantia:'#8fcf6a', standby:'#6bafd4' };
+const STAGE_LABELS = { andamento:'Em andamento', garantia:'Garantia', standby:'Stand-by' };
+const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function loadProjects(){
+  try{ const d=localStorage.getItem('latitud_projects'); if(d){ const p=JSON.parse(d); if(Array.isArray(p)&&p.length) return p; } }catch(e){}
+  return DEFAULT_PROJECTS;
+}
+function loadTeam(){
+  try{ const d=localStorage.getItem('projetoctrl_team'); if(d){ const t=JSON.parse(d); if(Array.isArray(t)&&t.length) return t; } }catch(e){}
+  return DEFAULT_TEAM;
+}
+
+const projects = loadProjects().slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+const team = loadTeam();
+const teamMap = {};
+team.forEach(t=>teamMap[t.id]=t);
+
+/* ── TIMELINE CALCULATIONS ────────────────────────────── */
+const DAY_WIDTH = 28;
+const ROW_H = 48;
+
+// Find range
+let minDate = Infinity, maxDate = -Infinity;
+projects.forEach(p=>{
+  const s = new Date(p.date).getTime();
+  const e = new Date(p.endDate).getTime();
+  if(s<minDate) minDate=s;
+  if(e>maxDate) maxDate=e;
+});
+
+// Add 15 days padding on each side
+const PAD = 15*86400000;
+const rangeStart = new Date(minDate - PAD);
+rangeStart.setDate(1); // snap to 1st of month
+const rangeEnd = new Date(maxDate + PAD);
+rangeEnd.setMonth(rangeEnd.getMonth()+1, 0); // snap to end of month
+
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+const totalDays = daysBetween(rangeStart, rangeEnd) + 1;
+const totalWidth = totalDays * DAY_WIDTH;
+
+function dateToX(dateStr){
+  const d = new Date(dateStr);
+  const days = daysBetween(rangeStart, d);
+  return days * DAY_WIDTH;
+}
+
+/* ── BUILD MONTHS & DAYS HEADER ───────────────────────── */
+function buildHeader(){
+  const monthsRow = document.getElementById('monthsRow');
+  const daysRow = document.getElementById('daysRow');
+  const headerInner = document.getElementById('timelineHeaderInner');
+  headerInner.style.width = totalWidth + 'px';
+
+  // months
+  let cur = new Date(rangeStart);
+  while(cur <= rangeEnd){
+    const year = cur.getFullYear();
+    const month = cur.getMonth();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month, daysInMonth);
+
+    const visStart = startOfMonth < rangeStart ? rangeStart : startOfMonth;
+    const visEnd = endOfMonth > rangeEnd ? rangeEnd : endOfMonth;
+    const visDays = daysBetween(visStart, visEnd) + 1;
+
+    const cell = document.createElement('div');
+    cell.className = 'month-cell';
+    cell.style.width = (visDays * DAY_WIDTH) + 'px';
+    cell.style.minWidth = (visDays * DAY_WIDTH) + 'px';
+    cell.textContent = MONTH_NAMES[month] + ' ' + year;
+    monthsRow.appendChild(cell);
+
+    // day ticks inside this month
+    for(let d=visStart.getDate(); d<=visEnd.getDate(); d++){
+      const dc = document.createElement('div');
+      dc.className = 'day-cell';
+      dc.style.width = DAY_WIDTH + 'px';
+      dc.style.minWidth = DAY_WIDTH + 'px';
+      if(d % 7 === 1 || d === 1){
+        dc.textContent = d;
+      }
+      daysRow.appendChild(dc);
+    }
+
+    cur.setMonth(cur.getMonth()+1);
+    cur.setDate(1);
+  }
+}
+
+/* ── BUILD GRID LINES ─────────────────────────────────── */
+function buildGridLines(){
+  const container = document.getElementById('gridLines');
+  container.style.width = totalWidth + 'px';
+  container.style.height = (projects.length * ROW_H) + 'px';
+
+  let cur = new Date(rangeStart);
+  while(cur <= rangeEnd){
+    const year = cur.getFullYear();
+    const month = cur.getMonth();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const startOfMonth = new Date(year, month, 1);
+
+    // month boundary line
+    const mx = daysBetween(rangeStart, startOfMonth) * DAY_WIDTH;
+    if(mx > 0){
+      const ml = document.createElement('div');
+      ml.className = 'grid-line month-line';
+      ml.style.left = mx + 'px';
+      container.appendChild(ml);
+    }
+
+    // weekly lines
+    const visStart = startOfMonth < rangeStart ? rangeStart : startOfMonth;
+    const visEnd = new Date(year, month, daysInMonth);
+    const actualEnd = visEnd > rangeEnd ? rangeEnd : visEnd;
+    for(let d = visStart.getDate(); d <= actualEnd.getDate(); d++){
+      if(d % 7 === 1 && d !== 1){
+        const x = daysBetween(rangeStart, new Date(year, month, d)) * DAY_WIDTH;
+        const line = document.createElement('div');
+        line.className = 'grid-line';
+        line.style.left = x + 'px';
+        container.appendChild(line);
+      }
+    }
+
+    cur.setMonth(cur.getMonth()+1);
+    cur.setDate(1);
+  }
+}
+
+/* ── BUILD SIDEBAR ────────────────────────────────────── */
+function buildSidebar(){
+  const container = document.getElementById('sidebarRows');
+  projects.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'sidebar-row';
+    const color = STAGE_COLORS[p.stage] || '#888';
+    const label = STAGE_LABELS[p.stage] || p.stage;
+    const resp = teamMap[p.responsible];
+    const respName = resp ? resp.name : '—';
+
+    row.innerHTML = `
+      <div class="sidebar-info">
+        <div class="sidebar-name">${p.name}</div>
+        <div class="sidebar-responsible">${respName}</div>
+      </div>
+      <span class="stage-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${label}</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+/* ── BUILD BARS ───────────────────────────────────────── */
+function buildBars(){
+  const container = document.getElementById('timelineRows');
+  container.style.width = totalWidth + 'px';
+  container.style.height = (projects.length * ROW_H) + 'px';
+
+  projects.forEach((p, i)=>{
+    // row background
+    const row = document.createElement('div');
+    row.className = 'timeline-row';
+    container.appendChild(row);
+
+    // bar
+    const x = dateToX(p.date);
+    const x2 = dateToX(p.endDate);
+    const w = Math.max(x2 - x, DAY_WIDTH);
+    const color = STAGE_COLORS[p.stage] || '#888';
+
+    const bar = document.createElement('div');
+    bar.className = 'gantt-bar';
+    bar.style.left = x + 'px';
+    bar.style.width = w + 'px';
+    bar.style.top = (i * ROW_H + 8) + 'px';
+    bar.style.height = (ROW_H - 16) + 'px';
+    bar.style.background = color + '33';
+    bar.style.border = '1px solid ' + color + '55';
+
+    // progress fill
+    const prog = document.createElement('div');
+    prog.className = 'gantt-bar-progress';
+    prog.style.width = p.progress + '%';
+    prog.style.background = color + '88';
+    if(p.progress >= 100) prog.style.borderRadius = '6px';
+    bar.appendChild(prog);
+
+    // label
+    const lbl = document.createElement('div');
+    lbl.className = 'gantt-bar-label';
+    lbl.textContent = p.name;
+    bar.appendChild(lbl);
+
+    // tooltip events
+    bar.addEventListener('mouseenter', e => showTooltip(e, p));
+    bar.addEventListener('mousemove', e => moveTooltip(e));
+    bar.addEventListener('mouseleave', hideTooltip);
+
+    container.appendChild(bar);
+  });
+}
+
+/* ── TODAY LINE ────────────────────────────────────────── */
+function buildTodayLine(){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  if(today < rangeStart || today > rangeEnd) return;
+
+  const x = daysBetween(rangeStart, today) * DAY_WIDTH;
+
+  // line in body
+  const line = document.createElement('div');
+  line.className = 'today-line';
+  line.style.left = x + 'px';
+  line.style.height = (projects.length * ROW_H) + 'px';
+  document.getElementById('timelineRows').appendChild(line);
+
+  // label in header area (positioned via the body's today line)
+  const label = document.createElement('div');
+  label.className = 'today-label';
+  label.style.left = x + 'px';
+  label.textContent = 'Hoje — ' + today.getDate() + '/' + (today.getMonth()+1);
+  document.getElementById('timelineRows').appendChild(label);
+}
+
+/* ── TOOLTIP ──────────────────────────────────────────── */
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(e, p){
+  const start = new Date(p.date);
+  const end = new Date(p.endDate);
+  const dur = daysBetween(start, end);
+  const fmt = d => d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getFullYear();
+  const resp = teamMap[p.responsible];
+  const respName = resp ? resp.name : '—';
+
+  tooltip.innerHTML = `
+    <div class="tt-name" style="color:${STAGE_COLORS[p.stage]||'#fff'}">${p.name}</div>
+    <div class="tt-row"><span>Responsável</span><span>${respName}</span></div>
+    <div class="tt-row"><span>Início</span><span>${fmt(start)}</span></div>
+    <div class="tt-row"><span>Término</span><span>${fmt(end)}</span></div>
+    <div class="tt-row"><span>Duração</span><span>${dur} dias</span></div>
+    <div class="tt-row"><span>Progresso</span><span>${p.progress}%</span></div>
+  `;
+  tooltip.classList.add('visible');
+  moveTooltip(e);
+}
+
+function moveTooltip(e){
+  let x = e.clientX + 14;
+  let y = e.clientY + 14;
+  const rect = tooltip.getBoundingClientRect();
+  if(x + 260 > window.innerWidth) x = e.clientX - 270;
+  if(y + 180 > window.innerHeight) y = e.clientY - 160;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+}
+
+function hideTooltip(){
+  tooltip.classList.remove('visible');
+}
+
+/* ── SYNC SCROLL ──────────────────────────────────────── */
+function setupScroll(){
+  const body = document.getElementById('timelineBody');
+  const sidebarRows = document.getElementById('sidebarRows');
+  const header = document.getElementById('timelineHeader');
+
+  body.addEventListener('scroll', ()=>{
+    // sync horizontal scroll with header
+    header.scrollLeft = body.scrollLeft;
+    // sync vertical scroll with sidebar
+    sidebarRows.scrollTop = body.scrollTop;
+  });
+
+  // Scroll to today on load
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  if(today >= rangeStart && today <= rangeEnd){
+    const todayX = daysBetween(rangeStart, today) * DAY_WIDTH;
+    const viewW = body.clientWidth;
+    body.scrollLeft = Math.max(0, todayX - viewW / 3);
+  }
+}
+
+/* ── INIT ─────────────────────────────────────────────── */
+buildHeader();
+buildGridLines();
+buildSidebar();
+buildBars();
+buildTodayLine();
+setupScroll();
+</script>
+</body>
+</html>
