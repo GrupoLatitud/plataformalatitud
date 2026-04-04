@@ -73,22 +73,7 @@ body{
 .filter-chip.active{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.1)}
 .filter-chip.active-green{border-color:var(--green);color:var(--green);background:rgba(143,207,106,.1)}
 .filter-chip.active-blue{border-color:var(--blue);color:var(--blue);background:rgba(107,175,212,.1)}
-.filter-input{
-  padding:4px 10px;border-radius:6px;border:1px solid #3a3020;
-  background:var(--surface2);color:var(--text);
-  font-family:'Barlow',sans-serif;font-size:.78rem;
-  outline:none;transition:border-color .2s;
-}
-.filter-input:focus{border-color:var(--orange)}
 .filter-sep{width:1px;height:24px;background:#2e2818;flex-shrink:0}
-.filter-sort{
-  padding:4px 12px;border-radius:14px;cursor:pointer;
-  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
-  border:1px solid #3a3020;background:transparent;color:var(--text-dim);
-  transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:4px;
-}
-.filter-sort:hover{border-color:#5a5030;color:var(--text)}
-.filter-sort.active{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.1)}
 
 /* GANTT LAYOUT */
 .gantt-wrapper{
@@ -300,7 +285,7 @@ body{
 
 <div class="filters-bar">
   <div class="filter-group">
-    <span class="filter-label">Etapa:</span>
+    <span class="filter-label">Filtrar por etapa:</span>
     <div class="filter-chips" id="stageFilters">
       <button class="filter-chip active" data-stage="all" onclick="setStageFilter('all')">Todos</button>
       <button class="filter-chip" data-stage="andamento" onclick="setStageFilter('andamento')">🔥 Em Andamento</button>
@@ -308,25 +293,8 @@ body{
       <button class="filter-chip" data-stage="standby" onclick="setStageFilter('standby')">⏸️ Stand-by</button>
     </div>
   </div>
-
   <div class="filter-sep"></div>
-
-  <div class="filter-group">
-    <span class="filter-label">Período:</span>
-    <input type="date" class="filter-input" id="filterDateFrom" onchange="applyFilters()" title="Data início">
-    <span style="color:var(--text-dim);font-size:.75rem">até</span>
-    <input type="date" class="filter-input" id="filterDateTo" onchange="applyFilters()" title="Data fim">
-    <button class="filter-chip" onclick="clearDateFilter()" title="Limpar filtro de data" style="font-size:.7rem">✕</button>
-  </div>
-
-  <div class="filter-sep"></div>
-
-  <div class="filter-group">
-    <span class="filter-label">Ordenar:</span>
-    <button class="filter-sort active" id="sortDate" onclick="setSortMode('date')">📅 Data Início</button>
-    <button class="filter-sort" id="sortName" onclick="setSortMode('name')">🔤 Nome</button>
-    <button class="filter-sort" id="sortProgress" onclick="setSortMode('progress')">📊 Progresso</button>
-  </div>
+  <span style="font-size:.72rem;color:var(--text-dim)">Ordenado por data de início · Projetos sem datas não aparecem</span>
 </div>
 
 <div class="gantt-wrapper">
@@ -398,36 +366,18 @@ team.forEach(t=>teamMap[t.id]=t);
 
 /* ── FILTER / SORT STATE ──────────────────────────────── */
 let activeStageFilter = 'all';
-let sortMode = 'date';
-let filterDateFrom = '';
-let filterDateTo = '';
 
 function getFilteredProjects(){
-  let list = allProjects.slice();
+  // 1. Remove projects without both dates
+  let list = allProjects.filter(p => p.date && p.endDate);
 
-  // Filter by stage
+  // 2. Filter by stage
   if(activeStageFilter !== 'all'){
     list = list.filter(p => p.stage === activeStageFilter);
   }
 
-  // Filter by date range
-  if(filterDateFrom){
-    const from = new Date(filterDateFrom+'T00:00:00');
-    list = list.filter(p => new Date(p.endDate+'T00:00:00') >= from);
-  }
-  if(filterDateTo){
-    const to = new Date(filterDateTo+'T00:00:00');
-    list = list.filter(p => new Date(p.date+'T00:00:00') <= to);
-  }
-
-  // Sort
-  if(sortMode === 'date'){
-    list.sort((a,b) => new Date(a.date) - new Date(b.date));
-  } else if(sortMode === 'name'){
-    list.sort((a,b) => a.name.localeCompare(b.name,'pt-BR'));
-  } else if(sortMode === 'progress'){
-    list.sort((a,b) => b.progress - a.progress);
-  }
+  // 3. Always sort by start date
+  list.sort((a,b) => new Date(a.date) - new Date(b.date));
 
   return list;
 }
@@ -442,27 +392,6 @@ function setStageFilter(stage){
       else c.classList.add('active');
     }
   });
-  applyFilters();
-}
-
-function setSortMode(mode){
-  sortMode = mode;
-  document.querySelectorAll('.filter-sort').forEach(b => b.classList.remove('active'));
-  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-  applyFilters();
-}
-
-function clearDateFilter(){
-  document.getElementById('filterDateFrom').value = '';
-  document.getElementById('filterDateTo').value = '';
-  filterDateFrom = '';
-  filterDateTo = '';
-  applyFilters();
-}
-
-function applyFilters(){
-  filterDateFrom = document.getElementById('filterDateFrom').value;
-  filterDateTo = document.getElementById('filterDateTo').value;
   renderGantt();
 }
 
@@ -470,14 +399,15 @@ function applyFilters(){
 const DAY_WIDTH = 28;
 const ROW_H = 48;
 
-// Compute global range from ALL projects (unfiltered) for stable header
+// Compute global range from projects WITH dates for stable header
 let gMinDate = Infinity, gMaxDate = -Infinity;
-allProjects.forEach(p=>{
+allProjects.filter(p=>p.date&&p.endDate).forEach(p=>{
   const s = new Date(p.date).getTime();
   const e = new Date(p.endDate).getTime();
   if(s<gMinDate) gMinDate=s;
   if(e>gMaxDate) gMaxDate=e;
 });
+if(gMinDate===Infinity){ gMinDate=Date.now()-90*86400000; gMaxDate=Date.now()+90*86400000; }
 const PAD = 15*86400000;
 const rangeStart = new Date(gMinDate - PAD);
 rangeStart.setDate(1);
@@ -517,6 +447,7 @@ function buildHeader(){
   headerInner.style.width = totalWidth + 'px';
 
   const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0')+'-'+today.getDate().toString().padStart(2,'0');
 
   // ROW 1: Months
   let cur = new Date(rangeStart);
@@ -578,7 +509,8 @@ function buildHeader(){
     dc.textContent = dayCur.getDate();
     const dow = dayCur.getDay();
     if(dow === 0 || dow === 6) dc.classList.add('weekend');
-    if(dayCur.getTime() === today.getTime()) dc.classList.add('today-cell');
+    const dcStr = dayCur.getFullYear()+'-'+(dayCur.getMonth()+1).toString().padStart(2,'0')+'-'+dayCur.getDate().toString().padStart(2,'0');
+    if(dcStr === todayStr) dc.classList.add('today-cell');
     daysRow.appendChild(dc);
 
     dayCur = new Date(dayCur);
