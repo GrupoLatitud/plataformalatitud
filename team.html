@@ -649,7 +649,8 @@ function saveMember(){
 window._fbProjects=[];
 db.ref('team').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length) team=d;
+  if(d&&Array.isArray(d)&&d.length){ team=d; }
+  else{ team=[...DEFAULT_TEAM]; db.ref('team').set(team); }
   render();
 });
 db.ref('projects').on('value',snap=>{

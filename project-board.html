@@ -665,18 +665,16 @@ function saveProject(){
 /* ── INIT (Firebase) ─────────────────────────────── */
 db.ref('team').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length) TEAM=d;
+  if(d&&Array.isArray(d)&&d.length){ TEAM=d; }
+  else{ TEAM=[...DEFAULT_TEAM]; db.ref('team').set(TEAM); }
   render();
 });
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
-  if(d&&Array.isArray(d)&&d.length) projects=d;
+  if(d&&Array.isArray(d)&&d.length){ projects=d; }
+  else{ projects=JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); db.ref('projects').set(projects); }
   nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
   render();
-});
-db.ref('nextId').on('value',snap=>{
-  const d=snap.val();
-  if(d) nextId=d;
 });
 </script>
 </body>

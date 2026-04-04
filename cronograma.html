@@ -763,12 +763,14 @@ function tryInit(){
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
   if(d&&Array.isArray(d)&&d.length) allProjects=d;
+  else allProjects=DEFAULT_PROJECTS.slice();
   if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
   else tryInit();
 });
 db.ref('team').on('value',snap=>{
   const d=snap.val();
   if(d&&Array.isArray(d)&&d.length) team=d;
+  else team=DEFAULT_TEAM.slice();
   if(dataLoaded>=2){ teamMap={}; team.forEach(t=>teamMap[t.id]=t); buildHeader(); renderGantt(); setupScroll(); }
   else tryInit();
 });
