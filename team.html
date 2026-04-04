@@ -288,10 +288,15 @@ body{
 
     <div class="field">
       <label>Cargo / Função</label>
-      <input type="text" id="fRole" placeholder="Ex: Engenheiro Civil">
+      <select id="fRole" onchange="autoSelectColor()">
+        <option value="">Selecione...</option>
+        <option value="Encarregado">Encarregado</option>
+        <option value="Operação">Operação</option>
+        <option value="Empreiteiro">Empreiteiro</option>
+      </select>
     </div>
 
-    <div class="field">
+    <div class="field" id="colorField" style="display:none">
       <label>Cor de Identificação</label>
       <div class="color-grid" id="colorGrid"></div>
     </div>
@@ -321,6 +326,11 @@ const DEFAULT_TEAM=[
 ];
 
 const COLORS=["#F5841F","#F5C242","#6bafd4","#8fcf6a","#d47fb5","#f07070","#a08cf5","#f5b07a","#70d4c0","#f5d47a","#c5a55a","#8ab5f5","#e06050","#50b0a0","#b080e0","#e0a050"];
+const ROLE_COLORS={"Encarregado":"#F5841F","Operação":"#F5C242","Empreiteiro":"#6bafd4"};
+function autoSelectColor(){
+  const role=document.getElementById('fRole').value;
+  if(ROLE_COLORS[role]){selectedColor=ROLE_COLORS[role];renderColors()}
+}
 
 /* ── STATE ─────────────────────────────────────── */
 let team=[];
