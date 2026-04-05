@@ -557,20 +557,14 @@ body{
       <h2 id="formTitle">Novo RDO</h2>
     </div>
 
-    <!-- Project + Date -->
+    <!-- Date -->
+    <select id="fProject" style="display:none"></select>
     <div class="rdo-section">
-      <div class="rdo-section-title">Identificacao</div>
-      <div class="field-row">
-        <div class="field">
-          <label>Projeto</label>
-          <select id="fProject"></select>
-        </div>
-        <div class="field">
-          <label>Data</label>
-          <div class="field-inline">
-            <input type="date" id="fDate" onchange="updateDayOfWeek()">
-            <span class="day-display" id="dayOfWeek"></span>
-          </div>
+      <div class="rdo-section-title">Data do Relatório</div>
+      <div class="field">
+        <div class="field-inline">
+          <input type="date" id="fDate" onchange="updateDayOfWeek()">
+          <span class="day-display" id="dayOfWeek"></span>
         </div>
       </div>
     </div>
@@ -579,32 +573,32 @@ body{
     <div class="rdo-section">
       <div class="rdo-section-title">Detalhes do Dia</div>
       <div class="check-group">
-        <label class="check-item"><input type="checkbox" id="fDiurno" checked> Diurno</label>
-        <label class="check-item"><input type="checkbox" id="fNoturno"> Noturno</label>
+        <label class="check-item"><input type="checkbox" id="fDiurno" checked onchange="updateWeatherVisibility()"> Diurno</label>
+        <label class="check-item"><input type="checkbox" id="fNoturno" onchange="updateWeatherVisibility()"> Noturno</label>
         <label class="check-item"><input type="checkbox" id="fFeriado"> Feriado</label>
       </div>
     </div>
 
     <!-- Condicao Climatica -->
     <div class="rdo-section">
-      <div class="rdo-section-title">Condicao Climatica</div>
+      <div class="rdo-section-title">Condição Climática <span style="font-size:.7rem;color:var(--text-dim);font-weight:400;text-transform:none">* obrigatório</span></div>
       <div class="table-scroll">
         <table class="weather-table">
           <thead>
-            <tr><th>Periodo</th><th>Praticavel</th><th>Clima</th></tr>
+            <tr><th>Período</th><th>Praticável</th><th>Clima</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Manha</td>
+            <tr id="weatherManha">
+              <td>Manhã</td>
               <td><div class="weather-indicator green" data-period="manha" onclick="toggleWeather(this)">P</div></td>
               <td><select id="climaManha"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
             </tr>
-            <tr>
+            <tr id="weatherTarde">
               <td>Tarde</td>
               <td><div class="weather-indicator green" data-period="tarde" onclick="toggleWeather(this)">P</div></td>
               <td><select id="climaTarde"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
             </tr>
-            <tr>
+            <tr id="weatherNoite">
               <td>Noite</td>
               <td><div class="weather-indicator green" data-period="noite" onclick="toggleWeather(this)">P</div></td>
               <td><select id="climaNoite"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
@@ -665,9 +659,8 @@ body{
         <div class="dropdown-add">
           <button class="btn-add-small" onclick="toggleRecordMenu()">+ Adicionar</button>
           <div class="dropdown-add-menu" id="recordMenu">
-            <div class="dropdown-add-item" onclick="addRecord('ocorrencia')">Ocorrencia</div>
-            <div class="dropdown-add-item" onclick="addRecord('evento')">Evento</div>
-            <div class="dropdown-add-item" onclick="addRecord('comentario')">Comentario</div>
+            <div class="dropdown-add-item" onclick="addRecord('ocorrencia')">Ocorrência</div>
+            <div class="dropdown-add-item" onclick="addRecord('comentario')">Comentário</div>
           </div>
         </div>
       </div>
@@ -1051,6 +1044,7 @@ function openEditRdo(id){
     c.classList.toggle('selected',c.dataset.status===currentRdo.status);
   });
 
+  updateWeatherVisibility();
   showFormView();
 }
 
@@ -1081,6 +1075,7 @@ function resetForm(){
   document.querySelectorAll('.status-card').forEach(c=>{
     c.classList.toggle('selected',c.dataset.status==='preenchendo');
   });
+  updateWeatherVisibility();
 }
 
 /* ── CANCEL FORM ───────────────────────────────── */
@@ -1102,6 +1097,15 @@ function toggleWeather(el){
   const isGreen=el.classList.contains('green');
   el.className='weather-indicator '+(isGreen?'red':'green');
   el.textContent=isGreen?'I':'P';
+}
+
+/* ── WEATHER VISIBILITY (Diurno → Manhã/Tarde, Noturno → Noite) ── */
+function updateWeatherVisibility(){
+  const diurno=document.getElementById('fDiurno').checked;
+  const noturno=document.getElementById('fNoturno').checked;
+  document.getElementById('weatherManha').style.display=diurno?'':'none';
+  document.getElementById('weatherTarde').style.display=diurno?'':'none';
+  document.getElementById('weatherNoite').style.display=noturno?'':'none';
 }
 
 /* ── WORKFORCE ─────────────────────────────────── */
@@ -1416,8 +1420,10 @@ function selectStatus(el){
 function saveRdo(){
   const projectId=document.getElementById('fProject').value;
   const date=document.getElementById('fDate').value;
-  if(!projectId){alert('Selecione um projeto.');return;}
-  if(!date){alert('Selecione uma data.');return;}
+  if(!date){alert('Informe a data do relatório.');return;}
+  if(!document.getElementById('fDiurno').checked && !document.getElementById('fNoturno').checked){alert('Selecione pelo menos um turno (Diurno ou Noturno).');return;}
+  if(currentRdo.workforce.length<1){alert('Adicione pelo menos 1 pessoa na Mão de Obra.');return;}
+  if(!currentRdo.records.length){alert('Adicione pelo menos 1 registro (Ocorrência ou Comentário).');return;}
 
   // Collect weather
   const weather={};
