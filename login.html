@@ -86,8 +86,8 @@ body{
     <div class="login-title">ACESSO AO SISTEMA</div>
     <div class="error-msg" id="loginError"></div>
     <div class="field">
-      <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="Digite seu usuario" autocomplete="username" required>
+      <label>E-mail</label>
+      <input type="text" id="loginUser" placeholder="Digite seu e-mail" autocomplete="username" required>
     </div>
     <div class="field">
       <label>Senha</label>
@@ -106,8 +106,8 @@ body{
       <input type="text" id="setupName" placeholder="Ex: Carlos Silva" required>
     </div>
     <div class="field">
-      <label>Usuario</label>
-      <input type="text" id="setupUser" placeholder="Ex: carlos" required>
+      <label>E-mail</label>
+      <input type="text" id="setupUser" placeholder="Ex: admin@empresa.com" required>
     </div>
     <div class="field">
       <label>Senha</label>
@@ -206,7 +206,8 @@ async function doLogin(e){
       loginAt:Date.now()
     };
     localStorage.setItem('loggedUser',JSON.stringify(sessionData));
-    window.location.href='project-board.html';
+    // Encarregado goes to overview, others to project-board
+    window.location.href=found.role==='encarregado'?'overview.html':'project-board.html';
   }catch(err){
     errEl.textContent='Erro ao conectar. Tente novamente.';
     errEl.classList.add('show');

@@ -432,7 +432,7 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.role!=='admin'&&u.pages&&!u.pages['project-board']){window.location.href='login.html';return;}
+  if(u.role==='encarregado'){window.location.href='overview.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
