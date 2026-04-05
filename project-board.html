@@ -375,13 +375,8 @@ body{
       <div id="fDurationDisplay" style="padding:8px 12px;background:#1e1a12;border-radius:6px;color:#ccc;font-size:.85rem">—</div>
     </div>
 
-    <div class="field">
-      <label>Avanço</label>
-      <div class="range-wrap">
-        <input type="range" id="fProgress" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'">
-        <span class="range-val" id="progressVal">0%</span>
-      </div>
-    </div>
+    <input type="hidden" id="fProgress" value="0">
+    <span id="progressVal" style="display:none">0%</span>
 
     <div class="field">
       <label>Avanços do Projeto</label>
@@ -724,7 +719,7 @@ function saveProject(){
     stage:document.getElementById('fStage').value,
     date:document.getElementById('fDate').value,
     endDate:document.getElementById('fEndDate').value,
-    progress:+document.getElementById('fProgress').value,
+    progress:0,
     responsible:selectedResp,
     collabs:[...selectedCollabs],
     items:items
@@ -742,9 +737,35 @@ function saveProject(){
   render();
 }
 
+/* ── CALC PROGRESS FROM RDOs ─────────────────────── */
+let rdoList=[];
+
+function calcProjectProgress(proj){
+  if(!proj.items||!proj.items.length) return 0;
+  const items=Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+  if(!items.length) return 0;
+  const projRdos=rdoList.filter(r=>r.projectId==proj.id);
+  let totalPct=0;
+  items.forEach(it=>{
+    const totalQty=it.qty||0;
+    if(totalQty<=0){totalPct+=0;return;}
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+      acts.forEach(a=>{ if(a.name===it.name) consumed+=(a.qtyDia||0); });
+    });
+    totalPct+=Math.min(100,(consumed/totalQty)*100);
+  });
+  return Math.round(totalPct/items.length);
+}
+
+function updateAllProgress(){
+  projects.forEach(p=>{ p.progress=calcProjectProgress(p); });
+}
+
 /* ── INIT (Firebase) ─────────────────────────────── */
 let _fbReady=false;
-function fbRender(){ _fbReady=true; render(); }
+function fbRender(){ _fbReady=true; updateAllProgress(); render(); }
 
 db.ref('team').on('value', snap=>{
   const d=snap.val();
@@ -758,6 +779,12 @@ db.ref('projects').on('value', snap=>{
   nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
   fbRender();
 }, err=>{ console.warn('Firebase projects error:',err); fbRender(); });
+
+db.ref('rdo').on('value', snap=>{
+  const d=snap.val();
+  rdoList=d?(Array.isArray(d)?d:Object.values(d)):[];
+  if(_fbReady){ updateAllProgress(); render(); }
+}, err=>{ console.warn('Firebase rdo error:',err); });
 
 // Fallback: se Firebase não responder em 3s, renderiza com defaults
 setTimeout(()=>{ if(!_fbReady){ console.warn('Firebase timeout, usando defaults'); render(); } }, 3000);
