@@ -538,7 +538,6 @@ body{
   </nav>
   <div class="header-right">
     <div class="rdo-count">RDOs: <strong id="totalCount">0</strong></div>
-    <button class="btn-new" onclick="openNewRdo()">+ Novo RDO</button>
   </div>
 </header>
 
@@ -591,17 +590,17 @@ body{
             <tr id="weatherManha">
               <td>Manhã</td>
               <td><div class="weather-indicator green" data-period="manha" onclick="toggleWeather(this)">P</div></td>
-              <td><select id="climaManha"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+              <td><select id="climaManha" onchange="autoWeather('manha',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
             </tr>
             <tr id="weatherTarde">
               <td>Tarde</td>
               <td><div class="weather-indicator green" data-period="tarde" onclick="toggleWeather(this)">P</div></td>
-              <td><select id="climaTarde"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+              <td><select id="climaTarde" onchange="autoWeather('tarde',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
             </tr>
             <tr id="weatherNoite">
               <td>Noite</td>
               <td><div class="weather-indicator green" data-period="noite" onclick="toggleWeather(this)">P</div></td>
-              <td><select id="climaNoite"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+              <td><select id="climaNoite" onchange="autoWeather('noite',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
             </tr>
           </tbody>
         </table>
@@ -1097,6 +1096,15 @@ function toggleWeather(el){
   const isGreen=el.classList.contains('green');
   el.className='weather-indicator '+(isGreen?'red':'green');
   el.textContent=isGreen?'I':'P';
+}
+
+/* ── AUTO WEATHER (clima → praticável/impraticável) ── */
+function autoWeather(period,clima){
+  const el=document.querySelector(`.weather-indicator[data-period="${period}"]`);
+  if(!el) return;
+  const prat=(clima==='LIMPO'||clima==='NUBLADO');
+  el.className='weather-indicator '+(prat?'green':'red');
+  el.textContent=prat?'P':'I';
 }
 
 /* ── WEATHER VISIBILITY (Diurno → Manhã/Tarde, Noturno → Noite) ── */
