@@ -184,13 +184,13 @@ body{
   background:var(--surface2);border:1px solid #2e2818;border-radius:6px;padding:6px 8px;
 }
 .modal-item input[type="text"]{
-  flex:2;background:transparent;border:none;color:var(--text);
-  font-family:'Barlow',sans-serif;font-size:.85rem;min-width:120px;
+  flex:3;background:transparent;border:none;color:var(--text);
+  font-family:'Barlow',sans-serif;font-size:.85rem;min-width:140px;
 }
 .modal-item input[type="text"]:focus{outline:none}
 .modal-item input[type="number"]{
-  width:46px;background:var(--bg);border:1px solid #2e2818;color:var(--text);
-  padding:4px 4px;border-radius:4px;font-size:.78rem;text-align:center;
+  width:42px;background:var(--bg);border:1px solid #2e2818;color:var(--text);
+  padding:4px 2px;border-radius:4px;font-size:.78rem;text-align:center;
   font-family:'Barlow',sans-serif;flex-shrink:0;
 }
 .modal-item input[type="number"]:focus{outline:none;border-color:var(--orange)}
@@ -386,6 +386,12 @@ body{
       <label>Avanços do Projeto</label>
       <div class="items-list" id="itemsList"></div>
       <div class="btn-add-item" onclick="addItem()">+ Adicionar item</div>
+    </div>
+
+    <div class="field">
+      <label>Materiais do Projeto</label>
+      <div class="items-list" id="materialsList"></div>
+      <div class="btn-add-item" onclick="addMaterial()">+ Adicionar material</div>
     </div>
 
     <div class="field">
@@ -618,6 +624,7 @@ function removeProject(id){
 let selectedResp=null;
 let selectedCollabs=new Set();
 let currentItems=[];
+let currentMaterials=[];
 
 /* ── ITEMS ───────────────────────────────────────── */
 function getItemRdoProgress(itemName){
@@ -666,6 +673,53 @@ function addItem(){
   renderItems();
 }
 
+/* ── MATERIALS ───────────────────────────────────── */
+function getMaterialRdoConsumed(matName){
+  if(!editingId) return 0;
+  const projRdos=rdoList.filter(r=>r.projectId==editingId);
+  let consumed=0;
+  projRdos.forEach(r=>{
+    const mats=r.materials?(Array.isArray(r.materials)?r.materials:Object.values(r.materials)):[];
+    mats.forEach(m=>{ if(m.name===matName) consumed+=(m.qtyDia||0); });
+  });
+  return consumed;
+}
+function isMaterialUsedInRdo(matName){
+  if(!editingId) return false;
+  const projRdos=rdoList.filter(r=>r.projectId==editingId);
+  for(let r of projRdos){
+    const mats=r.materials?(Array.isArray(r.materials)?r.materials:Object.values(r.materials)):[];
+    for(let m of mats){ if(m.name===matName && (m.qtyDia||0)>0) return true; }
+  }
+  return false;
+}
+function renderMaterials(){
+  const list=document.getElementById('materialsList');
+  list.innerHTML=currentMaterials.map((mt,i)=>{
+    const totalQty=mt.qty||0;
+    const consumed=getMaterialRdoConsumed(mt.name);
+    const pct=totalQty>0?Math.min(100,Math.round((consumed/totalQty)*100)):0;
+    const saldo=totalQty>0?Math.max(0,+(totalQty-consumed).toFixed(2)):0;
+    const usedInRdo=isMaterialUsedInRdo(mt.name);
+    return `
+    <div class="modal-item">
+      <input type="text" value="${mt.name}" placeholder="Nome do material" onchange="currentMaterials[${i}].name=this.value" ${usedInRdo?'readonly style="opacity:.7"':''}>
+      <input type="number" value="${mt.qty}" min="0" step="0.01" onchange="currentMaterials[${i}].qty=parseFloat(this.value)||0" ${usedInRdo?'readonly style="opacity:.7"':''}>
+      <select onchange="currentMaterials[${i}].unit=this.value" ${usedInRdo?'disabled style="opacity:.7"':''}>
+        ${['UNI','M²','ML','M³','KG','L','VB','HR','CJ','MT'].map(u=>`<option ${mt.unit===u?'selected':''}>${u}</option>`).join('')}
+      </select>
+      <div class="item-progress-bar"><div class="item-progress-fill" style="width:${pct}%"></div></div>
+      <span class="item-pct-label">${pct}%</span>
+      <span class="item-saldo"><span class="saldo-label">Saldo</span><span class="saldo-value">${saldo}</span></span>
+      ${usedInRdo?'':'<button class="remove-item" onclick="currentMaterials.splice('+i+',1);renderMaterials()">✕</button>'}
+    </div>`;
+  }).join('');
+}
+function addMaterial(){
+  currentMaterials.push({name:'',qty:0,unit:'UNI'});
+  renderMaterials();
+}
+
 function avatarHTML(t,size){
   const s=size||24;
   if(t.photo)return `<div class="avatar has-photo" style="border-color:${t.color};width:${s}px;height:${s}px"><img src="${t.photo}" alt="${t.name}"></div>`;
@@ -711,6 +765,7 @@ function openModal(proj){
   selectedResp=null;
   selectedCollabs=new Set();
   currentItems=[];
+  currentMaterials=[];
 
   if(proj){
     editingId=proj.id;
@@ -725,9 +780,11 @@ function openModal(proj){
     selectedResp=proj.responsible;
     selectedCollabs=new Set(proj.collabs);
     currentItems=proj.items?JSON.parse(JSON.stringify(Array.isArray(proj.items)?proj.items:Object.values(proj.items))):[];
+    currentMaterials=proj.materials?JSON.parse(JSON.stringify(Array.isArray(proj.materials)?proj.materials:Object.values(proj.materials))):[];
   }
 
   renderItems();
+  renderMaterials();
   buildChips();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -745,6 +802,7 @@ function saveProject(){
   if(!name){alert('Informe o nome do projeto.');return}
 
   const items=currentItems.filter(it=>it.name.trim());
+  const materials=currentMaterials.filter(mt=>mt.name.trim());
   const data={
     name,
     stage:document.getElementById('fStage').value,
@@ -753,7 +811,8 @@ function saveProject(){
     progress:0,
     responsible:selectedResp,
     collabs:[...selectedCollabs],
-    items:items
+    items:items,
+    materials:materials
   };
 
   if(editingId){
