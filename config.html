@@ -423,11 +423,8 @@ function onRoleChange(){
   const role=document.getElementById('uRole').value;
   const fieldProjetos=document.getElementById('fieldProjetos');
   const allRow=document.getElementById('allProjectsRow');
-  if(role==='admin'){
-    // Admin: all access, hide projects section
-    fieldProjetos.style.display='none';
-  }else if(role==='gestao'){
-    // Gestao: show projects with "Todos" option
+  if(role==='admin'||role==='gestao'){
+    // Admin/Gestao: show projects with "Todos" option
     fieldProjetos.style.display='block';
     allRow.style.display='flex';
   }else{
@@ -574,11 +571,9 @@ async function saveUser(){
   // Auto-assign pages based on role
   const pages=ROLE_PAGES[role]||ROLE_PAGES.encarregado;
 
-  // Admin and gestao always see all projects; encarregado must select specific
+  // Admin/Gestao: can choose all or specific; Encarregado: must select specific
   let allowedProjects;
-  if(role==='admin'){
-    allowedProjects='all';
-  }else if(role==='gestao'){
+  if(role==='admin'||role==='gestao'){
     allowedProjects=allProjectsMode?'all':[...selectedProjectIds];
   }else{
     // Encarregado: never "all", always specific
