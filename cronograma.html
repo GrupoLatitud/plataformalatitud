@@ -377,6 +377,25 @@ const DEFAULT_TEAM=[
   {id:12,name:"Ivan Lopes",role:"Técnico",color:"#8ab5f5",photo:""}
 ];
 
+let rdoList=[];
+function calcProjectProgress(proj){
+  if(!proj.items) return 0;
+  const items=Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+  if(!items.length) return 0;
+  const projRdos=rdoList.filter(r=>r.projectId==proj.id);
+  let totalPct=0;
+  items.forEach(it=>{
+    const totalQty=it.qty||0;
+    if(totalQty<=0){totalPct+=0;return;}
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+      acts.forEach(a=>{ if(a.name===it.name) consumed+=(a.qtyDia||0); });
+    });
+    totalPct+=Math.min(100,(consumed/totalQty)*100);
+  });
+  return Math.round(totalPct/items.length);
+}
 const STAGE_COLORS = { andamento:'#8fcf6a', garantia:'#F5841F', standby:'#6bafd4' };
 const STAGE_LABELS = { andamento:'Em andamento', garantia:'Garantia', standby:'Stand-by' };
 const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -651,11 +670,12 @@ function renderGantt(){
     bar.style.background = color + '33';
     bar.style.border = '1px solid ' + color + '55';
 
+    const pProgress = calcProjectProgress(p);
     const prog = document.createElement('div');
     prog.className = 'gantt-bar-progress';
-    prog.style.width = p.progress + '%';
+    prog.style.width = pProgress + '%';
     prog.style.background = color + '88';
-    if(p.progress >= 100) prog.style.borderRadius = '6px';
+    if(pProgress >= 100) prog.style.borderRadius = '6px';
     bar.appendChild(prog);
 
     const lbl = document.createElement('div');
@@ -713,7 +733,7 @@ function showTooltip(e, p){
     <div class="tt-row"><span>Início</span><span>${fmt(start)}</span></div>
     <div class="tt-row"><span>Término</span><span>${fmt(end)}</span></div>
     <div class="tt-row"><span>Duração</span><span>${dur} dias</span></div>
-    <div class="tt-row"><span>Progresso</span><span>${p.progress}%</span></div>
+    <div class="tt-row"><span>Progresso</span><span>${calcProjectProgress(p)}%</span></div>
   `;
   tooltip.classList.add('visible');
   moveTooltip(e);
@@ -779,6 +799,11 @@ db.ref('team').on('value',snap=>{
   if(d){ const arr=Array.isArray(d)?d:Object.values(d); if(arr.length) team=arr; }
   if(dataLoaded>=2) fbRefresh(); else tryInit();
 }, err=>{ tryInit(); });
+db.ref('rdo').on('value',snap=>{
+  const d=snap.val();
+  rdoList=d?(Array.isArray(d)?d:Object.values(d)):[];
+  if(dataLoaded>=2) fbRefresh();
+}, err=>{ console.warn('Firebase rdo error:',err); });
 // Fallback
 setTimeout(()=>{ if(dataLoaded<2){ dataLoaded=2; fbRefresh(); } }, 3000);
 </script>
