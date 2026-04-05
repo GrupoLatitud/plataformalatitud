@@ -200,7 +200,8 @@ body{
   font-family:'Barlow',sans-serif;
 }
 .modal-item select:focus{outline:none;border-color:var(--orange)}
-.modal-item .item-range{width:60px}
+.modal-item .item-progress-bar{width:60px;height:6px;background:#1a1710;border-radius:3px;overflow:hidden;flex-shrink:0}
+.modal-item .item-progress-fill{height:100%;background:var(--orange);border-radius:3px;transition:width .3s}
 .modal-item .item-pct-label{font-size:.75rem;color:var(--orange);font-weight:600;min-width:30px}
 .modal-item .remove-item{
   background:none;border:none;color:var(--text-dim);cursor:pointer;
@@ -616,19 +617,44 @@ let selectedCollabs=new Set();
 let currentItems=[];
 
 /* ── ITEMS ───────────────────────────────────────── */
+function getItemRdoProgress(itemName){
+  if(!editingId) return {consumed:0,pct:0};
+  const projRdos=rdoList.filter(r=>r.projectId==editingId);
+  let consumed=0;
+  projRdos.forEach(r=>{
+    const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+    acts.forEach(a=>{ if(a.name===itemName) consumed+=(a.qtyDia||0); });
+  });
+  return {consumed};
+}
+function isItemUsedInRdo(itemName){
+  if(!editingId) return false;
+  const projRdos=rdoList.filter(r=>r.projectId==editingId);
+  for(let r of projRdos){
+    const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+    for(let a of acts){ if(a.name===itemName && (a.qtyDia||0)>0) return true; }
+  }
+  return false;
+}
 function renderItems(){
   const list=document.getElementById('itemsList');
-  list.innerHTML=currentItems.map((it,i)=>`
+  list.innerHTML=currentItems.map((it,i)=>{
+    const totalQty=it.qty||0;
+    const rdoData=getItemRdoProgress(it.name);
+    const pct=totalQty>0?Math.min(100,Math.round((rdoData.consumed/totalQty)*100)):0;
+    const usedInRdo=isItemUsedInRdo(it.name);
+    return `
     <div class="modal-item">
-      <input type="text" value="${it.name}" placeholder="Nome do item" onchange="currentItems[${i}].name=this.value">
-      <input type="number" value="${it.qty}" min="0" step="0.01" onchange="currentItems[${i}].qty=parseFloat(this.value)||0">
-      <select onchange="currentItems[${i}].unit=this.value">
+      <input type="text" value="${it.name}" placeholder="Nome do item" onchange="currentItems[${i}].name=this.value" ${usedInRdo?'readonly style="opacity:.7"':''}>
+      <input type="number" value="${it.qty}" min="0" step="0.01" onchange="currentItems[${i}].qty=parseFloat(this.value)||0" ${usedInRdo?'readonly style="opacity:.7"':''}>
+      <select onchange="currentItems[${i}].unit=this.value" ${usedInRdo?'disabled style="opacity:.7"':''}>
         ${['UNI','M²','ML','M³','KG','L','VB','HR','CJ','MT'].map(u=>`<option ${it.unit===u?'selected':''}>${u}</option>`).join('')}
       </select>
-      <input type="range" class="item-range" min="0" max="100" value="${it.progress||0}" oninput="currentItems[${i}].progress=+this.value;this.nextElementSibling.textContent=this.value+'%'">
-      <span class="item-pct-label">${it.progress||0}%</span>
-      <button class="remove-item" onclick="currentItems.splice(${i},1);renderItems()">✕</button>
-    </div>`).join('');
+      <div class="item-progress-bar"><div class="item-progress-fill" style="width:${pct}%"></div></div>
+      <span class="item-pct-label">${pct}%</span>
+      ${usedInRdo?'':'<button class="remove-item" onclick="currentItems.splice('+i+',1);renderItems()">✕</button>'}
+    </div>`;
+  }).join('');
 }
 function addItem(){
   currentItems.push({name:'',qty:0,unit:'ML',progress:0});
