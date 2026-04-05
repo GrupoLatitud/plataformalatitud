@@ -168,19 +168,20 @@ body{
 .saldo-col .s-value{font-size:.78rem;font-weight:600}
 
 /* Mini Gantt */
-.mini-gantt-wrap{position:relative;width:100%;margin-top:6px}
+.mini-gantt-wrap{position:relative;width:100%;margin-top:6px;overflow:hidden}
 .mg-months{display:flex;width:100%;border-bottom:1px solid #2e2818}
 .mg-month{
   font-size:.65rem;font-weight:600;color:var(--text-dim);
   text-align:center;padding:4px 0;border-right:1px solid #1a1610;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  flex-shrink:0;
+  flex-shrink:1;flex-grow:0;flex-basis:auto;box-sizing:border-box;
 }
-.mg-bar-area{position:relative;width:100%;height:36px;margin-top:8px}
+.mg-month:last-child{border-right:none}
+.mg-bar-area{position:relative;width:100%;height:40px;margin-top:8px}
 .mg-bar{
-  position:absolute;top:6px;height:24px;border-radius:6px;
+  position:absolute;top:8px;height:24px;border-radius:6px;
   display:flex;align-items:center;padding:0 8px;font-size:.72rem;font-weight:600;
-  overflow:hidden;min-width:2px;
+  overflow:hidden;min-width:4px;
 }
 .mg-bar-progress{position:absolute;top:0;left:0;bottom:0;border-radius:6px}
 .mg-bar-label{position:relative;z-index:1;white-space:nowrap;color:#fff}
@@ -188,7 +189,7 @@ body{
   position:absolute;top:0;bottom:0;width:2px;background:#f07070;z-index:5;
 }
 .mg-today-label{
-  position:absolute;top:-14px;font-size:.58rem;color:#f07070;font-weight:600;
+  position:absolute;top:-2px;font-size:.58rem;color:#f07070;font-weight:600;
   transform:translateX(-50%);white-space:nowrap;
 }
 .mg-today-label{
@@ -1327,11 +1328,12 @@ function renderMiniGantt(p,stage){
 
   const totalDays=daysBetweenDates(rangeStart,rangeEnd)+1;
 
-  // Use percentages for responsive layout
+  // Percentage helper
   function dateToPct(d){return (daysBetweenDates(rangeStart,d)/totalDays)*100}
 
-  // Months — each month width is proportional (% of total days)
+  // Months — use flex-grow proportional to visible days (fills 100% natively)
   let monthsHtml='';
+  const isMobile=window.innerWidth<768;
   let cur=new Date(rangeStart);
   while(cur<=rangeEnd){
     const y=cur.getFullYear();const mo=cur.getMonth();
@@ -1340,16 +1342,18 @@ function renderMiniGantt(p,stage){
     const vs=ms<rangeStart?rangeStart:ms;
     const ve=me>rangeEnd?rangeEnd:me;
     const vd=daysBetweenDates(vs,ve)+1;
-    const wPct=(vd/totalDays)*100;
-    // On small screens, show short month name
-    const label=wPct<8?MONTH_NAMES[mo].substring(0,3):MONTH_NAMES[mo]+' '+y;
-    monthsHtml+=`<div class="mg-month" style="width:${wPct}%">${label}</div>`;
+    // Short label on mobile or small months
+    const pctW=(vd/totalDays)*100;
+    let label;
+    if(isMobile||pctW<12) label=MONTH_NAMES[mo].substring(0,3);
+    else label=MONTH_NAMES[mo]+' '+y;
+    monthsHtml+=`<div class="mg-month" style="flex:${vd} 0 0%">${label}</div>`;
     cur.setMonth(cur.getMonth()+1);cur.setDate(1);
   }
 
-  // Bar — position and width in percentages
+  // Bar position/width in %
   const barLeftPct=dateToPct(projStart);
-  const barWidthPct=Math.max(dateToPct(projEnd)-barLeftPct, 0.5);
+  const barWidthPct=Math.max(dateToPct(projEnd)-barLeftPct, 1);
   const pct=calcProjectProgress(p);
 
   // Today line
