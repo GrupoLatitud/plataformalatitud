@@ -470,6 +470,49 @@ body{
 
 .table-scroll{overflow-x:auto}
 
+/* SECTION LABEL */
+.section-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);
+  margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #2e2818;
+}
+
+/* PROJECT CARDS (list view) */
+.project-card{
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  padding:18px 20px;position:relative;transition:transform .15s,box-shadow .15s;
+}
+.project-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.project-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.project-card-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;flex:1;
+}
+.project-card-stage{
+  font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:12px;
+  text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;
+}
+.project-card-dates{font-size:.78rem;color:var(--text-dim);margin-bottom:4px}
+.project-card-resp{font-size:.8rem;color:var(--text-dim);margin-bottom:12px}
+.project-card-progress{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.project-card-progress .bar{
+  flex:1;height:5px;background:#1a1610;border-radius:3px;overflow:hidden;
+}
+.project-card-progress .fill{height:100%;border-radius:3px;transition:width .3s}
+.project-card-progress .pct{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;min-width:36px;text-align:right;
+}
+.project-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.project-card-rdo-count{font-size:.75rem;color:var(--text-dim)}
+.btn-create-rdo{
+  background:var(--orange);color:#fff;border:none;
+  padding:7px 16px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:background .2s;white-space:nowrap;
+}
+.btn-create-rdo:hover{background:#e0750f}
+
 @media(max-width:600px){
   .header{padding:0 14px;gap:10px;flex-wrap:wrap;height:auto;padding:10px 14px}
   .nav{margin-left:0}
@@ -501,15 +544,20 @@ body{
 
 <!-- ═══ LIST VIEW ═══ -->
 <main class="page-body" id="listView">
-  <h1 class="page-title">Relatorio Diario de Obra</h1>
-  <p class="page-sub">Gerencie os relatorios diarios de cada projeto.</p>
+  <h1 class="page-title">Relatório Diário de Obra</h1>
+  <p class="page-sub">Selecione um projeto para criar ou visualizar relatórios.</p>
 
+  <!-- PROJETOS ATIVOS -->
+  <div class="section-label">Projetos Ativos</div>
+  <div class="rdo-grid" id="projectsGrid"></div>
+
+  <!-- HISTORICO DE RDOs -->
+  <div class="section-label" style="margin-top:32px">Histórico de RDOs</div>
   <div class="filter-bar">
-    <select id="filterProject" onchange="renderList()">
+    <select id="filterProject" onchange="renderRdoHistory()">
       <option value="">Todos os projetos</option>
     </select>
   </div>
-
   <div class="rdo-grid" id="rdoGrid"></div>
 </main>
 
@@ -821,21 +869,72 @@ const STATUS_LABELS={
   aprovado:'Aprovado'
 };
 
+/* ── STAGE HELPERS ─────────────────────────────── */
+const STAGE_MAP={
+  andamento:{label:'Em Andamento',color:'#8fcf6a'},
+  garantia:{label:'Retorno Garantia',color:'#F5841F'},
+  standby:{label:'Stand-by',color:'#6bafd4'}
+};
+
 /* ── RENDER LIST VIEW ──────────────────────────── */
 function renderList(){
+  renderProjectCards();
+  renderRdoHistory();
+}
+
+function renderProjectCards(){
+  const grid=document.getElementById('projectsGrid');
+  document.getElementById('totalCount').textContent=rdoList.length;
+
+  if(!projects.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">📁</div><p>Nenhum projeto encontrado.</p></div>';
+    return;
+  }
+
+  grid.innerHTML=projects.map(p=>{
+    const stage=STAGE_MAP[p.stage]||{label:p.stage||'—',color:'#999'};
+    const rdoCount=rdoList.filter(r=>r.projectId==p.id).length;
+    const resp=team.find(t=>t.id===p.responsible);
+    const respName=resp?resp.name:'—';
+    const d1=p.date?formatDateBR(p.date):'—';
+    const d2=p.endDate?formatDateBR(p.endDate):'—';
+    return `
+      <div class="project-card">
+        <div class="project-card-top">
+          <div class="project-card-name">${p.name}</div>
+          <span class="project-card-stage" style="background:${stage.color}22;color:${stage.color}">${stage.label}</span>
+        </div>
+        <div class="project-card-dates">📅 ${d1} → ${d2}</div>
+        <div class="project-card-resp">👤 ${respName}</div>
+        <div class="project-card-progress">
+          <div class="bar"><div class="fill" style="width:${p.progress||0}%;background:${stage.color}"></div></div>
+          <span class="pct" style="color:${stage.color}">${p.progress||0}%</span>
+        </div>
+        <div class="project-card-bottom">
+          <span class="project-card-rdo-count">${rdoCount} RDO${rdoCount!==1?'s':''}</span>
+          <button class="btn-create-rdo" onclick="openNewRdoForProject(${p.id})">+ Novo RDO</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function formatDateBR(d){
+  if(!d) return '—';
+  const [y,m,dd]=d.split('-');
+  return dd+'/'+m+'/'+y;
+}
+
+function renderRdoHistory(){
   const grid=document.getElementById('rdoGrid');
   const filterVal=document.getElementById('filterProject').value;
   let filtered=rdoList;
   if(filterVal) filtered=rdoList.filter(r=>r.projectId==filterVal);
 
-  document.getElementById('totalCount').textContent=rdoList.length;
-
   if(!filtered.length){
-    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>Nenhum RDO encontrado.</p></div>`;
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>Nenhum RDO encontrado.</p></div>';
     return;
   }
 
-  // Sort by date descending
   filtered.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 
   grid.innerHTML=filtered.map(r=>{
@@ -886,6 +985,15 @@ function openNewRdo(){
   editingRdoId=null;
   document.getElementById('formTitle').textContent='Novo RDO';
   resetForm();
+  showFormView();
+}
+
+function openNewRdoForProject(projectId){
+  editingRdoId=null;
+  const p=projects.find(pr=>pr.id==projectId);
+  document.getElementById('formTitle').textContent='Novo RDO — '+(p?p.name:'');
+  resetForm();
+  document.getElementById('fProject').value=projectId;
   showFormView();
 }
 
