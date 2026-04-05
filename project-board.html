@@ -203,7 +203,9 @@ body{
 .modal-item .item-progress-bar{width:60px;height:6px;background:#1a1710;border-radius:3px;overflow:hidden;flex-shrink:0}
 .modal-item .item-progress-fill{height:100%;background:var(--orange);border-radius:3px;transition:width .3s}
 .modal-item .item-pct-label{font-size:.75rem;color:var(--orange);font-weight:600;min-width:30px}
-.modal-item .item-saldo{font-size:.72rem;color:var(--text-dim);min-width:38px;text-align:right;flex-shrink:0}
+.modal-item .item-saldo{display:flex;flex-direction:column;align-items:center;min-width:40px;flex-shrink:0;line-height:1.1}
+.modal-item .item-saldo .saldo-label{font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px}
+.modal-item .item-saldo .saldo-value{font-size:.78rem;color:var(--text);font-weight:600}
 .modal-item .remove-item{
   background:none;border:none;color:var(--text-dim);cursor:pointer;
   font-size:.9rem;padding:2px;transition:color .15s;
@@ -654,7 +656,7 @@ function renderItems(){
       </select>
       <div class="item-progress-bar"><div class="item-progress-fill" style="width:${pct}%"></div></div>
       <span class="item-pct-label">${pct}%</span>
-      <span class="item-saldo">S: ${saldo}</span>
+      <span class="item-saldo"><span class="saldo-label">Saldo</span><span class="saldo-value">${saldo}</span></span>
       ${usedInRdo?'':'<button class="remove-item" onclick="currentItems.splice('+i+',1);renderItems()">✕</button>'}
     </div>`;
   }).join('');
