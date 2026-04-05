@@ -168,24 +168,28 @@ body{
 .saldo-col .s-value{font-size:.78rem;font-weight:600}
 
 /* Mini Gantt */
-.mini-gantt-wrap{position:relative;overflow-x:auto;margin-top:6px}
-.mini-gantt-wrap::-webkit-scrollbar{height:5px}
-.mini-gantt-wrap::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
-.mg-months{display:flex;border-bottom:1px solid #2e2818}
+.mini-gantt-wrap{position:relative;width:100%;margin-top:6px}
+.mg-months{display:flex;width:100%;border-bottom:1px solid #2e2818}
 .mg-month{
   font-size:.65rem;font-weight:600;color:var(--text-dim);
   text-align:center;padding:4px 0;border-right:1px solid #1a1610;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  flex-shrink:0;
 }
-.mg-bar-area{position:relative;height:36px;margin-top:8px}
+.mg-bar-area{position:relative;width:100%;height:36px;margin-top:8px}
 .mg-bar{
   position:absolute;top:6px;height:24px;border-radius:6px;
   display:flex;align-items:center;padding:0 8px;font-size:.72rem;font-weight:600;
-  overflow:hidden;
+  overflow:hidden;min-width:2px;
 }
 .mg-bar-progress{position:absolute;top:0;left:0;bottom:0;border-radius:6px}
 .mg-bar-label{position:relative;z-index:1;white-space:nowrap;color:#fff}
 .mg-today{
   position:absolute;top:0;bottom:0;width:2px;background:#f07070;z-index:5;
+}
+.mg-today-label{
+  position:absolute;top:-14px;font-size:.58rem;color:#f07070;font-weight:600;
+  transform:translateX(-50%);white-space:nowrap;
 }
 .mg-today-label{
   position:absolute;top:-14px;font-size:.6rem;color:#f07070;font-weight:600;
@@ -1255,13 +1259,11 @@ function renderMiniGantt(p,stage){
   rangeEnd.setMonth(rangeEnd.getMonth()+1,0);
 
   const totalDays=daysBetweenDates(rangeStart,rangeEnd)+1;
-  const cWidth=container.offsetWidth||600;
-  const dayW=Math.max(3,Math.min(14,Math.floor(cWidth/totalDays)));
-  const totalW=totalDays*dayW;
 
-  function dateToX(d){return daysBetweenDates(rangeStart,d)*dayW}
+  // Use percentages for responsive layout
+  function dateToPct(d){return (daysBetweenDates(rangeStart,d)/totalDays)*100}
 
-  // Months
+  // Months — each month width is proportional (% of total days)
   let monthsHtml='';
   let cur=new Date(rangeStart);
   while(cur<=rangeEnd){
@@ -1271,36 +1273,51 @@ function renderMiniGantt(p,stage){
     const vs=ms<rangeStart?rangeStart:ms;
     const ve=me>rangeEnd?rangeEnd:me;
     const vd=daysBetweenDates(vs,ve)+1;
-    monthsHtml+=`<div class="mg-month" style="width:${vd*dayW}px;min-width:${vd*dayW}px">${MONTH_NAMES[mo]} ${y}</div>`;
+    const wPct=(vd/totalDays)*100;
+    // On small screens, show short month name
+    const label=wPct<8?MONTH_NAMES[mo].substring(0,3):MONTH_NAMES[mo]+' '+y;
+    monthsHtml+=`<div class="mg-month" style="width:${wPct}%">${label}</div>`;
     cur.setMonth(cur.getMonth()+1);cur.setDate(1);
   }
 
-  // Bar
-  const barX=dateToX(projStart);
-  const barW=Math.max(dateToX(projEnd)-barX,dayW);
+  // Bar — position and width in percentages
+  const barLeftPct=dateToPct(projStart);
+  const barWidthPct=Math.max(dateToPct(projEnd)-barLeftPct, 0.5);
   const pct=calcProjectProgress(p);
 
-  // Today
+  // Today line
   const today=new Date();today.setHours(0,0,0,0);
   let todayHtml='';
   if(today>=rangeStart&&today<=rangeEnd){
-    const tx=dateToX(today)+Math.floor(dayW/2);
-    todayHtml=`<div class="mg-today" style="left:${tx}px"><div class="mg-today-label" style="left:${tx}px">Hoje</div></div>`;
+    const todayPct=dateToPct(today);
+    todayHtml=`<div class="mg-today" style="left:${todayPct}%"><div class="mg-today-label">Hoje</div></div>`;
   }
 
   container.innerHTML=`
     <div class="mini-gantt-wrap">
-      <div style="width:${totalW}px">
-        <div class="mg-months">${monthsHtml}</div>
-        <div class="mg-bar-area" style="width:${totalW}px">
-          <div class="mg-bar" style="left:${barX}px;width:${barW}px;background:${stage.color}33;border:1px solid ${stage.color}55">
-            <div class="mg-bar-progress" style="width:${pct}%;background:${stage.color}88"></div>
-            <span class="mg-bar-label">${p.name} — ${pct}%</span>
-          </div>
-          ${todayHtml}
+      <div class="mg-months">${monthsHtml}</div>
+      <div class="mg-bar-area">
+        <div class="mg-bar" style="left:${barLeftPct}%;width:${barWidthPct}%;background:${stage.color}33;border:1px solid ${stage.color}55">
+          <div class="mg-bar-progress" style="width:${pct}%;background:${stage.color}88"></div>
+          <span class="mg-bar-label">${p.name} — ${pct}%</span>
         </div>
+        ${todayHtml}
       </div>
     </div>`;
+
+  // Re-render on window resize to adjust labels
+  if(!window._ganttResizeAttached){
+    window._ganttResizeAttached=true;
+    let resizeTimer;
+    window.addEventListener('resize',()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(()=>{
+        if(window._currentProject&&window._currentStage) renderMiniGantt(window._currentProject,window._currentStage);
+      },200);
+    });
+  }
+  window._currentProject=p;
+  window._currentStage=stage;
 }
 
 /* ── RDO HISTORY ──────────────────────────────── */
