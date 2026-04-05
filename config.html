@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>PROJETOCTRL — Configuracoes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  display:flex;align-items:center;gap:20px;
+  padding:0 28px;height:58px;
+  backdrop-filter:blur(8px);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap;
+}
+.logo svg{height:32px;width:auto}
+.nav{display:flex;gap:4px;margin-left:16px}
+.nav a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
+  transition:color .2s,background .2s;letter-spacing:.3px;
+}
+.nav a:hover{color:var(--text);background:var(--surface2)}
+.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.nav-icon{
+  display:flex;align-items:center;padding:8px;border-radius:8px;
+  color:var(--text-dim);text-decoration:none;transition:color .2s,background .2s;
+}
+.nav-icon:hover{color:var(--text);background:var(--surface2)}
+.nav-icon.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.user-badge{
+  display:flex;align-items:center;gap:8px;
+  font-size:.82rem;color:var(--text-dim);
+}
+.user-badge strong{color:var(--text)}
+.btn-logout{
+  background:none;border:1px solid #3a3020;color:var(--text-dim);
+  padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;
+  font-family:'Barlow',sans-serif;transition:all .15s;
+}
+.btn-logout:hover{border-color:var(--orange);color:var(--orange)}
+.btn-new{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  transition:background .2s;
+}
+.btn-new:hover{background:#e0750f}
+
+/* CONTENT */
+.content{padding:24px 28px;max-width:1000px}
+.section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;
+  margin-bottom:16px;display:flex;align-items:center;gap:10px;
+}
+.section-title svg{opacity:.5}
+
+/* USERS TABLE */
+.users-table{
+  width:100%;border-collapse:collapse;
+  background:var(--surface);border:1px solid #2e2818;border-radius:10px;overflow:hidden;
+}
+.users-table thead{background:var(--surface2)}
+.users-table th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.82rem;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  padding:10px 14px;text-align:left;
+}
+.users-table td{
+  padding:10px 14px;border-top:1px solid #2e2818;font-size:.88rem;
+  vertical-align:middle;
+}
+.users-table tr:hover td{background:rgba(245,132,31,.03)}
+.role-badge{
+  display:inline-block;padding:3px 10px;border-radius:12px;
+  font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;
+}
+.role-admin{background:rgba(245,132,31,.15);color:var(--orange)}
+.role-editor{background:rgba(107,175,212,.15);color:var(--blue)}
+.role-viewer{background:rgba(143,207,106,.15);color:var(--green)}
+.status-active{color:var(--green);font-weight:600;font-size:.8rem}
+.status-inactive{color:#f07070;font-weight:600;font-size:.8rem}
+.pages-list{display:flex;gap:4px;flex-wrap:wrap}
+.page-tag{
+  font-size:.68rem;padding:2px 8px;border-radius:10px;
+  background:var(--surface2);color:var(--text-dim);border:1px solid #2e2818;
+}
+.page-tag.on{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.08)}
+.btn-edit{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:.85rem;padding:4px 8px;border-radius:4px;transition:all .15s;
+}
+.btn-edit:hover{color:var(--orange);background:rgba(245,132,31,.1)}
+.btn-delete{
+  background:none;border:none;color:#f07070;cursor:pointer;
+  font-size:.85rem;padding:4px 8px;border-radius:4px;transition:all .15s;opacity:.5;
+}
+.btn-delete:hover{opacity:1;background:rgba(240,80,80,.1)}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
+  width:480px;max-width:94vw;max-height:90vh;overflow-y:auto;
+  padding:28px 30px 24px;
+}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+.modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;
+  margin-bottom:20px;
+}
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:.78rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  margin-bottom:5px;
+}
+.field input[type="text"],.field input[type="password"],.field select{
+  width:100%;background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:9px 12px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--orange)}
+.field-hint{font-size:.72rem;color:var(--text-dim);margin-top:3px}
+.pages-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.page-check{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--surface2);border:2px solid transparent;
+  border-radius:8px;padding:8px 12px;transition:border-color .15s;
+}
+.page-check.checked{border-color:var(--orange);background:#2a2010}
+.page-check-box{
+  width:16px;height:16px;border-radius:4px;
+  border:2px solid #3a3020;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:transparent;transition:all .15s;flex-shrink:0;
+}
+.page-check.checked .page-check-box{border-color:var(--orange);background:var(--orange);color:#fff}
+.page-check-label{font-size:.82rem;font-weight:500}
+.switch-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);border-radius:8px;padding:10px 14px;
+}
+.switch-label{font-size:.85rem;font-weight:500}
+.switch{
+  position:relative;width:40px;height:22px;cursor:pointer;
+}
+.switch input{display:none}
+.switch-track{
+  position:absolute;inset:0;background:#3a3020;border-radius:11px;transition:background .2s;
+}
+.switch input:checked+.switch-track{background:var(--orange)}
+.switch-thumb{
+  position:absolute;top:3px;left:3px;width:16px;height:16px;
+  background:#fff;border-radius:50%;transition:left .2s;
+}
+.switch input:checked~.switch-thumb{left:21px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.btn-cancel{
+  background:transparent;border:1px solid #3a3020;color:var(--text-dim);
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow',sans-serif;font-weight:500;font-size:.88rem;
+}
+.btn-save{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 22px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+}
+.btn-save:hover{background:#e0750f}
+.empty-state{
+  text-align:center;color:var(--text-dim);padding:40px 20px;font-size:.9rem;
+}
+
+@media(max-width:600px){
+  .header{padding:0 14px;gap:10px}
+  .content{padding:16px 12px}
+  .users-table{font-size:.78rem}
+  .users-table th,.users-table td{padding:8px 8px}
+  .modal{padding:20px 16px}
+  .pages-checks{grid-template-columns:1fr}
+  .pages-list{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="project-board.html" class="logo">
+    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+  </a>
+  <nav class="nav">
+    <a href="project-board.html">Projetos</a>
+    <a href="cronograma.html">Cronograma</a>
+    <a href="team.html">Equipe</a>
+    <a href="rdo.html">RDO</a>
+    <a href="config.html" class="nav-icon active" id="configLink" title="Configuracoes">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge" id="userBadge"></div>
+    <button class="btn-logout" onclick="doLogout()">Sair</button>
+    <button class="btn-new" onclick="openUserModal()">+ Novo Usuario</button>
+  </div>
+</header>
+
+<div class="content">
+  <div class="section-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Gerenciamento de Usuarios
+  </div>
+  <div id="usersTableWrap"></div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="userModalTitle">Novo Usuario</div>
+    <div class="field">
+      <label>Nome Completo</label>
+      <input type="text" id="uName" placeholder="Ex: Maria Oliveira">
+    </div>
+    <div class="field">
+      <label>Usuario (login)</label>
+      <input type="text" id="uUsername" placeholder="Ex: maria">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="uPassword" placeholder="Minimo 4 caracteres">
+      <div class="field-hint" id="passHint"></div>
+    </div>
+    <div class="field">
+      <label>Perfil</label>
+      <select id="uRole">
+        <option value="admin">Administrador</option>
+        <option value="editor">Editor</option>
+        <option value="viewer">Visualizador</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Paginas com Acesso</label>
+      <div class="pages-checks" id="pagesChecks"></div>
+    </div>
+    <div class="field">
+      <div class="switch-row">
+        <span class="switch-label">Usuario Ativo</span>
+        <label class="switch">
+          <input type="checkbox" id="uActive" checked>
+          <div class="switch-track"></div>
+          <div class="switch-thumb"></div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveUser()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ── AUTH GUARD ─────────────────────────────── */
+(function(){
+  const session=localStorage.getItem('loggedUser');
+  if(!session){window.location.href='login.html';return;}
+  const user=JSON.parse(session);
+  if(user.role!=='admin'){window.location.href='project-board.html';return;}
+  window.currentUser=user;
+})();
+
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+/* ── HASH ─────────────────────────────────────── */
+async function hashPassword(pwd){
+  const enc=new TextEncoder().encode(pwd);
+  const buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── STATE ────────────────────────────────────── */
+let usersData={};  // Firebase object {key: userData}
+let editingKey=null;
+
+const PAGES=[
+  {key:'project-board',label:'Projetos'},
+  {key:'cronograma',label:'Cronograma'},
+  {key:'team',label:'Equipe'},
+  {key:'rdo',label:'RDO'},
+  {key:'config',label:'Configuracoes'}
+];
+const ROLE_LABELS={admin:'Administrador',editor:'Editor',viewer:'Visualizador'};
+
+/* ── INIT ─────────────────────────────────────── */
+document.getElementById('userBadge').innerHTML=
+  '<strong>'+window.currentUser.name+'</strong> <span>('+ROLE_LABELS[window.currentUser.role]+')</span>';
+
+function doLogout(){
+  localStorage.removeItem('loggedUser');
+  window.location.href='login.html';
+}
+
+db.ref('users').on('value',snap=>{
+  usersData=snap.val()||{};
+  renderUsers();
+});
+
+/* ── RENDER TABLE ─────────────────────────────── */
+function renderUsers(){
+  const wrap=document.getElementById('usersTableWrap');
+  const keys=Object.keys(usersData).filter(k=>usersData[k]);
+  if(!keys.length){
+    wrap.innerHTML='<div class="empty-state">Nenhum usuario cadastrado.</div>';
+    return;
+  }
+  let rows=keys.map(k=>{
+    const u=usersData[k];
+    const roleClass='role-'+(u.role||'viewer');
+    const statusHtml=u.active!==false
+      ?'<span class="status-active">Ativo</span>'
+      :'<span class="status-inactive">Inativo</span>';
+    const pagesHtml=PAGES.map(p=>{
+      const on=u.pages&&u.pages[p.key];
+      return `<span class="page-tag${on?' on':''}">${p.label}</span>`;
+    }).join('');
+    const isSelf=k===window.currentUser.userId;
+    return `<tr>
+      <td style="font-weight:600">${u.name||'—'}</td>
+      <td style="color:var(--text-dim)">${u.username||'—'}</td>
+      <td><span class="role-badge ${roleClass}">${ROLE_LABELS[u.role]||u.role}</span></td>
+      <td>${statusHtml}</td>
+      <td><div class="pages-list">${pagesHtml}</div></td>
+      <td>
+        <button class="btn-edit" onclick="editUser('${k}')" title="Editar">&#9998;</button>
+        ${isSelf?'':'<button class="btn-delete" onclick="deleteUser(\''+k+'\')" title="Excluir">&#128465;</button>'}
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML=`<table class="users-table">
+    <thead><tr><th>Nome</th><th>Usuario</th><th>Perfil</th><th>Status</th><th>Paginas</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/* ── MODAL ────────────────────────────────────── */
+let selectedPages=new Set();
+
+function buildPagesChecks(){
+  const container=document.getElementById('pagesChecks');
+  container.innerHTML=PAGES.map(p=>`
+    <div class="page-check${selectedPages.has(p.key)?' checked':''}" onclick="togglePage('${p.key}',this)">
+      <div class="page-check-box">&#10003;</div>
+      <span class="page-check-label">${p.label}</span>
+    </div>`).join('');
+}
+function togglePage(key,el){
+  if(selectedPages.has(key)) selectedPages.delete(key);
+  else selectedPages.add(key);
+  el.classList.toggle('checked');
+}
+
+function openUserModal(key){
+  editingKey=null;
+  document.getElementById('userModalTitle').textContent='Novo Usuario';
+  document.getElementById('uName').value='';
+  document.getElementById('uUsername').value='';
+  document.getElementById('uPassword').value='';
+  document.getElementById('passHint').textContent='';
+  document.getElementById('uRole').value='editor';
+  document.getElementById('uActive').checked=true;
+  selectedPages=new Set(['project-board','cronograma','team','rdo']);
+  buildPagesChecks();
+  document.getElementById('userModalOverlay').classList.add('open');
+}
+
+function editUser(key){
+  const u=usersData[key];
+  if(!u) return;
+  editingKey=key;
+  document.getElementById('userModalTitle').textContent='Editar Usuario';
+  document.getElementById('uName').value=u.name||'';
+  document.getElementById('uUsername').value=u.username||'';
+  document.getElementById('uPassword').value='';
+  document.getElementById('passHint').textContent='Deixe vazio para manter a senha atual.';
+  document.getElementById('uRole').value=u.role||'viewer';
+  document.getElementById('uActive').checked=u.active!==false;
+  selectedPages=new Set();
+  if(u.pages){
+    Object.keys(u.pages).forEach(k=>{ if(u.pages[k]) selectedPages.add(k); });
+  }
+  buildPagesChecks();
+  document.getElementById('userModalOverlay').classList.add('open');
+}
+
+function closeUserModal(){
+  document.getElementById('userModalOverlay').classList.remove('open');
+}
+
+async function saveUser(){
+  const name=document.getElementById('uName').value.trim();
+  const username=document.getElementById('uUsername').value.trim().toLowerCase();
+  const password=document.getElementById('uPassword').value;
+  const role=document.getElementById('uRole').value;
+  const active=document.getElementById('uActive').checked;
+
+  if(!name||!username){alert('Preencha nome e usuario.');return;}
+  if(!editingKey && !password){alert('Informe uma senha.');return;}
+  if(password && password.length<4){alert('Senha deve ter no minimo 4 caracteres.');return;}
+
+  // Check for duplicate username
+  const existingKeys=Object.keys(usersData);
+  for(let k of existingKeys){
+    if(k!==editingKey && usersData[k] && usersData[k].username && usersData[k].username.toLowerCase()===username){
+      alert('Ja existe um usuario com esse login.');return;
+    }
+  }
+
+  const pages={};
+  selectedPages.forEach(k=>pages[k]=true);
+
+  // If admin role, always include config
+  if(role==='admin') pages['config']=true;
+
+  const data={
+    name,
+    username,
+    role,
+    pages,
+    active,
+  };
+
+  if(password){
+    data.passwordHash=await hashPassword(password);
+  }
+
+  if(editingKey){
+    // Merge to keep existing passwordHash if not changed
+    const existing=usersData[editingKey]||{};
+    if(!password) data.passwordHash=existing.passwordHash;
+    data.createdAt=existing.createdAt||Date.now();
+    await db.ref('users/'+editingKey).set(data);
+
+    // Update own session if editing self
+    if(editingKey===window.currentUser.userId){
+      const sessionData={
+        userId:editingKey,
+        name:data.name,
+        username:data.username,
+        role:data.role,
+        pages:data.pages,
+        loginAt:Date.now()
+      };
+      localStorage.setItem('loggedUser',JSON.stringify(sessionData));
+      window.currentUser=sessionData;
+      document.getElementById('userBadge').innerHTML=
+        '<strong>'+data.name+'</strong> <span>('+ROLE_LABELS[data.role]+')</span>';
+    }
+  }else{
+    data.createdAt=Date.now();
+    await db.ref('users').push(data);
+  }
+
+  closeUserModal();
+}
+
+function deleteUser(key){
+  if(key===window.currentUser.userId){alert('Voce nao pode excluir seu proprio usuario.');return;}
+  const u=usersData[key];
+  if(!u) return;
+  if(confirm('Tem certeza que deseja excluir o usuario "'+u.name+'"?')){
+    db.ref('users/'+key).remove();
+  }
+}
+</script>
+</body>
+</html>
