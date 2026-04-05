@@ -643,10 +643,7 @@ body{
     <div class="rdo-section">
       <div class="section-header">
         <div class="rdo-section-title">Atividades</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <a class="toggle-link" onclick="togglePercentMode()">Alternar para Percentual</a>
-          <button class="btn-add-small" onclick="addActivityGroup()">+ Grupo</button>
-        </div>
+        <button class="btn-add-small" onclick="openActivitySelector()">+ Nova Atividade</button>
       </div>
       <div id="activitiesContainer"></div>
     </div>
@@ -724,6 +721,22 @@ body{
   </div>
 </div>
 
+<!-- ACTIVITY SELECTOR MODAL -->
+<div class="modal-overlay" id="activityModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Selecionar Atividade</div>
+    <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">Itens cadastrados no projeto:</p>
+    <div class="chips-grid" id="activityChips" style="grid-template-columns:1fr"></div>
+    <div id="activityEmptyMsg" style="display:none;text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem">
+      Nenhum item cadastrado neste projeto.<br>Adicione itens nos avanços do projeto primeiro.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeActivityModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmActivitySelection()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
 <!-- RECORD TEXT MODAL -->
 <div class="modal-overlay" id="recordModalOverlay">
   <div class="modal">
@@ -770,7 +783,6 @@ let currentRdo={
 };
 let selectedTeamIds=[];
 let pendingRecordType='';
-let percentMode=false;
 
 /* ── DAYS OF WEEK ──────────────────────────────── */
 const DIAS=['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
@@ -1238,80 +1250,116 @@ function removeEquipment(i){
   renderEquipment();
 }
 
-/* ── ACTIVITIES ────────────────────────────────── */
+/* ── ACTIVITIES (based on project items) ──────── */
+let selectedActivityItems=[];
+
+function getProjectItems(){
+  const projId=document.getElementById('fProject').value;
+  const proj=projects.find(p=>p.id==projId);
+  if(!proj||!proj.items) return [];
+  return Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+}
+
 function renderActivities(){
   const container=document.getElementById('activitiesContainer');
   if(!currentRdo.activities.length){
-    container.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:20px">Nenhum grupo de atividade. Clique em "+ Grupo" para adicionar.</div>';
+    container.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:20px">Nenhuma atividade. Clique em "+ Nova Atividade" para adicionar.</div>';
     return;
   }
-  container.innerHTML=currentRdo.activities.map((g,gi)=>{
-    const subs=(g.subs||[]);
-    const subsHtml=subs.map((s,si)=>`
-      <tr>
-        <td style="white-space:nowrap;color:var(--text-dim);font-size:.82rem">${s.num||((gi+1)+'.'+(si+1))}</td>
-        <td><input type="text" value="${s.name||''}" onchange="currentRdo.activities[${gi}].subs[${si}].name=this.value" placeholder="Sub-item"></td>
-        <td><div style="display:flex;gap:4px;align-items:center">
-          <input type="number" value="${s.qty||0}" min="0" step="0.01" onchange="currentRdo.activities[${gi}].subs[${si}].qty=parseFloat(this.value)||0">
-          <select onchange="currentRdo.activities[${gi}].subs[${si}].unit=this.value" style="width:70px">
-            ${['MT','UN','M2','M3','KG','L','VB','HR','CJ'].map(u=>`<option ${(s.unit||'MT')===u?'selected':''}>${u}</option>`).join('')}
-          </select>
-        </div></td>
-        <td><input type="time" value="${s.tempo||'00:00'}" onchange="currentRdo.activities[${gi}].subs[${si}].tempo=this.value"></td>
-        <td><select onchange="currentRdo.activities[${gi}].subs[${si}].situacao=this.value">
-          <option ${(s.situacao||'EM ANDAMENTO')==='EM ANDAMENTO'?'selected':''}>EM ANDAMENTO</option>
-          <option ${s.situacao==='CONCLUIDO'?'selected':''}>CONCLUIDO</option>
-          <option ${s.situacao==='PARALISADO'?'selected':''}>PARALISADO</option>
+  container.innerHTML=`<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>#</th><th>Atividade</th><th>Total</th><th>Qtd. Dia</th><th>Situação</th><th>Avanço</th><th></th></tr></thead>
+    <tbody>${currentRdo.activities.map((a,i)=>{
+      const pct=a.progress||0;
+      return `<tr>
+        <td style="font-weight:600;color:var(--text-dim)">${i+1}</td>
+        <td style="font-weight:600">${a.name}</td>
+        <td style="color:var(--text-dim);white-space:nowrap">${a.totalQty||0} ${a.unit||''}</td>
+        <td><input type="number" value="${a.qtyDia||0}" min="0" step="0.01" style="width:80px" onchange="currentRdo.activities[${i}].qtyDia=parseFloat(this.value)||0"></td>
+        <td><select onchange="currentRdo.activities[${i}].situacao=this.value">
+          <option ${(a.situacao||'EM ANDAMENTO')==='EM ANDAMENTO'?'selected':''}>EM ANDAMENTO</option>
+          <option ${a.situacao==='CONCLUIDO'?'selected':''}>CONCLUÍDO</option>
+          <option ${a.situacao==='PARALISADO'?'selected':''}>PARALISADO</option>
         </select></td>
-        <td style="font-weight:600;color:var(--orange)">${s.saldo||0}</td>
-        <td><button class="remove-btn" onclick="removeSub(${gi},${si})">✕</button></td>
-      </tr>`).join('');
-
-    return `<div class="activity-group">
-      <div class="activity-group-header">
-        <span class="activity-group-num">${g.group||gi+1}</span>
-        <input class="activity-group-name" value="${g.name||''}" onchange="currentRdo.activities[${gi}].name=this.value" placeholder="Nome do grupo">
-        <button class="remove-btn" onclick="removeActivityGroup(${gi})" style="font-size:1.2rem">✕</button>
-      </div>
-      <div class="table-scroll">
-        <table class="activity-sub-table">
-          <thead><tr><th>#</th><th>Item</th><th>${percentMode?'Percentual':'Quantitativo'}</th><th>Tempo</th><th>Situacao</th><th>Saldo</th><th></th></tr></thead>
-          <tbody>${subsHtml}</tbody>
-        </table>
-      </div>
-      <button class="btn-add-small" style="margin-top:8px" onclick="addSub(${gi})">+ Sub-item</button>
-    </div>`;
-  }).join('');
+        <td style="white-space:nowrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:50px;height:5px;background:#1a1610;border-radius:3px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px"></div>
+            </div>
+            <span style="font-size:.78rem;font-weight:600;color:var(--orange)">${pct}%</span>
+          </div>
+        </td>
+        <td><button class="remove-btn" onclick="removeActivity(${i})">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
 }
 
-function addActivityGroup(){
-  const num=currentRdo.activities.length+1;
-  currentRdo.activities.push({group:String(num),name:'',subs:[]});
+function removeActivity(i){
+  currentRdo.activities.splice(i,1);
   renderActivities();
 }
-function removeActivityGroup(gi){
-  currentRdo.activities.splice(gi,1);
-  // Renumber groups
-  currentRdo.activities.forEach((g,i)=>{g.group=String(i+1);});
-  renderActivities();
+
+function openActivitySelector(){
+  const items=getProjectItems();
+  const chips=document.getElementById('activityChips');
+  const emptyMsg=document.getElementById('activityEmptyMsg');
+  selectedActivityItems=[];
+
+  if(!items.length){
+    chips.style.display='none';
+    emptyMsg.style.display='block';
+  }else{
+    chips.style.display='';
+    emptyMsg.style.display='none';
+    // Filter out items already added
+    const addedNames=currentRdo.activities.map(a=>a.name);
+    const available=items.filter(it=>!addedNames.includes(it.name));
+    if(!available.length){
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">Todos os itens já foram adicionados.</div>';
+    }else{
+      chips.innerHTML=available.map((it,i)=>`
+        <div class="chip" data-idx="${i}" onclick="toggleActivityChip(this,${i})">
+          <div class="chip-info" style="flex:1">
+            <div class="chip-name">${it.name}</div>
+            <div class="chip-role">${it.qty||0} ${it.unit||'ML'} — ${it.progress||0}% concluído</div>
+          </div>
+          <div class="chip-check">✓</div>
+        </div>`).join('');
+      // Store available items for selection
+      window._availableItems=available;
+    }
+  }
+  document.getElementById('activityModalOverlay').classList.add('open');
 }
-function addSub(gi){
-  const g=currentRdo.activities[gi];
-  if(!g.subs) g.subs=[];
-  const subNum=(gi+1)+'.'+(g.subs.length+1);
-  g.subs.push({num:subNum,name:'',qty:0,unit:'MT',tempo:'00:00',situacao:'EM ANDAMENTO',saldo:0});
-  renderActivities();
+
+function toggleActivityChip(el,idx){
+  const i=selectedActivityItems.indexOf(idx);
+  if(i>=0) selectedActivityItems.splice(i,1);
+  else selectedActivityItems.push(idx);
+  el.classList.toggle('selected');
 }
-function removeSub(gi,si){
-  currentRdo.activities[gi].subs.splice(si,1);
-  // Renumber subs
-  currentRdo.activities[gi].subs.forEach((s,i)=>{s.num=(gi+1)+'.'+(i+1);});
-  renderActivities();
+
+function closeActivityModal(){
+  document.getElementById('activityModalOverlay').classList.remove('open');
 }
-function togglePercentMode(){
-  percentMode=!percentMode;
-  document.querySelector('.toggle-link').textContent=percentMode?'Alternar para Quantitativo':'Alternar para Percentual';
+
+function confirmActivitySelection(){
+  const available=window._availableItems||[];
+  selectedActivityItems.forEach(idx=>{
+    const it=available[idx];
+    if(it){
+      currentRdo.activities.push({
+        name:it.name,
+        totalQty:it.qty||0,
+        unit:it.unit||'ML',
+        progress:it.progress||0,
+        qtyDia:0,
+        situacao:'EM ANDAMENTO'
+      });
+    }
+  });
   renderActivities();
+  closeActivityModal();
 }
 
 /* ── RECORDS ───────────────────────────────────── */
