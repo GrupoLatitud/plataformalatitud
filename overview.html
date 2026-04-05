@@ -876,7 +876,7 @@ body{
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
@@ -2091,6 +2091,9 @@ function closePdfModal(){
 }
 
 function generatePdf(){
+  console.log('[PDF] Iniciando geração...', 'jspdf:', typeof window.jspdf);
+  if(!window.jspdf){alert('Biblioteca jsPDF não carregou. Verifique sua conexão.');return;}
+  try{
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF('p','mm','a4');
   const pageW=210,pageH=297;
@@ -2452,6 +2455,10 @@ function generatePdf(){
   const dateStr=rdo.date||'sem-data';
   doc.save('RDO_'+pName+'_'+dateStr+'.pdf');
   closePdfModal();
+  }catch(err){
+    console.error('[PDF] Erro:', err);
+    alert('Erro ao gerar PDF: '+err.message);
+  }
 }
 
 /* ── CLOSE DROPDOWNS ON OUTSIDE CLICK ──────────── */
