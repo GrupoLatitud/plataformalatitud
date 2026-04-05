@@ -1265,7 +1265,23 @@ function closeTeamModal(){
 }
 function renderTeamChips(){
   const container=document.getElementById('teamChips');
-  container.innerHTML=team.map(t=>{
+  // Filter only team members assigned to the selected project (responsible + collabs)
+  const projId=document.getElementById('fProject').value;
+  const p=projects.find(x=>x.id==projId);
+  let projectMemberIds=[];
+  if(p){
+    if(p.responsible) projectMemberIds.push(p.responsible);
+    if(p.collabs){
+      const c=Array.isArray(p.collabs)?p.collabs:Object.values(p.collabs);
+      projectMemberIds=projectMemberIds.concat(c.map(Number));
+    }
+  }
+  const projectTeam=projectMemberIds.length?team.filter(t=>projectMemberIds.includes(t.id)):team;
+  if(!projectTeam.length){
+    container.innerHTML='<div style="color:var(--text-dim);padding:16px;text-align:center">Nenhum membro vinculado a este projeto.</div>';
+    return;
+  }
+  container.innerHTML=projectTeam.map(t=>{
     const sel=selectedTeamIds.includes(t.id);
     const photo=t.photo;
     const avatarHtml=photo
