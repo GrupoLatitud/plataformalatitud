@@ -263,8 +263,11 @@ body{
 
 /* MOBILE */
 @media(max-width:768px){
-  .gantt-sidebar{display:none}
-  :root{--sidebar-w:0px}
+  :root{--sidebar-w:160px}
+  .gantt-sidebar{min-width:var(--sidebar-w);width:var(--sidebar-w)}
+  .sidebar-name{font-size:.78rem}
+  .sidebar-responsible{font-size:.65rem}
+  .sidebar-avatar{width:22px;height:22px}
   .gantt-bar-label{font-size:.68rem}
   .header{padding:0 14px;gap:12px}
   .nav a{padding:6px 10px;font-size:.82rem}
