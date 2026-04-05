@@ -450,7 +450,6 @@ function calcDuration(){
 
 /* ── RENDER ──────────────────────────────────────── */
 function render(){
-  loadTeam();
   const board=document.getElementById('board');
   board.innerHTML='';
 
@@ -570,7 +569,6 @@ function avatarHTML(t,size){
   return `<div class="avatar" style="background:${t.color};width:${s}px;height:${s}px">${initials(t.name)}</div>`;
 }
 function buildChips(){
-  loadTeam();
   // Responsável — somente Encarregados
   const respEl=document.getElementById('chipsResp');
   const encarregados=TEAM.filter(t=>t.role==='Encarregado');
