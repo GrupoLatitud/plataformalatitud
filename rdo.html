@@ -933,8 +933,8 @@ function renderList(){
         <span class="acc-name">${p.name}</span>
         <span class="acc-stage" style="background:${stage.color}22;color:${stage.color}">${stage.label}</span>
         <div class="acc-progress">
-          <div class="bar"><div class="fill" style="width:${p.progress||0}%;background:${stage.color}"></div></div>
-          <span class="pct" style="color:${stage.color}">${p.progress||0}%</span>
+          <div class="bar"><div class="fill" style="width:${calcProjectProgress(p)}%;background:${stage.color}"></div></div>
+          <span class="pct" style="color:${stage.color}">${calcProjectProgress(p)}%</span>
         </div>
         <span class="acc-rdo-count">${rdoCount} RDO${rdoCount!==1?'s':''}</span>
         <button class="btn-create-rdo" onclick="event.stopPropagation();openNewRdoForProject(${p.id})">+ Novo RDO</button>
@@ -1372,6 +1372,24 @@ function closeActivityModal(){
   document.getElementById('activityModalOverlay').classList.remove('open');
 }
 
+function calcProjectProgress(proj){
+  if(!proj.items) return 0;
+  const items=Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+  if(!items.length) return 0;
+  const projRdos=rdoList.filter(r=>r.projectId==proj.id);
+  let totalPct=0;
+  items.forEach(it=>{
+    const totalQty=it.qty||0;
+    if(totalQty<=0){totalPct+=0;return;}
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+      acts.forEach(a=>{ if(a.name===it.name) consumed+=(a.qtyDia||0); });
+    });
+    totalPct+=Math.min(100,(consumed/totalQty)*100);
+  });
+  return Math.round(totalPct/items.length);
+}
 function getConsumedQty(projId, itemName){
   // Soma tudo que já foi preenchido em RDOs anteriores deste projeto para este item
   let consumed=0;
