@@ -442,10 +442,25 @@ body{
 }
 .status-card:hover{border-color:#3a3020}
 .status-card.selected{border-color:var(--orange);background:rgba(245,132,31,.08)}
-.status-card-icon{font-size:1.3rem;margin-bottom:6px}
+.status-card-icon{margin-bottom:6px;line-height:1}
+.status-card-icon svg{transition:all .15s}
+/* Not selected: hollow circle (just stroke) */
+.status-card .status-card-icon svg{color:transparent}
+.status-card .status-card-icon svg circle{stroke:#555}
+/* Selected: filled circle with its color */
+.status-card.selected .status-card-icon svg circle{stroke:currentColor}
+.status-card[data-color="#f5b43c"].selected .status-card-icon svg{color:#f5b43c}
+.status-card[data-color="#6bafd4"].selected .status-card-icon svg{color:#6bafd4}
+.status-card[data-color="#f07070"].selected .status-card-icon svg{color:#f07070}
+.status-card[data-color="#8fcf6a"].selected .status-card-icon svg{color:#8fcf6a}
+/* Label color matches when selected */
+.status-card[data-color="#f5b43c"].selected .status-card-label{color:#f5b43c}
+.status-card[data-color="#6bafd4"].selected .status-card-label{color:#6bafd4}
+.status-card[data-color="#f07070"].selected .status-card-label{color:#f07070}
+.status-card[data-color="#8fcf6a"].selected .status-card-label{color:#8fcf6a}
 .status-card-label{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
-  margin-bottom:3px;
+  margin-bottom:3px;transition:color .15s;
 }
 .status-card-desc{font-size:.75rem;color:var(--text-dim);line-height:1.3}
 
@@ -854,23 +869,23 @@ body{
     <div class="rdo-section">
       <div class="rdo-section-title">Situacao</div>
       <div class="status-grid">
-        <div class="status-card selected" data-status="preenchendo" onclick="selectStatus(this)">
-          <div class="status-card-icon">🟢</div>
+        <div class="status-card selected" data-status="preenchendo" data-color="#f5b43c" onclick="selectStatus(this)">
+          <div class="status-card-icon"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="currentColor" stroke="currentColor" stroke-width="2"/></svg></div>
           <div class="status-card-label">Preenchendo</div>
           <div class="status-card-desc">Relatorio em edicao — insira as informacoes.</div>
         </div>
-        <div class="status-card" data-status="para_aprovacao" onclick="selectStatus(this)">
-          <div class="status-card-icon">⬜</div>
+        <div class="status-card" data-status="para_aprovacao" data-color="#6bafd4" onclick="selectStatus(this)">
+          <div class="status-card-icon"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="currentColor" stroke="currentColor" stroke-width="2"/></svg></div>
           <div class="status-card-label">Para aprovacao</div>
           <div class="status-card-desc">Pronto — aguarda revisao.</div>
         </div>
-        <div class="status-card" data-status="reprovado" onclick="selectStatus(this)">
-          <div class="status-card-icon">⬜</div>
+        <div class="status-card" data-status="reprovado" data-color="#f07070" onclick="selectStatus(this)">
+          <div class="status-card-icon"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="currentColor" stroke="currentColor" stroke-width="2"/></svg></div>
           <div class="status-card-label">Reprovado</div>
           <div class="status-card-desc">Revisado — ajustes necessarios.</div>
         </div>
-        <div class="status-card" data-status="aprovado" onclick="selectStatus(this)">
-          <div class="status-card-icon">⬜</div>
+        <div class="status-card" data-status="aprovado" data-color="#8fcf6a" onclick="selectStatus(this)">
+          <div class="status-card-icon"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="currentColor" stroke="currentColor" stroke-width="2"/></svg></div>
           <div class="status-card-label">Aprovado</div>
           <div class="status-card-desc">Concluido — relatorio aprovado.</div>
         </div>
