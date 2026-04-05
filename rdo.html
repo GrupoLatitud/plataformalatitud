@@ -1260,6 +1260,29 @@ function getProjectItems(){
   return Array.isArray(proj.items)?proj.items:Object.values(proj.items);
 }
 
+function calcActivityProgress(a){
+  const total=a.totalQty||0;
+  if(total<=0) return {pct:0,saldo:0};
+  const done=a.qtyDia||0;
+  const pct=Math.min(100,Math.round((done/total)*100));
+  const saldo=Math.max(0,+(total-done).toFixed(2));
+  return {pct,saldo};
+}
+
+function updateActivity(i,val){
+  currentRdo.activities[i].qtyDia=parseFloat(val)||0;
+  const a=currentRdo.activities[i];
+  const {pct,saldo}=calcActivityProgress(a);
+  a.progress=pct;
+  a.saldo=saldo;
+  const row=document.getElementById('actRow'+i);
+  if(row){
+    row.querySelector('.act-pct').textContent=pct+'%';
+    row.querySelector('.act-fill').style.width=pct+'%';
+    row.querySelector('.act-saldo').textContent=saldo+' '+(a.unit||'');
+  }
+}
+
 function renderActivities(){
   const container=document.getElementById('activitiesContainer');
   if(!currentRdo.activities.length){
@@ -1267,27 +1290,25 @@ function renderActivities(){
     return;
   }
   container.innerHTML=`<div class="table-scroll"><table class="data-table">
-    <thead><tr><th>#</th><th>Atividade</th><th>Total</th><th>Qtd. Dia</th><th>Situação</th><th>Avanço</th><th></th></tr></thead>
+    <thead><tr><th>#</th><th>Atividade</th><th>Total</th><th>Qtd. Dia</th><th>Avanço</th><th>Saldo</th><th></th></tr></thead>
     <tbody>${currentRdo.activities.map((a,i)=>{
-      const pct=a.progress||0;
-      return `<tr>
+      const {pct,saldo}=calcActivityProgress(a);
+      a.progress=pct;
+      a.saldo=saldo;
+      return `<tr id="actRow${i}">
         <td style="font-weight:600;color:var(--text-dim)">${i+1}</td>
         <td style="font-weight:600">${a.name}</td>
         <td style="color:var(--text-dim);white-space:nowrap">${a.totalQty||0} ${a.unit||''}</td>
-        <td><input type="number" value="${a.qtyDia||0}" min="0" step="0.01" style="width:80px" onchange="currentRdo.activities[${i}].qtyDia=parseFloat(this.value)||0"></td>
-        <td><select onchange="currentRdo.activities[${i}].situacao=this.value">
-          <option ${(a.situacao||'EM ANDAMENTO')==='EM ANDAMENTO'?'selected':''}>EM ANDAMENTO</option>
-          <option ${a.situacao==='CONCLUIDO'?'selected':''}>CONCLUÍDO</option>
-          <option ${a.situacao==='PARALISADO'?'selected':''}>PARALISADO</option>
-        </select></td>
+        <td><input type="number" value="${a.qtyDia||0}" min="0" step="0.01" style="width:80px" oninput="updateActivity(${i},this.value)"></td>
         <td style="white-space:nowrap">
           <div style="display:flex;align-items:center;gap:6px">
             <div style="width:50px;height:5px;background:#1a1610;border-radius:3px;overflow:hidden">
-              <div style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px"></div>
+              <div class="act-fill" style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px;transition:width .2s"></div>
             </div>
-            <span style="font-size:.78rem;font-weight:600;color:var(--orange)">${pct}%</span>
+            <span class="act-pct" style="font-size:.78rem;font-weight:600;color:var(--orange)">${pct}%</span>
           </div>
         </td>
+        <td class="act-saldo" style="font-weight:600;color:var(--text-dim);white-space:nowrap">${saldo} ${a.unit||''}</td>
         <td><button class="remove-btn" onclick="removeActivity(${i})">✕</button></td>
       </tr>`;
     }).join('')}</tbody>
