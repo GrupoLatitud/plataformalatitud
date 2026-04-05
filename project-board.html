@@ -165,6 +165,55 @@ body{
   margin-left:4px;
 }
 
+/* ITEMS (avanços) */
+.card-items{margin-top:4px;display:flex;flex-direction:column;gap:5px}
+.card-item{
+  display:flex;align-items:center;gap:6px;
+  font-size:.72rem;
+}
+.item-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.item-qty{color:var(--text-dim);white-space:nowrap;font-weight:600;min-width:42px;text-align:right}
+.item-bar{width:50px;height:4px;background:#1a1610;border-radius:2px;overflow:hidden;flex-shrink:0}
+.item-bar-fill{height:100%;border-radius:2px}
+.item-pct{font-size:.65rem;font-weight:700;min-width:26px;text-align:right}
+
+/* MODAL ITEMS */
+.items-list{margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto}
+.modal-item{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);border:1px solid #2e2818;border-radius:6px;padding:6px 8px;
+}
+.modal-item input[type="text"]{
+  flex:1;background:transparent;border:none;color:var(--text);
+  font-family:'Barlow',sans-serif;font-size:.85rem;min-width:80px;
+}
+.modal-item input[type="text"]:focus{outline:none}
+.modal-item input[type="number"]{
+  width:60px;background:var(--bg);border:1px solid #2e2818;color:var(--text);
+  padding:4px 6px;border-radius:4px;font-size:.82rem;text-align:center;
+  font-family:'Barlow',sans-serif;
+}
+.modal-item input[type="number"]:focus{outline:none;border-color:var(--orange)}
+.modal-item select{
+  background:var(--bg);border:1px solid #2e2818;color:var(--text);
+  padding:4px 6px;border-radius:4px;font-size:.82rem;
+  font-family:'Barlow',sans-serif;
+}
+.modal-item select:focus{outline:none;border-color:var(--orange)}
+.modal-item .item-range{width:60px}
+.modal-item .item-pct-label{font-size:.75rem;color:var(--orange);font-weight:600;min-width:30px}
+.modal-item .remove-item{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:.9rem;padding:2px;transition:color .15s;
+}
+.modal-item .remove-item:hover{color:#f07070}
+.btn-add-item{
+  background:var(--surface2);border:1px dashed #3a3020;color:var(--text-dim);
+  padding:6px;border-radius:6px;cursor:pointer;font-size:.8rem;
+  text-align:center;transition:all .15s;margin-top:4px;
+}
+.btn-add-item:hover{border-color:var(--orange);color:var(--orange)}
+
 /* CONTEXT MENU */
 .ctx-menu{
   position:absolute;top:28px;right:8px;z-index:50;
@@ -332,6 +381,12 @@ body{
         <input type="range" id="fProgress" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'">
         <span class="range-val" id="progressVal">0%</span>
       </div>
+    </div>
+
+    <div class="field">
+      <label>Avanços do Projeto</label>
+      <div class="items-list" id="itemsList"></div>
+      <div class="btn-add-item" onclick="addItem()">+ Adicionar item</div>
     </div>
 
     <div class="field">
@@ -516,6 +571,19 @@ function renderCard(p,stage){
           <div><div class="meta-label">Duração</div><div class="meta-value">${calcDurationStr(p.date,p.endDate)}</div></div>
           <div><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
         </div>
+        ${(p.items&&p.items.length)?`
+        <div class="card-items">
+          ${p.items.map(it=>{
+            const pct=it.progress||0;
+            const sc2=stageColor(p.stage);
+            return `<div class="card-item">
+              <span class="item-name">${it.name}</span>
+              <span class="item-qty">${it.qty} ${it.unit}</span>
+              <div class="item-bar"><div class="item-bar-fill" style="width:${pct}%;background:${sc2}"></div></div>
+              <span class="item-pct" style="color:${sc2}">${pct}%</span>
+            </div>`;
+          }).join('')}
+        </div>`:''}
         ${resp?`
         <div class="card-responsavel">
           <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
@@ -563,6 +631,27 @@ function removeProject(id){
 /* ── MODAL ───────────────────────────────────────── */
 let selectedResp=null;
 let selectedCollabs=new Set();
+let currentItems=[];
+
+/* ── ITEMS ───────────────────────────────────────── */
+function renderItems(){
+  const list=document.getElementById('itemsList');
+  list.innerHTML=currentItems.map((it,i)=>`
+    <div class="modal-item">
+      <input type="text" value="${it.name}" placeholder="Nome do item" onchange="currentItems[${i}].name=this.value">
+      <input type="number" value="${it.qty}" min="0" step="0.01" onchange="currentItems[${i}].qty=parseFloat(this.value)||0">
+      <select onchange="currentItems[${i}].unit=this.value">
+        ${['UNI','M²','ML','M³','KG','L','VB','HR','CJ','MT'].map(u=>`<option ${it.unit===u?'selected':''}>${u}</option>`).join('')}
+      </select>
+      <input type="range" class="item-range" min="0" max="100" value="${it.progress||0}" oninput="currentItems[${i}].progress=+this.value;this.nextElementSibling.textContent=this.value+'%'">
+      <span class="item-pct-label">${it.progress||0}%</span>
+      <button class="remove-item" onclick="currentItems.splice(${i},1);renderItems()">✕</button>
+    </div>`).join('');
+}
+function addItem(){
+  currentItems.push({name:'',qty:0,unit:'ML',progress:0});
+  renderItems();
+}
 
 function avatarHTML(t,size){
   const s=size||24;
@@ -608,6 +697,7 @@ function openModal(proj){
   document.getElementById('progressVal').textContent='0%';
   selectedResp=null;
   selectedCollabs=new Set();
+  currentItems=[];
 
   if(proj){
     editingId=proj.id;
@@ -621,8 +711,10 @@ function openModal(proj){
     document.getElementById('progressVal').textContent=proj.progress+'%';
     selectedResp=proj.responsible;
     selectedCollabs=new Set(proj.collabs);
+    currentItems=proj.items?JSON.parse(JSON.stringify(Array.isArray(proj.items)?proj.items:Object.values(proj.items))):[];
   }
 
+  renderItems();
   buildChips();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -639,6 +731,7 @@ function saveProject(){
   const name=document.getElementById('fName').value.trim();
   if(!name){alert('Informe o nome do projeto.');return}
 
+  const items=currentItems.filter(it=>it.name.trim());
   const data={
     name,
     stage:document.getElementById('fStage').value,
@@ -646,7 +739,8 @@ function saveProject(){
     endDate:document.getElementById('fEndDate').value,
     progress:+document.getElementById('fProgress').value,
     responsible:selectedResp,
-    collabs:[...selectedCollabs]
+    collabs:[...selectedCollabs],
+    items:items
   };
 
   if(editingId){
