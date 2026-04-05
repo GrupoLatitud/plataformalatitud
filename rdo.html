@@ -1335,19 +1335,27 @@ function openActivitySelector(){
     // Filter out items already added
     const addedNames=currentRdo.activities.map(a=>a.name);
     const available=items.filter(it=>!addedNames.includes(it.name));
-    if(!available.length){
-      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">Todos os itens já foram adicionados.</div>';
+    const projId=document.getElementById('fProject').value;
+    // Filter items with remaining balance > 0
+    const withSaldo=available.filter(it=>{
+      const consumed=getConsumedQty(projId,it.name);
+      return (it.qty||0)-consumed>0;
+    });
+    if(!withSaldo.length){
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">'+(available.length?'Todos os itens já foram concluídos ou adicionados.':'Todos os itens já foram adicionados.')+'</div>';
     }else{
-      chips.innerHTML=available.map((it,i)=>`
-        <div class="chip" data-idx="${i}" onclick="toggleActivityChip(this,${i})">
+      chips.innerHTML=withSaldo.map((it,i)=>{
+        const consumed=getConsumedQty(projId,it.name);
+        const saldo=Math.max(0,+((it.qty||0)-consumed).toFixed(2));
+        return `<div class="chip" data-idx="${i}" onclick="toggleActivityChip(this,${i})">
           <div class="chip-info" style="flex:1">
             <div class="chip-name">${it.name}</div>
-            <div class="chip-role">${it.qty||0} ${it.unit||'ML'} — ${it.progress||0}% concluído</div>
+            <div class="chip-role">Saldo: ${saldo} ${it.unit||'ML'} (total: ${it.qty||0})</div>
           </div>
           <div class="chip-check">✓</div>
-        </div>`).join('');
-      // Store available items for selection
-      window._availableItems=available;
+        </div>`;
+      }).join('');
+      window._availableItems=withSaldo;
     }
   }
   document.getElementById('activityModalOverlay').classList.add('open');
@@ -1364,18 +1372,35 @@ function closeActivityModal(){
   document.getElementById('activityModalOverlay').classList.remove('open');
 }
 
+function getConsumedQty(projId, itemName){
+  // Soma tudo que já foi preenchido em RDOs anteriores deste projeto para este item
+  let consumed=0;
+  const projRdos=rdoList.filter(r=>r.projectId==projId && r.id!==editingRdoId);
+  projRdos.forEach(r=>{
+    const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+    acts.forEach(a=>{
+      if(a.name===itemName) consumed+=(a.qtyDia||0);
+    });
+  });
+  return consumed;
+}
+
 function confirmActivitySelection(){
   const available=window._availableItems||[];
+  const projId=document.getElementById('fProject').value;
   selectedActivityItems.forEach(idx=>{
     const it=available[idx];
     if(it){
+      const totalOriginal=it.qty||0;
+      const consumed=getConsumedQty(projId, it.name);
+      const saldo=Math.max(0,+(totalOriginal-consumed).toFixed(2));
       currentRdo.activities.push({
         name:it.name,
-        totalQty:it.qty||0,
+        totalQty:saldo,
+        originalQty:totalOriginal,
         unit:it.unit||'ML',
-        progress:it.progress||0,
-        qtyDia:0,
-        situacao:'EM ANDAMENTO'
+        progress:0,
+        qtyDia:0
       });
     }
   });
