@@ -524,15 +524,63 @@ body{
 }
 .pdf-dl-btn:hover{color:var(--orange);background:rgba(245,132,31,.1)}
 
+/* Mobile hamburger menu */
+.hamburger{
+  display:none;background:none;border:none;color:var(--text-dim);
+  cursor:pointer;padding:6px;border-radius:6px;transition:color .15s,background .15s;
+  flex-shrink:0;
+}
+.hamburger:hover{color:var(--text);background:var(--surface2)}
+.mobile-menu{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+}
+.mobile-menu.open{display:flex}
+.mobile-menu-panel{
+  position:absolute;top:0;right:0;width:260px;height:100%;
+  background:var(--surface);border-left:1px solid #2e2818;
+  padding:20px;display:flex;flex-direction:column;gap:4px;
+  animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.mobile-menu-close{
+  align-self:flex-end;background:none;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:1.4rem;padding:4px 8px;margin-bottom:12px;
+}
+.mobile-menu-panel a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+  color:var(--text-dim);text-decoration:none;padding:12px 16px;border-radius:8px;
+  transition:color .15s,background .15s;display:block;
+}
+.mobile-menu-panel a:hover{color:var(--text);background:var(--surface2)}
+.mobile-menu-panel a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+
 @media(max-width:768px){
-  .header{padding:0 14px;gap:10px}
-  .selector-view,.dashboard-view,.form-view{padding:16px 12px}
+  .header{padding:0 12px;gap:8px}
+  .nav{display:none}
+  .hamburger{display:flex}
+  .logo svg{height:26px}
+  .selector-view,.dashboard-view,.form-view{padding:14px 10px}
   .selector-grid{grid-template-columns:1fr}
   .dash-grid{grid-template-columns:1fr}
   .detail-grid{grid-template-columns:1fr 1fr}
-  .dash-topbar{gap:10px}
+  .dash-topbar{gap:8px;flex-wrap:wrap}
+  .dash-topbar .proj-name{font-size:1.1rem}
   .field-row{flex-direction:column}
   .status-grid{grid-template-columns:1fr 1fr}
+  .dash-card{padding:16px 12px;overflow:hidden}
+  .dash-table{font-size:.78rem}
+  .dash-table th,.dash-table td{padding:7px 5px}
+  .dash-table .mini-bar{width:30px}
+  .mg-month{font-size:.55rem;padding:3px 0}
+  .mg-bar-label{font-size:.6rem;padding:0 4px}
+  .mg-bar{padding:0 4px}
+  .team-grid{gap:6px}
+  .team-card{padding:8px 10px;min-width:auto}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .detail-item .value{font-size:.82rem}
+  .rdo-table th,.rdo-table td{padding:6px 4px;font-size:.72rem}
+  .clima-icons{transform:scale(.8);transform-origin:left}
 }
 </style>
 </head>
@@ -555,8 +603,24 @@ body{
   <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
     <span id="userBadge" style="font-size:.78rem;color:var(--text-dim)"></span>
     <button onclick="doLogout()" style="background:none;border:1px solid #3a3020;color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;font-family:'Barlow',sans-serif">Sair</button>
+    <button class="hamburger" id="btnHamburger" onclick="document.getElementById('mobileMenu').classList.add('open')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 </header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mobile-menu-panel">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">&times;</button>
+    <a href="project-board.html" class="mm-link-admin">Projetos</a>
+    <a href="overview.html" class="active">Overview</a>
+    <a href="cronograma.html" class="mm-link-admin">Cronograma</a>
+    <a href="team.html" class="mm-link-admin">Equipe</a>
+    <a href="rdo.html" class="mm-link-admin">RDO</a>
+    <a href="config.html" class="mm-link-config">Configuracoes</a>
+  </div>
+</div>
 
 <!-- SELECTOR VIEW -->
 <div class="selector-view" id="selectorView">
@@ -894,14 +958,17 @@ console.log('[Overview] Script iniciado');
   // Todos os perfis tem acesso ao overview
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
-    // Encarregado: hide all nav links except Overview
+    // Encarregado: hide all nav links except Overview (desktop + mobile)
     if(u.role==='encarregado'){
-      document.querySelectorAll('.nav-link-admin').forEach(el=>el.style.display='none');
-      document.querySelectorAll('.nav-link-config').forEach(el=>el.style.display='none');
+      document.querySelectorAll('.nav-link-admin,.mm-link-admin').forEach(el=>el.style.display='none');
+      document.querySelectorAll('.nav-link-config,.mm-link-config').forEach(el=>el.style.display='none');
     }
     // Config gear: only admin and gestao
     const cl=document.getElementById('configLink');
     if(cl&&u.role!=='admin'&&u.role!=='gestao') cl.style.display='none';
+    if(u.role!=='admin'&&u.role!=='gestao'){
+      document.querySelectorAll('.mm-link-config').forEach(el=>el.style.display='none');
+    }
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
   });
