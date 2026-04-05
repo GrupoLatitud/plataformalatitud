@@ -571,19 +571,6 @@ function renderCard(p,stage){
           <div><div class="meta-label">Duração</div><div class="meta-value">${calcDurationStr(p.date,p.endDate)}</div></div>
           <div><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
         </div>
-        ${(p.items&&p.items.length)?`
-        <div class="card-items">
-          ${p.items.map(it=>{
-            const pct=it.progress||0;
-            const sc2=stageColor(p.stage);
-            return `<div class="card-item">
-              <span class="item-name">${it.name}</span>
-              <span class="item-qty">${it.qty} ${it.unit}</span>
-              <div class="item-bar"><div class="item-bar-fill" style="width:${pct}%;background:${sc2}"></div></div>
-              <span class="item-pct" style="color:${sc2}">${pct}%</span>
-            </div>`;
-          }).join('')}
-        </div>`:''}
         ${resp?`
         <div class="card-responsavel">
           <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
