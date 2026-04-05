@@ -432,7 +432,7 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.pages&&!u.pages['project-board']){window.location.href='login.html';return;}
+  if(u.role!=='admin'&&u.pages&&!u.pages['project-board']){window.location.href='login.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
@@ -455,6 +455,9 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+
+/* ── SYNC SESSION ─────────────────────────────── */
+(function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
 
 /* ── MIGRAÇÃO localStorage → Firebase (roda 1x) ── */
 (function migrateOnce(){

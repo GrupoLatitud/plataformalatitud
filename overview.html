@@ -328,7 +328,8 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.pages&&!u.pages['overview']){window.location.href='project-board.html';return;}
+  // Admin sempre tem acesso; outros verificam permissao
+  if(u.role!=='admin' && u.pages && !u.pages['overview']){window.location.href='project-board.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
@@ -351,6 +352,19 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+
+/* ── SYNC SESSION FROM FIREBASE ────────────────── */
+(function syncSession(){
+  const u=window.currentUser;
+  if(!u||!u.userId) return;
+  db.ref('users/'+u.userId).once('value').then(snap=>{
+    const data=snap.val();
+    if(!data||data.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}
+    const updated={userId:u.userId,name:data.name,username:data.username,role:data.role,pages:data.pages||{},allowedProjects:data.allowedProjects||'all',loginAt:u.loginAt};
+    localStorage.setItem('loggedUser',JSON.stringify(updated));
+    window.currentUser=updated;
+  }).catch(()=>{});
+})();
 
 /* ── STATE ────────────────────────────────────── */
 let projects=[], team=[], rdoList=[];
