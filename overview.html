@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>PROJETOCTRL — Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+.header{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  display:flex;align-items:center;gap:20px;
+  padding:0 28px;height:58px;backdrop-filter:blur(8px);
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap}
+.logo svg{height:32px;width:auto}
+.nav{display:flex;gap:4px;margin-left:16px}
+.nav a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
+  transition:color .2s,background .2s;letter-spacing:.3px;
+}
+.nav a:hover{color:var(--text);background:var(--surface2)}
+.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.nav-icon{
+  display:flex;align-items:center;padding:8px;border-radius:8px;
+  color:var(--text-dim);text-decoration:none;transition:color .2s,background .2s;
+}
+.nav-icon:hover{color:var(--text);background:var(--surface2)}
+
+/* ── SELECTOR VIEW ──────────────────────────── */
+.selector-view{padding:28px}
+.selector-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;
+  margin-bottom:4px;
+}
+.selector-sub{font-size:.85rem;color:var(--text-dim);margin-bottom:24px}
+.selector-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;
+}
+.project-card{
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  padding:18px 20px;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;
+  position:relative;overflow:hidden;
+}
+.project-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:#3a3020}
+.project-card .accent{position:absolute;top:0;left:0;right:0;height:3px}
+.pc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.pc-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;flex:1}
+.pc-stage{
+  font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:12px;
+  text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;
+}
+.pc-progress{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pc-bar{flex:1;height:5px;background:#1a1610;border-radius:3px;overflow:hidden}
+.pc-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.pc-pct{font-size:.78rem;font-weight:600;min-width:30px;text-align:right}
+.pc-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:.78rem}
+.pc-meta .label{color:var(--text-dim);font-size:.65rem;text-transform:uppercase;letter-spacing:.3px}
+.pc-resp{
+  display:flex;align-items:center;gap:8px;margin-top:10px;
+  background:#1a1610;border-radius:6px;padding:6px 8px;
+}
+.avatar{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;
+}
+.avatar.has-photo{border:2px solid;background:transparent !important}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pc-resp-name{font-size:.78rem;font-weight:600}
+.pc-resp-role{font-size:.62rem;color:var(--text-dim)}
+
+/* ── DASHBOARD VIEW ─────────────────────────── */
+.dashboard-view{display:none;padding:28px}
+.dash-topbar{
+  display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;
+}
+.back-btn{
+  background:none;border:1px solid #3a3020;color:var(--text-dim);
+  padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem;
+  font-family:'Barlow',sans-serif;transition:all .15s;display:flex;align-items:center;gap:6px;
+}
+.back-btn:hover{border-color:var(--orange);color:var(--orange)}
+.dash-proj-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;flex:1;
+}
+.dash-stage{
+  font-size:.72rem;font-weight:600;padding:4px 12px;border-radius:12px;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.btn-new-rdo{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  transition:background .2s;
+}
+.btn-new-rdo:hover{background:#e0750f}
+
+.dash-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;
+}
+.dash-section{
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  padding:20px;overflow:hidden;
+}
+.dash-section.full{grid-column:1/-1}
+.dash-section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.dash-section-title svg{opacity:.5}
+
+/* Details section */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.detail-item .label{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px}
+.detail-item .value{font-size:.92rem;font-weight:600;margin-top:2px}
+.detail-progress{margin-top:14px}
+.detail-progress .bar{height:8px;background:#1a1610;border-radius:4px;overflow:hidden}
+.detail-progress .fill{height:100%;border-radius:4px;transition:width .3s}
+.detail-progress .pct{font-size:1.1rem;font-weight:700;margin-top:4px}
+
+/* Team section */
+.team-grid{display:flex;flex-wrap:wrap;gap:10px}
+.team-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+  padding:8px 12px;min-width:160px;
+}
+.team-card.lead{border-color:var(--orange);background:rgba(245,132,31,.06)}
+.team-name{font-size:.82rem;font-weight:600}
+.team-role{font-size:.65rem;color:var(--text-dim)}
+.team-badge{font-size:.6rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+
+/* Data tables */
+.dash-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.dash-table thead{background:var(--surface2)}
+.dash-table th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);
+  padding:8px 10px;text-align:left;
+}
+.dash-table td{padding:8px 10px;border-top:1px solid #1a1610;vertical-align:middle}
+.dash-table .bar-cell{display:flex;align-items:center;gap:6px}
+.dash-table .mini-bar{width:50px;height:5px;background:#1a1610;border-radius:3px;overflow:hidden}
+.dash-table .mini-bar-fill{height:100%;border-radius:3px}
+.dash-table .pct{font-size:.75rem;font-weight:600;color:var(--orange)}
+.saldo-col{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.saldo-col .s-label{font-size:.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px}
+.saldo-col .s-value{font-size:.78rem;font-weight:600}
+
+/* Mini Gantt */
+.mini-gantt-wrap{position:relative;overflow-x:auto;margin-top:6px}
+.mini-gantt-wrap::-webkit-scrollbar{height:5px}
+.mini-gantt-wrap::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+.mg-months{display:flex;border-bottom:1px solid #2e2818}
+.mg-month{
+  font-size:.65rem;font-weight:600;color:var(--text-dim);
+  text-align:center;padding:4px 0;border-right:1px solid #1a1610;
+}
+.mg-bar-area{position:relative;height:36px;margin-top:8px}
+.mg-bar{
+  position:absolute;top:6px;height:24px;border-radius:6px;
+  display:flex;align-items:center;padding:0 8px;font-size:.72rem;font-weight:600;
+  overflow:hidden;
+}
+.mg-bar-progress{position:absolute;top:0;left:0;bottom:0;border-radius:6px}
+.mg-bar-label{position:relative;z-index:1;white-space:nowrap;color:#fff}
+.mg-today{
+  position:absolute;top:0;bottom:0;width:2px;background:#f07070;z-index:5;
+}
+.mg-today-label{
+  position:absolute;top:-14px;font-size:.6rem;color:#f07070;font-weight:600;
+  transform:translateX(-50%);white-space:nowrap;
+}
+
+/* RDO History */
+.rdo-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.rdo-table th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);
+  padding:8px 10px;text-align:left;background:var(--surface2);
+}
+.rdo-table td{padding:8px 10px;border-top:1px solid #1a1610;vertical-align:middle}
+.rdo-table tr{cursor:pointer;transition:background .15s}
+.rdo-table tr:hover td{background:rgba(245,132,31,.04)}
+.status-badge{
+  font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:10px;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.status-preenchendo{background:rgba(245,180,60,.12);color:#f5b43c}
+.status-para_aprovacao{background:rgba(107,175,212,.12);color:var(--blue)}
+.status-reprovado{background:rgba(240,80,80,.12);color:#f07070}
+.status-aprovado{background:rgba(143,207,106,.12);color:var(--green)}
+.turno-badge{
+  font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:8px;
+  background:var(--surface2);color:var(--text-dim);
+}
+.clima-icons{display:flex;gap:4px;align-items:center}
+.clima-icon{font-size:.9rem}
+.empty-msg{text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem}
+
+@media(max-width:768px){
+  .header{padding:0 14px;gap:10px}
+  .selector-view,.dashboard-view{padding:16px 12px}
+  .selector-grid{grid-template-columns:1fr}
+  .dash-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .dash-topbar{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="project-board.html" class="logo">
+    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+  </a>
+  <nav class="nav">
+    <a href="project-board.html">Projetos</a>
+    <a href="overview.html" class="active">Overview</a>
+    <a href="cronograma.html">Cronograma</a>
+    <a href="team.html">Equipe</a>
+    <a href="rdo.html">RDO</a>
+    <a href="config.html" class="nav-icon" id="configLink" title="Configuracoes">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </a>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+    <span id="userBadge" style="font-size:.78rem;color:var(--text-dim)"></span>
+    <button onclick="doLogout()" style="background:none;border:1px solid #3a3020;color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;font-family:'Barlow',sans-serif">Sair</button>
+  </div>
+</header>
+
+<!-- SELECTOR VIEW -->
+<div class="selector-view" id="selectorView">
+  <div class="selector-title">Overview</div>
+  <div class="selector-sub">Selecione um projeto para visualizar</div>
+  <div class="selector-grid" id="selectorGrid"></div>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div class="dashboard-view" id="dashboardView">
+  <div class="dash-topbar">
+    <button class="back-btn" onclick="goBack()">&#9664; Voltar</button>
+    <div class="dash-proj-name" id="dashProjName"></div>
+    <div class="dash-stage" id="dashStage"></div>
+    <button class="btn-new-rdo" id="btnNewRdo">+ Novo RDO</button>
+  </div>
+  <div class="dash-grid">
+    <!-- Details -->
+    <div class="dash-section">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        Detalhes do Projeto
+      </div>
+      <div id="detailsContent"></div>
+    </div>
+    <!-- Team -->
+    <div class="dash-section">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Equipe do Projeto
+      </div>
+      <div id="teamContent"></div>
+    </div>
+    <!-- Items / Avancos -->
+    <div class="dash-section full">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Avancos do Projeto
+      </div>
+      <div id="itemsContent"></div>
+    </div>
+    <!-- Materials -->
+    <div class="dash-section full">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        Materiais do Projeto
+      </div>
+      <div id="materialsContent"></div>
+    </div>
+    <!-- Mini Gantt -->
+    <div class="dash-section full">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Cronograma
+      </div>
+      <div id="ganttContent"></div>
+    </div>
+    <!-- RDO History -->
+    <div class="dash-section full">
+      <div class="dash-section-title" style="justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Historico de RDOs
+        </span>
+        <button class="btn-new-rdo" style="font-size:.78rem;padding:5px 14px" id="btnNewRdo2">+ Novo RDO</button>
+      </div>
+      <div id="rdoContent"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ── AUTH GUARD ─────────────────────────────── */
+(function(){
+  const s=localStorage.getItem('loggedUser');
+  if(!s){window.location.href='login.html';return;}
+  const u=JSON.parse(s);
+  if(u.pages&&!u.pages['overview']){window.location.href='project-board.html';return;}
+  window.currentUser=u;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const cl=document.getElementById('configLink');
+    if(cl&&u.role!=='admin') cl.style.display='none';
+    const ub=document.getElementById('userBadge');
+    if(ub) ub.textContent=u.name;
+  });
+})();
+function doLogout(){localStorage.removeItem('loggedUser');window.location.href='login.html';}
+
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+/* ── STATE ────────────────────────────────────── */
+let projects=[], team=[], rdoList=[];
+let selectedProjectId=null;
+const STAGE_MAP={
+  andamento:{label:'Em Andamento',color:'#8fcf6a'},
+  garantia:{label:'Retorno Garantia',color:'#F5841F'},
+  standby:{label:'Stand-by',color:'#6bafd4'}
+};
+const STATUS_LABELS={preenchendo:'Preenchendo',para_aprovacao:'Para aprovacao',reprovado:'Reprovado',aprovado:'Aprovado'};
+const MONTH_NAMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+/* ── HELPERS ──────────────────────────────────── */
+function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function daysBetweenDates(a,b){return Math.max(0,Math.round((b-a)/864e5))}
+function formatDate(d){if(!d)return'—';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y}
+function calcDurationStr(d,e){
+  if(!d||!e)return'—';
+  const days=Math.round((new Date(e+'T00:00:00')-new Date(d+'T00:00:00'))/864e5);
+  return days>=0?days+' dias':'—';
+}
+function tempoEmCampo(dateStr){
+  if(!dateStr)return'—';
+  const d=new Date(dateStr);const now=new Date();
+  const days=daysBetweenDates(d,now);
+  if(days>365){const y=Math.floor(days/365);const m=Math.floor((days%365)/30);return y+'a '+m+'m'}
+  if(days>30){const m=Math.floor(days/30);const dd=days%30;return m+'m '+dd+'d'}
+  return days+'d';
+}
+function avatarHTML(t,size){
+  const s=size||28;
+  if(!t)return'';
+  if(t.photo)return `<div class="avatar has-photo" style="border-color:${t.color};width:${s}px;height:${s}px"><img src="${t.photo}" alt="${t.name}"></div>`;
+  return `<div class="avatar" style="background:${t.color||'#666'};width:${s}px;height:${s}px">${initials(t.name)}</div>`;
+}
+function climaIcon(clima){
+  const c=(clima||'LIMPO').toUpperCase();
+  if(c==='LIMPO')return'<span class="clima-icon">☀️</span>';
+  if(c==='NUBLADO')return'<span class="clima-icon">⛅</span>';
+  if(c==='CHUVOSO')return'<span class="clima-icon">🌧️</span>';
+  if(c==='GAROA')return'<span class="clima-icon">🌦️</span>';
+  return'<span class="clima-icon">☀️</span>';
+}
+
+/* ── PROGRESS CALC ────────���───────────────────── */
+function calcProjectProgress(proj){
+  if(!proj.items) return 0;
+  const items=Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+  if(!items.length) return 0;
+  const projRdos=rdoList.filter(r=>r.projectId==proj.id);
+  let totalPct=0;
+  items.forEach(it=>{
+    const totalQty=it.qty||0;
+    if(totalQty<=0)return;
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+      acts.forEach(a=>{if(a.name===it.name)consumed+=(a.qtyDia||0)});
+    });
+    totalPct+=Math.min(100,(consumed/totalQty)*100);
+  });
+  return Math.round(totalPct/items.length);
+}
+
+function getVisibleProjects(){
+  const u=window.currentUser;
+  if(!u||!u.allowedProjects||u.allowedProjects==='all')return projects;
+  const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+  return projects.filter(p=>ids.includes(p.id));
+}
+
+/* ── LOAD DATA ────────────────────────────────── */
+let _ready=0;
+function checkReady(){_ready++;if(_ready>=3){renderSelector();if(selectedProjectId)renderDashboard()}}
+
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d){const arr=Array.isArray(d)?d:Object.values(d);if(arr.length)projects=arr;}
+  checkReady();
+},()=>checkReady());
+
+db.ref('team').on('value',snap=>{
+  const d=snap.val();
+  if(d){const arr=Array.isArray(d)?d:Object.values(d);if(arr.length)team=arr;}
+  checkReady();
+},()=>checkReady());
+
+db.ref('rdo').on('value',snap=>{
+  const d=snap.val();
+  rdoList=d?(Array.isArray(d)?d:Object.values(d)):[];
+  checkReady();
+},()=>checkReady());
+
+setTimeout(()=>{if(_ready<3){_ready=3;renderSelector()}},3000);
+
+/* ── SELECTOR VIEW ────────────────────────────── */
+function renderSelector(){
+  const grid=document.getElementById('selectorGrid');
+  const vp=getVisibleProjects();
+  if(!vp.length){grid.innerHTML='<div class="empty-msg">Nenhum projeto encontrado.</div>';return;}
+  grid.innerHTML=vp.map(p=>{
+    const stage=STAGE_MAP[p.stage]||{label:p.stage||'—',color:'#999'};
+    const pct=calcProjectProgress(p);
+    const resp=team.find(t=>t.id===p.responsible);
+    return `
+    <div class="project-card" onclick="selectProject(${p.id})">
+      <div class="accent" style="background:${stage.color}"></div>
+      <div class="pc-header">
+        <div class="pc-name">${p.name}</div>
+        <span class="pc-stage" style="background:${stage.color}22;color:${stage.color}">${stage.label}</span>
+      </div>
+      <div class="pc-progress">
+        <div class="pc-bar"><div class="pc-bar-fill" style="width:${pct}%;background:${stage.color}"></div></div>
+        <span class="pc-pct" style="color:${stage.color}">${pct}%</span>
+      </div>
+      <div class="pc-meta">
+        <div><div class="label">Inicio</div><div>${formatDate(p.date)}</div></div>
+        <div><div class="label">Final</div><div>${formatDate(p.endDate)}</div></div>
+        <div><div class="label">Duracao</div><div>${calcDurationStr(p.date,p.endDate)}</div></div>
+        <div><div class="label">Tempo Campo</div><div>${tempoEmCampo(p.date)}</div></div>
+      </div>
+      ${resp?`<div class="pc-resp">${avatarHTML(resp,24)}<div><div class="pc-resp-name">${resp.name}</div><div class="pc-resp-role">${resp.role}</div></div></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ── DASHBOARD ────────────────────────────────── */
+function selectProject(id){
+  selectedProjectId=id;
+  document.getElementById('selectorView').style.display='none';
+  document.getElementById('dashboardView').style.display='block';
+  renderDashboard();
+}
+function goBack(){
+  selectedProjectId=null;
+  document.getElementById('dashboardView').style.display='none';
+  document.getElementById('selectorView').style.display='block';
+}
+
+function renderDashboard(){
+  const p=projects.find(x=>x.id===selectedProjectId);
+  if(!p){goBack();return;}
+  const stage=STAGE_MAP[p.stage]||{label:p.stage||'—',color:'#999'};
+  const pct=calcProjectProgress(p);
+
+  document.getElementById('dashProjName').textContent=p.name;
+  const stEl=document.getElementById('dashStage');
+  stEl.textContent=stage.label;
+  stEl.style.background=stage.color+'22';
+  stEl.style.color=stage.color;
+
+  document.getElementById('btnNewRdo').onclick=()=>window.location.href='rdo.html?projectId='+p.id;
+  document.getElementById('btnNewRdo2').onclick=()=>window.location.href='rdo.html?projectId='+p.id;
+
+  renderDetails(p,stage,pct);
+  renderTeamSection(p);
+  renderItemsTable(p);
+  renderMaterialsTable(p);
+  renderMiniGantt(p,stage);
+  renderRdoHistory(p,stage);
+}
+
+/* ── DETAILS ──────────────────────────────────── */
+function renderDetails(p,stage,pct){
+  document.getElementById('detailsContent').innerHTML=`
+    <div class="detail-grid">
+      <div class="detail-item"><div class="label">Inicio</div><div class="value">${formatDate(p.date)}</div></div>
+      <div class="detail-item"><div class="label">Final</div><div class="value">${formatDate(p.endDate)}</div></div>
+      <div class="detail-item"><div class="label">Duracao</div><div class="value">${calcDurationStr(p.date,p.endDate)}</div></div>
+      <div class="detail-item"><div class="label">Tempo em Campo</div><div class="value">${tempoEmCampo(p.date)}</div></div>
+    </div>
+    <div class="detail-progress">
+      <div class="bar"><div class="fill" style="width:${pct}%;background:${stage.color}"></div></div>
+      <div class="pct" style="color:${stage.color}">${pct}%</div>
+    </div>`;
+}
+
+/* ── TEAM ─────────────────────────────────────── */
+function renderTeamSection(p){
+  const resp=team.find(t=>t.id===p.responsible);
+  const collabs=(p.collabs||[]).map(id=>team.find(t=>t.id===id)).filter(Boolean);
+  let html='';
+  if(resp){
+    html+=`<div class="team-card lead">
+      ${avatarHTML(resp,32)}
+      <div><div class="team-name">${resp.name}</div><div class="team-role">${resp.role}</div><div class="team-badge">Responsavel</div></div>
+    </div>`;
+  }
+  collabs.forEach(c=>{
+    html+=`<div class="team-card">
+      ${avatarHTML(c,28)}
+      <div><div class="team-name">${c.name}</div><div class="team-role">${c.role}</div></div>
+    </div>`;
+  });
+  document.getElementById('teamContent').innerHTML=html?`<div class="team-grid">${html}</div>`:'<div class="empty-msg">Nenhum membro vinculado.</div>';
+}
+
+/* ── ITEMS TABLE ──────────────────────────────── */
+function renderItemsTable(p){
+  const items=p.items?(Array.isArray(p.items)?p.items:Object.values(p.items)):[];
+  if(!items.length){document.getElementById('itemsContent').innerHTML='<div class="empty-msg">Nenhum item cadastrado.</div>';return;}
+  const projRdos=rdoList.filter(r=>r.projectId==p.id);
+  const rows=items.map(it=>{
+    const total=it.qty||0;
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+      acts.forEach(a=>{if(a.name===it.name)consumed+=(a.qtyDia||0)});
+    });
+    const pct=total>0?Math.min(100,Math.round((consumed/total)*100)):0;
+    const saldo=total>0?Math.max(0,+(total-consumed).toFixed(2)):0;
+    return `<tr>
+      <td style="font-weight:600">${it.name}</td>
+      <td style="color:var(--text-dim)">${total} ${it.unit||''}</td>
+      <td>${consumed.toFixed(2)} ${it.unit||''}</td>
+      <td><div class="saldo-col"><span class="s-label">Saldo</span><span class="s-value">${saldo}</span></div></td>
+      <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:var(--orange)"></div></div><span class="pct">${pct}%</span></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('itemsContent').innerHTML=`<div style="overflow-x:auto"><table class="dash-table">
+    <thead><tr><th>Item</th><th>Total</th><th>Consumido</th><th>Saldo</th><th>Avanco</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+/* ── MATERIALS TABLE ──────────────────────────── */
+function renderMaterialsTable(p){
+  const mats=p.materials?(Array.isArray(p.materials)?p.materials:Object.values(p.materials)):[];
+  if(!mats.length){document.getElementById('materialsContent').innerHTML='<div class="empty-msg">Nenhum material cadastrado.</div>';return;}
+  const projRdos=rdoList.filter(r=>r.projectId==p.id);
+  const rows=mats.map(mt=>{
+    const total=mt.qty||0;
+    let consumed=0;
+    projRdos.forEach(r=>{
+      const ms=r.materials?(Array.isArray(r.materials)?r.materials:Object.values(r.materials)):[];
+      ms.forEach(m=>{if(m.name===mt.name)consumed+=(m.qtyDia||0)});
+    });
+    const pct=total>0?Math.min(100,Math.round((consumed/total)*100)):0;
+    const saldo=total>0?Math.max(0,+(total-consumed).toFixed(2)):0;
+    return `<tr>
+      <td style="font-weight:600">${mt.name}</td>
+      <td style="color:var(--text-dim)">${total} ${mt.unit||''}</td>
+      <td>${consumed.toFixed(2)} ${mt.unit||''}</td>
+      <td><div class="saldo-col"><span class="s-label">Saldo</span><span class="s-value">${saldo}</span></div></td>
+      <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:var(--orange)"></div></div><span class="pct">${pct}%</span></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('materialsContent').innerHTML=`<div style="overflow-x:auto"><table class="dash-table">
+    <thead><tr><th>Material</th><th>Total</th><th>Consumido</th><th>Saldo</th><th>Avanco</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+/* ── MINI GANTT ───────────────────────────────── */
+function renderMiniGantt(p,stage){
+  const container=document.getElementById('ganttContent');
+  if(!p.date||!p.endDate){container.innerHTML='<div class="empty-msg">Datas nao definidas.</div>';return;}
+
+  const projStart=new Date(p.date+'T00:00:00');
+  const projEnd=new Date(p.endDate+'T00:00:00');
+  const pad=15*864e5;
+  const rangeStart=new Date(projStart.getTime()-pad);
+  rangeStart.setDate(1);
+  const rangeEnd=new Date(projEnd.getTime()+pad);
+  rangeEnd.setMonth(rangeEnd.getMonth()+1,0);
+
+  const totalDays=daysBetweenDates(rangeStart,rangeEnd)+1;
+  const cWidth=container.offsetWidth||600;
+  const dayW=Math.max(3,Math.min(14,Math.floor(cWidth/totalDays)));
+  const totalW=totalDays*dayW;
+
+  function dateToX(d){return daysBetweenDates(rangeStart,d)*dayW}
+
+  // Months
+  let monthsHtml='';
+  let cur=new Date(rangeStart);
+  while(cur<=rangeEnd){
+    const y=cur.getFullYear();const mo=cur.getMonth();
+    const dim=new Date(y,mo+1,0).getDate();
+    const ms=new Date(y,mo,1);const me=new Date(y,mo,dim);
+    const vs=ms<rangeStart?rangeStart:ms;
+    const ve=me>rangeEnd?rangeEnd:me;
+    const vd=daysBetweenDates(vs,ve)+1;
+    monthsHtml+=`<div class="mg-month" style="width:${vd*dayW}px;min-width:${vd*dayW}px">${MONTH_NAMES[mo]} ${y}</div>`;
+    cur.setMonth(cur.getMonth()+1);cur.setDate(1);
+  }
+
+  // Bar
+  const barX=dateToX(projStart);
+  const barW=Math.max(dateToX(projEnd)-barX,dayW);
+  const pct=calcProjectProgress(p);
+
+  // Today
+  const today=new Date();today.setHours(0,0,0,0);
+  let todayHtml='';
+  if(today>=rangeStart&&today<=rangeEnd){
+    const tx=dateToX(today)+Math.floor(dayW/2);
+    todayHtml=`<div class="mg-today" style="left:${tx}px"><div class="mg-today-label" style="left:${tx}px">Hoje</div></div>`;
+  }
+
+  container.innerHTML=`
+    <div class="mini-gantt-wrap">
+      <div style="width:${totalW}px">
+        <div class="mg-months">${monthsHtml}</div>
+        <div class="mg-bar-area" style="width:${totalW}px">
+          <div class="mg-bar" style="left:${barX}px;width:${barW}px;background:${stage.color}33;border:1px solid ${stage.color}55">
+            <div class="mg-bar-progress" style="width:${pct}%;background:${stage.color}88"></div>
+            <span class="mg-bar-label">${p.name} — ${pct}%</span>
+          </div>
+          ${todayHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── RDO HISTORY ──────────────────────────────── */
+function renderRdoHistory(p,stage){
+  const projRdos=rdoList.filter(r=>r.projectId==p.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!projRdos.length){document.getElementById('rdoContent').innerHTML='<div class="empty-msg">Nenhum RDO registrado.</div>';return;}
+
+  const rows=projRdos.map((r,i)=>{
+    const num=projRdos.length-i;
+    const dateStr=formatDate(r.date);
+    const statusClass='status-'+(r.status||'preenchendo');
+    const statusLabel=STATUS_LABELS[r.status||'preenchendo'];
+    const turnoLabel=r.shifts?(r.shifts.diurno&&r.shifts.noturno?'DIURNO / NOTURNO':r.shifts.noturno?'NOTURNO':'DIURNO'):'DIURNO';
+    const w=r.weather||{};
+    const climaHtml='<div class="clima-icons">'+climaIcon(w.manha?w.manha.clima:'LIMPO')+climaIcon(w.tarde?w.tarde.clima:'LIMPO')+climaIcon(w.noite?w.noite.clima:'LIMPO')+'</div>';
+    const regDate=r.createdAt?new Date(r.createdAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+    return `<tr onclick="window.location.href='rdo.html?editRdo=${r.id}'">
+      <td style="font-weight:600;color:var(--text-dim)">${num}</td>
+      <td>${dateStr}</td>
+      <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+      <td><span class="turno-badge">${turnoLabel}</span></td>
+      <td>${climaHtml}</td>
+      <td style="color:var(--text-dim);font-size:.78rem">${regDate}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rdoContent').innerHTML=`<div style="overflow-x:auto"><table class="rdo-table">
+    <thead><tr><th>N</th><th>Data</th><th>Status</th><th>Turno</th><th>Clima</th><th>Registro</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+</script>
+</body>
+</html>

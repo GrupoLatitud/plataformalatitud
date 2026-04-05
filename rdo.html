@@ -537,6 +537,7 @@ body{
   </a>
   <nav class="nav">
     <a href="project-board.html">Projetos</a>
+    <a href="overview.html">Overview</a>
     <a href="cronograma.html">Cronograma</a>
     <a href="team.html">Equipe</a>
     <a href="rdo.html" class="active">RDO</a>
@@ -1819,6 +1820,30 @@ document.addEventListener('click',e=>{
 
 /* ── INIT ──────────────────────────────────────── */
 loadData();
+
+// Support ?projectId=X from Overview page
+(function checkUrlParams(){
+  const params=new URLSearchParams(window.location.search);
+  const autoProjectId=params.get('projectId');
+  const autoEditRdo=params.get('editRdo');
+  if(autoProjectId||autoEditRdo){
+    const waitData=setInterval(()=>{
+      if(!projects.length) return;
+      clearInterval(waitData);
+      if(autoProjectId){
+        const pid=parseInt(autoProjectId);
+        if(projects.find(p=>p.id===pid)) openNewRdoForProject(pid);
+      }
+      if(autoEditRdo){
+        const rid=parseInt(autoEditRdo);
+        if(rdoList.find(r=>r.id===rid)) openEditRdo(rid);
+      }
+      // Clean URL
+      window.history.replaceState({},'',window.location.pathname);
+    },200);
+    setTimeout(()=>clearInterval(waitData),5000);
+  }
+})();
 </script>
 </body>
 </html>
