@@ -218,13 +218,308 @@ body{
 .clima-icon{font-size:.9rem}
 .empty-msg{text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem}
 
+/* ═══════════════════════════════════════════════ */
+/* RDO FORM VIEW (ported from rdo.html)           */
+/* ═══════════════════════════════════════════════ */
+.form-view{display:none;padding:28px}
+.form-container{max-width:900px;margin:0 auto}
+.form-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.form-header h2{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;
+}
+
+/* SECTION */
+.rdo-section{
+  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
+  padding:20px;margin-bottom:20px;
+}
+.rdo-section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.rdo-section-title .count-badge{
+  background:var(--orange);color:#fff;font-size:.72rem;
+  padding:2px 8px;border-radius:10px;font-weight:700;
+}
+
+/* FIELD */
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:.78rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  margin-bottom:5px;
+}
+.field input[type="text"],.field input[type="date"],.field input[type="time"],
+.field input[type="number"],.field select,.field textarea{
+  width:100%;background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:9px 12px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange)}
+.field textarea{resize:vertical;min-height:60px}
+.field-row{display:flex;gap:16px;flex-wrap:wrap}
+.field-row .field{flex:1;min-width:180px}
+.field-inline{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.day-display{
+  font-size:.85rem;color:var(--orange);font-weight:600;margin-left:8px;
+}
+
+/* CHECKBOXES */
+.check-group{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.check-item{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:.88rem;font-weight:500;
+}
+.check-item input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;
+  border:2px solid #3a3020;border-radius:4px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);transition:all .15s;flex-shrink:0;
+}
+.check-item input[type="checkbox"]:checked{
+  background:var(--orange);border-color:var(--orange);
+}
+.check-item input[type="checkbox"]:checked::after{
+  content:'\2713';color:#fff;font-size:.7rem;font-weight:700;
+}
+
+/* WEATHER TABLE */
+.weather-table{width:100%;border-collapse:collapse}
+.weather-table th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);
+  text-align:left;padding:8px 10px;border-bottom:1px solid #2e2818;
+}
+.weather-table td{padding:8px 10px;border-bottom:1px solid #1a1610}
+.weather-indicator{
+  width:24px;height:24px;border-radius:4px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#fff;transition:all .15s;
+}
+.weather-indicator.green{background:#4caf50}
+.weather-indicator.red{background:#f44336}
+.weather-table select{
+  background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:6px 10px;border-radius:6px;
+  font-family:'Barlow',sans-serif;font-size:.85rem;
+}
+.weather-table select:focus{outline:none;border-color:var(--orange)}
+
+/* DATA TABLE (workforce, equipment, activities) */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);
+  text-align:left;padding:8px 10px;border-bottom:1px solid #2e2818;
+  white-space:nowrap;
+}
+.data-table td{padding:8px 10px;border-bottom:1px solid #1a1610;vertical-align:middle}
+.data-table input,.data-table select{
+  background:var(--surface2);border:1px solid #2e2818;
+  color:var(--text);padding:6px 10px;border-radius:6px;
+  font-family:'Barlow',sans-serif;font-size:.85rem;
+}
+.data-table input:focus,.data-table select:focus{outline:none;border-color:var(--orange)}
+.data-table input[type="time"]{width:100px}
+.data-table input[type="number"]{width:80px}
+.data-table input[type="text"]{width:100%;min-width:120px}
+.data-table .remove-btn{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:1.1rem;padding:4px;transition:color .15s;
+}
+.data-table .remove-btn:hover{color:#f07070}
+.worker-cell{display:flex;align-items:center;gap:10px}
+.worker-avatar{
+  width:30px;height:30px;border-radius:50%;overflow:hidden;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;color:#fff;
+}
+.worker-avatar img{width:100%;height:100%;object-fit:cover}
+.worker-info{display:flex;flex-direction:column}
+.worker-name{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.88rem}
+.worker-role{font-size:.68rem;color:var(--text-dim)}
+.total-horas{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  color:var(--orange);
+}
+
+/* SECTION HEADER w/ button */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:8px;
+}
+.section-header .rdo-section-title{margin-bottom:0}
+.btn-apropriar{
+  background:var(--surface2);border:1px solid #2e2818;color:var(--text);
+  padding:6px 14px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:all .15s;display:flex;align-items:center;gap:6px;
+}
+.btn-apropriar:hover{border-color:var(--orange);color:var(--orange)}
+.btn-add-small{
+  background:var(--surface2);border:1px solid #2e2818;color:var(--text);
+  padding:5px 12px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:500;
+  transition:all .15s;
+}
+.btn-add-small:hover{border-color:var(--orange);color:var(--orange)}
+
+/* RECORDS */
+.record-card{
+  background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+  padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px;
+}
+.record-icon{
+  width:28px;height:28px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;color:#fff;
+}
+.record-icon.ocorrencia{background:#f44336}
+.record-icon.evento{background:#2196f3}
+.record-icon.comentario{background:#9c27b0}
+.record-text{flex:1;font-size:.88rem;line-height:1.4}
+.record-type{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;font-weight:600}
+.dropdown-add{position:relative;display:inline-block}
+.dropdown-add-menu{
+  position:absolute;top:100%;left:0;z-index:10;
+  background:var(--surface);border:1px solid #2e2818;border-radius:8px;
+  padding:4px 0;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5);
+  display:none;
+}
+.dropdown-add-menu.open{display:block}
+.dropdown-add-item{
+  padding:8px 14px;font-size:.85rem;cursor:pointer;
+  transition:background .15s;
+}
+.dropdown-add-item:hover{background:var(--surface2)}
+
+/* PHOTOS */
+.photo-upload-area{
+  border:2px dashed #3a3020;border-radius:10px;padding:30px;
+  text-align:center;cursor:pointer;transition:border-color .2s;
+  margin-bottom:16px;
+}
+.photo-upload-area:hover{border-color:var(--orange)}
+.photo-upload-area p{color:var(--text-dim);font-size:.88rem}
+.photo-upload-area .icon{font-size:1.8rem;margin-bottom:6px;opacity:.5}
+.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.photo-item{
+  background:var(--surface2);border:1px solid #2e2818;border-radius:10px;
+  overflow:hidden;position:relative;
+}
+.photo-item img{width:100%;height:150px;object-fit:cover;display:block}
+.photo-item textarea{
+  width:100%;background:var(--bg);border:none;border-top:1px solid #2e2818;
+  color:var(--text);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.82rem;
+  resize:none;min-height:50px;
+}
+.photo-item textarea:focus{outline:none}
+.photo-item .photo-time{
+  font-size:.68rem;color:var(--text-dim);padding:0 10px 8px;
+}
+.photo-item .photo-delete{
+  position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);
+  border:none;color:#fff;width:24px;height:24px;border-radius:50%;
+  cursor:pointer;font-size:.8rem;display:flex;align-items:center;
+  justify-content:center;transition:background .15s;
+}
+.photo-item .photo-delete:hover{background:#f44336}
+
+/* STATUS CARDS */
+.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.status-card{
+  background:var(--surface2);border:2px solid transparent;border-radius:10px;
+  padding:14px;cursor:pointer;transition:all .15s;
+}
+.status-card:hover{border-color:#3a3020}
+.status-card.selected{border-color:var(--orange);background:rgba(245,132,31,.08)}
+.status-card-icon{font-size:1.3rem;margin-bottom:6px}
+.status-card-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  margin-bottom:3px;
+}
+.status-card-desc{font-size:.75rem;color:var(--text-dim);line-height:1.3}
+
+/* BOTTOM ACTIONS */
+.form-actions{
+  display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-bottom:40px;
+}
+.btn-cancel{
+  background:transparent;border:1px solid #3a3020;color:var(--text-dim);
+  padding:10px 24px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow',sans-serif;font-weight:500;font-size:.92rem;
+  transition:all .15s;
+}
+.btn-cancel:hover{border-color:var(--text-dim);color:var(--text)}
+.btn-save{
+  background:var(--green);color:#fff;border:none;
+  padding:10px 28px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+  transition:background .2s;
+}
+.btn-save:hover{background:#72b84e}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
+  width:520px;max-width:94vw;max-height:90vh;overflow-y:auto;
+  padding:28px 30px 24px;
+}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:#3a3020;border-radius:3px}
+.modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;
+  margin-bottom:20px;
+}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+
+/* Chips (for team selection modal) */
+.chips-grid{display:grid;gap:6px;max-height:400px;overflow-y:auto}
+.chips-grid.cols-2{grid-template-columns:1fr 1fr}
+.chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:2px solid transparent;
+  border-radius:8px;padding:7px 10px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.chip.selected{border-color:var(--orange);background:#2a2010}
+.chip .chip-avatar{
+  width:28px;height:28px;border-radius:50%;overflow:hidden;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;color:#fff;
+}
+.chip .chip-avatar img{width:100%;height:100%;object-fit:cover}
+.chip-info{line-height:1.2;flex:1}
+.chip-name{font-size:.82rem;font-weight:600}
+.chip-role{font-size:.65rem;color:var(--text-dim)}
+.chip-check{
+  margin-left:auto;width:16px;height:16px;border-radius:4px;
+  border:2px solid #3a3020;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:transparent;transition:all .15s;flex-shrink:0;
+}
+.chip.selected .chip-check{border-color:var(--orange);background:var(--orange);color:#fff}
+
+.table-scroll{overflow-x:auto}
+
 @media(max-width:768px){
   .header{padding:0 14px;gap:10px}
-  .selector-view,.dashboard-view{padding:16px 12px}
+  .selector-view,.dashboard-view,.form-view{padding:16px 12px}
   .selector-grid{grid-template-columns:1fr}
   .dash-grid{grid-template-columns:1fr}
   .detail-grid{grid-template-columns:1fr 1fr}
   .dash-topbar{gap:10px}
+  .field-row{flex-direction:column}
+  .status-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -320,9 +615,240 @@ body{
   </div>
 </div>
 
+<!-- ═══ RDO FORM VIEW (inline) ═══ -->
+<div class="form-view" id="rdoFormView">
+  <div class="form-container">
+    <div class="form-header">
+      <h2 id="formTitle">Novo RDO</h2>
+    </div>
+
+    <!-- Hidden project select -->
+    <select id="fProject" style="display:none"></select>
+
+    <!-- Date -->
+    <div class="rdo-section">
+      <div class="rdo-section-title">Data do Relatorio</div>
+      <div class="field">
+        <div class="field-inline">
+          <input type="date" id="fDate" onchange="updateDayOfWeek()">
+          <span class="day-display" id="dayOfWeek"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhes do Dia -->
+    <div class="rdo-section">
+      <div class="rdo-section-title">Detalhes do Dia</div>
+      <div class="check-group">
+        <label class="check-item"><input type="checkbox" id="fDiurno" checked onchange="updateWeatherVisibility()"> Diurno</label>
+        <label class="check-item"><input type="checkbox" id="fNoturno" onchange="updateWeatherVisibility()"> Noturno</label>
+        <label class="check-item"><input type="checkbox" id="fFeriado"> Feriado</label>
+      </div>
+    </div>
+
+    <!-- Condicao Climatica -->
+    <div class="rdo-section">
+      <div class="rdo-section-title">Condicao Climatica <span style="font-size:.7rem;color:var(--text-dim);font-weight:400;text-transform:none">* obrigatorio</span></div>
+      <div class="table-scroll">
+        <table class="weather-table">
+          <thead>
+            <tr><th>Periodo</th><th>Praticavel</th><th>Clima</th></tr>
+          </thead>
+          <tbody>
+            <tr id="weatherManha">
+              <td>Manha</td>
+              <td><div class="weather-indicator green" data-period="manha" onclick="toggleWeather(this)">P</div></td>
+              <td><select id="climaManha" onchange="autoWeather('manha',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+            </tr>
+            <tr id="weatherTarde">
+              <td>Tarde</td>
+              <td><div class="weather-indicator green" data-period="tarde" onclick="toggleWeather(this)">P</div></td>
+              <td><select id="climaTarde" onchange="autoWeather('tarde',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+            </tr>
+            <tr id="weatherNoite">
+              <td>Noite</td>
+              <td><div class="weather-indicator green" data-period="noite" onclick="toggleWeather(this)">P</div></td>
+              <td><select id="climaNoite" onchange="autoWeather('noite',this.value)"><option>LIMPO</option><option>NUBLADO</option><option>CHUVOSO</option><option>GAROA</option></select></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Mao de Obra -->
+    <div class="rdo-section">
+      <div class="section-header">
+        <div class="rdo-section-title">Mao de Obra <span class="count-badge" id="workforceCount">0</span></div>
+        <button class="btn-apropriar" onclick="openTeamModal()">+ Apropriar</button>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="workforceTable">
+          <thead>
+            <tr><th>Nome</th><th>Situacao</th><th>Inicio</th><th>Fim</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody id="workforceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Equipamentos -->
+    <div class="rdo-section">
+      <div class="section-header">
+        <div class="rdo-section-title">Equipamentos <span class="count-badge" id="equipmentCount">0</span></div>
+        <button class="btn-add-small" onclick="addEquipment()">+ Adicionar</button>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="equipmentTable">
+          <thead>
+            <tr><th>Nome</th><th>Quantidade</th><th></th></tr>
+          </thead>
+          <tbody id="equipmentBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Atividades -->
+    <div class="rdo-section">
+      <div class="section-header">
+        <div class="rdo-section-title">Atividades</div>
+        <button class="btn-add-small" onclick="openActivitySelector()">+ Nova Atividade</button>
+      </div>
+      <div id="activitiesContainer"></div>
+    </div>
+
+    <!-- Materiais -->
+    <div class="rdo-section">
+      <div class="section-header">
+        <div class="rdo-section-title">Materiais</div>
+        <button class="btn-add-small" onclick="openMaterialSelector()">+ Novo Material</button>
+      </div>
+      <div id="materialsContainer"></div>
+    </div>
+
+    <!-- Registros -->
+    <div class="rdo-section">
+      <div class="section-header">
+        <div class="rdo-section-title">Registros</div>
+        <div class="dropdown-add">
+          <button class="btn-add-small" onclick="toggleRecordMenu()">+ Adicionar</button>
+          <div class="dropdown-add-menu" id="recordMenu">
+            <div class="dropdown-add-item" onclick="addRecord('ocorrencia')">Ocorrencia</div>
+            <div class="dropdown-add-item" onclick="addRecord('comentario')">Comentario</div>
+          </div>
+        </div>
+      </div>
+      <div id="recordsContainer"></div>
+    </div>
+
+    <!-- Fotos -->
+    <div class="rdo-section">
+      <div class="rdo-section-title">Fotos</div>
+      <div class="photo-upload-area" id="photoDropArea" onclick="document.getElementById('photoFileInput').click()">
+        <div class="icon">📷</div>
+        <p>Clique ou arraste fotos aqui</p>
+      </div>
+      <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)">
+      <div class="photos-grid" id="photosGrid"></div>
+    </div>
+
+    <!-- Situacao -->
+    <div class="rdo-section">
+      <div class="rdo-section-title">Situacao</div>
+      <div class="status-grid">
+        <div class="status-card selected" data-status="preenchendo" onclick="selectStatus(this)">
+          <div class="status-card-icon">🟢</div>
+          <div class="status-card-label">Preenchendo</div>
+          <div class="status-card-desc">Relatorio em edicao — insira as informacoes.</div>
+        </div>
+        <div class="status-card" data-status="para_aprovacao" onclick="selectStatus(this)">
+          <div class="status-card-icon">⬜</div>
+          <div class="status-card-label">Para aprovacao</div>
+          <div class="status-card-desc">Pronto — aguarda revisao.</div>
+        </div>
+        <div class="status-card" data-status="reprovado" onclick="selectStatus(this)">
+          <div class="status-card-icon">⬜</div>
+          <div class="status-card-label">Reprovado</div>
+          <div class="status-card-desc">Revisado — ajustes necessarios.</div>
+        </div>
+        <div class="status-card" data-status="aprovado" onclick="selectStatus(this)">
+          <div class="status-card-icon">⬜</div>
+          <div class="status-card-label">Aprovado</div>
+          <div class="status-card-desc">Concluido — relatorio aprovado.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="cancelForm()">Cancelar</button>
+      <button class="btn-save" onclick="saveRdo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM SELECTION MODAL -->
+<div class="modal-overlay" id="teamModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Apropriar Mao de Obra</div>
+    <div class="chips-grid cols-2" id="teamChips"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeTeamModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmTeamSelection()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY SELECTOR MODAL -->
+<div class="modal-overlay" id="activityModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Selecionar Atividade</div>
+    <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">Itens cadastrados no projeto:</p>
+    <div class="chips-grid" id="activityChips" style="grid-template-columns:1fr"></div>
+    <div id="activityEmptyMsg" style="display:none;text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem">
+      Nenhum item cadastrado neste projeto.<br>Adicione itens nos avancos do projeto primeiro.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeActivityModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmActivitySelection()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MATERIAL SELECTOR MODAL -->
+<div class="modal-overlay" id="materialModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Selecionar Material</div>
+    <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">Materiais cadastrados no projeto:</p>
+    <div class="chips-grid" id="materialChips" style="grid-template-columns:1fr"></div>
+    <div id="materialEmptyMsg" style="display:none;text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem">
+      Nenhum material cadastrado neste projeto.<br>Adicione materiais no card do projeto primeiro.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeMaterialModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmMaterialSelection()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD TEXT MODAL -->
+<div class="modal-overlay" id="recordModalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="recordModalTitle">Novo Registro</div>
+    <div class="field">
+      <label>Texto</label>
+      <textarea id="recordText" rows="4" placeholder="Descreva..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeRecordModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmRecord()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+console.log('[Overview] Script iniciado');
 /* ── AUTH GUARD ─────────────────────────────── */
 (function(){
   const s=localStorage.getItem('loggedUser');
@@ -352,6 +878,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+console.log('[Overview] Firebase OK, user:', window.currentUser?.name, 'role:', window.currentUser?.role, 'allowedProjects:', window.currentUser?.allowedProjects);
 
 /* ── SYNC SESSION FROM FIREBASE ────────────────── */
 (function syncSession(){
@@ -376,6 +903,23 @@ const STAGE_MAP={
 };
 const STATUS_LABELS={preenchendo:'Preenchendo',para_aprovacao:'Para aprovacao',reprovado:'Reprovado',aprovado:'Aprovado'};
 const MONTH_NAMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+/* ── RDO FORM STATE ──────────────────────────── */
+let editingRdoId=null;
+let currentRdo={
+  workforce:[],
+  equipment:[],
+  activities:[],
+  materials:[],
+  records:[],
+  photos:[],
+  status:'preenchendo'
+};
+let selectedTeamIds=[];
+let selectedActivityItems=[];
+let selectedMaterialItems=[];
+let pendingRecordType='';
+const DIAS=['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
 
 /* ── HELPERS ──────────────────────────────────── */
 function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
@@ -408,8 +952,14 @@ function climaIcon(clima){
   if(c==='GAROA')return'<span class="clima-icon">🌦️</span>';
   return'<span class="clima-icon">☀️</span>';
 }
+function getTeamMember(id){
+  return team.find(t=>t.id==id);
+}
+function nextRdoId(){
+  return rdoList.length?Math.max(...rdoList.map(r=>r.id||0))+1:1;
+}
 
-/* ── PROGRESS CALC ────────���───────────────────── */
+/* ── PROGRESS CALC ──────────────────────────────── */
 function calcProjectProgress(proj){
   if(!proj.items) return 0;
   const items=Array.isArray(proj.items)?proj.items:Object.values(proj.items);
@@ -432,17 +982,34 @@ function calcProjectProgress(proj){
 function getVisibleProjects(){
   const u=window.currentUser;
   if(!u||!u.allowedProjects||u.allowedProjects==='all')return projects;
-  const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
-  return projects.filter(p=>ids.includes(p.id));
+  const ids=(Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects)).map(Number);
+  return projects.filter(p=>ids.includes(Number(p.id)));
 }
 
 /* ── LOAD DATA ────────────────────────────────── */
 let _ready=0;
-function checkReady(){_ready++;if(_ready>=3){renderSelector();if(selectedProjectId)renderDashboard()}}
+let _initialized=false;
+function checkReady(){
+  _ready++;
+  if(_ready>=3 && !_initialized){
+    _initialized=true;
+    const vp=getVisibleProjects();
+    console.log('[Overview] visibleProjects:', vp.length, 'allowedProjects:', window.currentUser?.allowedProjects, 'totalProjects:', projects.length);
+    if(vp.length===1){
+      selectProject(vp[0].id);
+    } else {
+      renderSelector();
+    }
+  }
+  if(_initialized && selectedProjectId){
+    renderDashboard();
+  }
+}
 
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
   if(d){const arr=Array.isArray(d)?d:Object.values(d);if(arr.length)projects=arr;}
+  populateProjectFilter();
   checkReady();
 },()=>checkReady());
 
@@ -458,7 +1025,15 @@ db.ref('rdo').on('value',snap=>{
   checkReady();
 },()=>checkReady());
 
-setTimeout(()=>{if(_ready<3){_ready=3;renderSelector()}},3000);
+setTimeout(()=>{if(!_initialized){_ready=3;_initialized=true;const vp=getVisibleProjects();if(vp.length===1){selectProject(vp[0].id)}else{renderSelector()}}},3000);
+
+function populateProjectFilter(){
+  const formSel=document.getElementById('fProject');
+  if(!formSel) return;
+  const vp=getVisibleProjects();
+  const opts=vp.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  formSel.innerHTML='<option value="">Selecione um projeto...</option>'+opts;
+}
 
 /* ── SELECTOR VIEW ────────────────────────────── */
 function renderSelector(){
@@ -496,11 +1071,16 @@ function selectProject(id){
   selectedProjectId=id;
   document.getElementById('selectorView').style.display='none';
   document.getElementById('dashboardView').style.display='block';
+  document.getElementById('rdoFormView').style.display='none';
   renderDashboard();
 }
 function goBack(){
+  const vp=getVisibleProjects();
+  // Se tem apenas 1 projeto, não volta para seletor (já está no único projeto)
+  if(vp.length<=1) return;
   selectedProjectId=null;
   document.getElementById('dashboardView').style.display='none';
+  document.getElementById('rdoFormView').style.display='none';
   document.getElementById('selectorView').style.display='block';
 }
 
@@ -516,8 +1096,12 @@ function renderDashboard(){
   stEl.style.background=stage.color+'22';
   stEl.style.color=stage.color;
 
-  document.getElementById('btnNewRdo').onclick=()=>window.location.href='rdo.html?projectId='+p.id;
-  document.getElementById('btnNewRdo2').onclick=()=>window.location.href='rdo.html?projectId='+p.id;
+  // Esconde botão Voltar se usuário tem apenas 1 projeto visível
+  const backBtn=document.querySelector('.back-btn');
+  if(backBtn) backBtn.style.display=getVisibleProjects().length<=1?'none':'';
+
+  document.getElementById('btnNewRdo').onclick=()=>openNewRdoInline(p.id);
+  document.getElementById('btnNewRdo2').onclick=()=>openNewRdoInline(p.id);
 
   renderDetails(p,stage,pct);
   renderTeamSection(p);
@@ -694,7 +1278,7 @@ function renderRdoHistory(p,stage){
     const w=r.weather||{};
     const climaHtml='<div class="clima-icons">'+climaIcon(w.manha?w.manha.clima:'LIMPO')+climaIcon(w.tarde?w.tarde.clima:'LIMPO')+climaIcon(w.noite?w.noite.clima:'LIMPO')+'</div>';
     const regDate=r.createdAt?new Date(r.createdAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
-    return `<tr onclick="window.location.href='rdo.html?editRdo=${r.id}'">
+    return `<tr onclick="openEditRdoInline(${r.id})">
       <td style="font-weight:600;color:var(--text-dim)">${num}</td>
       <td>${dateStr}</td>
       <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
@@ -709,6 +1293,765 @@ function renderRdoHistory(p,stage){
     <tbody>${rows}</tbody>
   </table></div>`;
 }
+
+/* ═══════════════════════════════════════════════════ */
+/* RDO INLINE FORM FUNCTIONS                          */
+/* ═══════════════════════════════════════════════════ */
+
+/* ── VIEW MANAGEMENT ──────────────────────────── */
+function showDashboardView(){
+  document.getElementById('dashboardView').style.display='block';
+  document.getElementById('rdoFormView').style.display='none';
+}
+function showRdoFormView(){
+  document.getElementById('dashboardView').style.display='none';
+  document.getElementById('rdoFormView').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function openNewRdoInline(projectId){
+  editingRdoId=null;
+  const p=projects.find(pr=>pr.id==projectId);
+  document.getElementById('formTitle').textContent='Novo RDO'+(p?' — '+p.name:'');
+  resetForm();
+  document.getElementById('fProject').value=projectId;
+  showRdoFormView();
+}
+
+function openEditRdoInline(rdoId){
+  const rdo=rdoList.find(r=>r.id===rdoId);
+  if(!rdo) return;
+  editingRdoId=rdoId;
+  document.getElementById('formTitle').textContent='Editar RDO #'+rdoId;
+
+  // Populate form
+  document.getElementById('fProject').value=rdo.projectId||'';
+  document.getElementById('fDate').value=rdo.date||'';
+  updateDayOfWeek();
+  document.getElementById('fDiurno').checked=rdo.shifts?rdo.shifts.diurno:true;
+  document.getElementById('fNoturno').checked=rdo.shifts?rdo.shifts.noturno:false;
+  document.getElementById('fFeriado').checked=rdo.holiday||false;
+
+  // Weather
+  if(rdo.weather){
+    ['manha','tarde','noite'].forEach(p=>{
+      const w=rdo.weather[p]||{};
+      const el=document.querySelector('.weather-indicator[data-period="'+p+'"]');
+      if(el){
+        const prat=w.praticavel!==false;
+        el.className='weather-indicator '+(prat?'green':'red');
+        el.textContent=prat?'P':'I';
+      }
+      const sel=document.getElementById('clima'+p.charAt(0).toUpperCase()+p.slice(1));
+      if(sel) sel.value=w.clima||'LIMPO';
+    });
+  }
+
+  // Workforce
+  currentRdo.workforce=rdo.workforce?JSON.parse(JSON.stringify(rdo.workforce instanceof Array?rdo.workforce:Object.values(rdo.workforce))):[];
+  renderWorkforce();
+
+  // Equipment
+  currentRdo.equipment=rdo.equipment?JSON.parse(JSON.stringify(rdo.equipment instanceof Array?rdo.equipment:Object.values(rdo.equipment))):[];
+  renderEquipment();
+
+  // Activities
+  currentRdo.activities=rdo.activities?JSON.parse(JSON.stringify(rdo.activities instanceof Array?rdo.activities:Object.values(rdo.activities))):[];
+  currentRdo.activities.forEach(g=>{
+    if(g.subs&&!(g.subs instanceof Array)) g.subs=Object.values(g.subs);
+  });
+  renderActivities();
+
+  // Materials
+  currentRdo.materials=rdo.materials?JSON.parse(JSON.stringify(rdo.materials instanceof Array?rdo.materials:Object.values(rdo.materials))):[];
+  renderMaterialsRdo();
+
+  // Records
+  currentRdo.records=rdo.records?JSON.parse(JSON.stringify(rdo.records instanceof Array?rdo.records:Object.values(rdo.records))):[];
+  renderRecords();
+
+  // Photos
+  currentRdo.photos=rdo.photos?JSON.parse(JSON.stringify(rdo.photos instanceof Array?rdo.photos:Object.values(rdo.photos))):[];
+  renderPhotos();
+
+  // Status
+  currentRdo.status=rdo.status||'preenchendo';
+  document.querySelectorAll('.status-card').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.status===currentRdo.status);
+  });
+
+  updateWeatherVisibility();
+  showRdoFormView();
+}
+
+/* ── RESET FORM ────────────────────────────────── */
+function resetForm(){
+  document.getElementById('fProject').value='';
+  document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+  updateDayOfWeek();
+  document.getElementById('fDiurno').checked=true;
+  document.getElementById('fNoturno').checked=false;
+  document.getElementById('fFeriado').checked=false;
+
+  document.querySelectorAll('.weather-indicator').forEach(el=>{
+    el.className='weather-indicator green';
+    el.textContent='P';
+  });
+  document.getElementById('climaManha').value='LIMPO';
+  document.getElementById('climaTarde').value='LIMPO';
+  document.getElementById('climaNoite').value='LIMPO';
+
+  currentRdo={workforce:[],equipment:[],activities:[],materials:[],records:[],photos:[],status:'preenchendo'};
+  renderWorkforce();
+  renderEquipment();
+  renderActivities();
+  renderMaterialsRdo();
+  renderRecords();
+  renderPhotos();
+
+  document.querySelectorAll('.status-card').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.status==='preenchendo');
+  });
+  updateWeatherVisibility();
+}
+
+/* ── CANCEL FORM ───────────────────────────────── */
+function cancelForm(){
+  showDashboardView();
+}
+
+/* ── DATE / DAY OF WEEK ────────────────────────── */
+function updateDayOfWeek(){
+  const val=document.getElementById('fDate').value;
+  const span=document.getElementById('dayOfWeek');
+  if(!val){span.textContent='';return;}
+  const d=new Date(val+'T12:00:00');
+  span.textContent=DIAS[d.getDay()];
+}
+
+/* ── WEATHER TOGGLE ────────────────────────────── */
+function toggleWeather(el){
+  const isGreen=el.classList.contains('green');
+  el.className='weather-indicator '+(isGreen?'red':'green');
+  el.textContent=isGreen?'I':'P';
+}
+
+/* ── AUTO WEATHER ─────────────────────────────── */
+function autoWeather(period,clima){
+  const el=document.querySelector('.weather-indicator[data-period="'+period+'"]');
+  if(!el) return;
+  const prat=(clima==='LIMPO'||clima==='NUBLADO');
+  el.className='weather-indicator '+(prat?'green':'red');
+  el.textContent=prat?'P':'I';
+}
+
+/* ── WEATHER VISIBILITY ──────────────────────── */
+function updateWeatherVisibility(){
+  const diurno=document.getElementById('fDiurno').checked;
+  const noturno=document.getElementById('fNoturno').checked;
+  document.getElementById('weatherManha').style.display=diurno?'':'none';
+  document.getElementById('weatherTarde').style.display=diurno?'':'none';
+  document.getElementById('weatherNoite').style.display=noturno?'':'none';
+}
+
+/* ── WORKFORCE ─────────────────────────────────── */
+function renderWorkforce(){
+  const body=document.getElementById('workforceBody');
+  document.getElementById('workforceCount').textContent=currentRdo.workforce.length;
+  if(!currentRdo.workforce.length){
+    body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px">Nenhum colaborador apropriado.</td></tr>';
+    return;
+  }
+  body.innerHTML=currentRdo.workforce.map((w,i)=>{
+    const member=getTeamMember(w.memberId);
+    const name=member?member.name:'Membro #'+w.memberId;
+    const role=member?member.role:'';
+    const color=member?member.color:'#666';
+    const photo=member?member.photo:'';
+    const avatarHtml=photo
+      ?`<div class="worker-avatar" style="border:2px solid ${color}"><img src="${photo}"></div>`
+      :`<div class="worker-avatar" style="background:${color}">${initials(name)}</div>`;
+    return `<tr>
+      <td><div class="worker-cell">${avatarHtml}<div class="worker-info"><span class="worker-name">${name}</span><span class="worker-role">${role}</span></div></div></td>
+      <td><select onchange="currentRdo.workforce[${i}].situacao=this.value">
+        <option ${w.situacao==='PRESENTE'?'selected':''}>PRESENTE</option>
+        <option ${w.situacao==='AUSENTE'?'selected':''}>AUSENTE</option>
+        <option ${w.situacao==='FERIAS'?'selected':''}>FERIAS</option>
+        <option ${w.situacao==='AFASTADO'?'selected':''}>AFASTADO</option>
+      </select></td>
+      <td><input type="time" value="${w.jornadaInicio||'07:00'}" onchange="currentRdo.workforce[${i}].jornadaInicio=this.value;calcHoras(${i})"></td>
+      <td><input type="time" value="${w.jornadaFim||'17:00'}" onchange="currentRdo.workforce[${i}].jornadaFim=this.value;calcHoras(${i})"></td>
+      <td class="total-horas" id="totalHoras${i}">${w.totalHoras||calcHorasVal(w.jornadaInicio||'07:00',w.jornadaFim||'17:00')}</td>
+      <td><button class="remove-btn" onclick="removeWorker(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function calcHorasVal(start,end){
+  const [sh,sm]=(start||'07:00').split(':').map(Number);
+  const [eh,em]=(end||'17:00').split(':').map(Number);
+  let diff=(eh*60+em)-(sh*60+sm);
+  if(diff<0) diff+=24*60;
+  const h=Math.floor(diff/60);
+  const m=diff%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+function calcHoras(i){
+  const w=currentRdo.workforce[i];
+  w.totalHoras=calcHorasVal(w.jornadaInicio,w.jornadaFim);
+  const el=document.getElementById('totalHoras'+i);
+  if(el) el.textContent=w.totalHoras;
+}
+
+function removeWorker(i){
+  currentRdo.workforce.splice(i,1);
+  renderWorkforce();
+}
+
+/* ── TEAM MODAL ────────────────────────────────── */
+function openTeamModal(){
+  selectedTeamIds=currentRdo.workforce.map(w=>w.memberId);
+  renderTeamChips();
+  document.getElementById('teamModalOverlay').classList.add('open');
+}
+function closeTeamModal(){
+  document.getElementById('teamModalOverlay').classList.remove('open');
+}
+function renderTeamChips(){
+  const container=document.getElementById('teamChips');
+  container.innerHTML=team.map(t=>{
+    const sel=selectedTeamIds.includes(t.id);
+    const photo=t.photo;
+    const avatarHtml=photo
+      ?`<div class="chip-avatar" style="border:2px solid ${t.color||'#666'}"><img src="${photo}"></div>`
+      :`<div class="chip-avatar" style="background:${t.color||'#666'}">${initials(t.name)}</div>`;
+    return `<div class="chip ${sel?'selected':''}" onclick="toggleTeamChip(${t.id},this)">
+      ${avatarHtml}
+      <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role||''}</div></div>
+      <div class="chip-check">✓</div>
+    </div>`;
+  }).join('');
+}
+function toggleTeamChip(id,el){
+  const idx=selectedTeamIds.indexOf(id);
+  if(idx>=0) selectedTeamIds.splice(idx,1);
+  else selectedTeamIds.push(id);
+  el.classList.toggle('selected');
+  el.querySelector('.chip-check').style.color=el.classList.contains('selected')?'#fff':'transparent';
+}
+function confirmTeamSelection(){
+  const existing={};
+  currentRdo.workforce.forEach(w=>{existing[w.memberId]=w;});
+  currentRdo.workforce=selectedTeamIds.map(id=>{
+    if(existing[id]) return existing[id];
+    return {memberId:id,situacao:'PRESENTE',jornadaInicio:'07:00',jornadaFim:'17:00',totalHoras:'10:00'};
+  });
+  renderWorkforce();
+  closeTeamModal();
+}
+
+/* ── EQUIPMENT ─────────────────────────────────── */
+function renderEquipment(){
+  const body=document.getElementById('equipmentBody');
+  document.getElementById('equipmentCount').textContent=currentRdo.equipment.length;
+  if(!currentRdo.equipment.length){
+    body.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px">Nenhum equipamento.</td></tr>';
+    return;
+  }
+  body.innerHTML=currentRdo.equipment.map((e,i)=>`
+    <tr>
+      <td><input type="text" value="${e.name||''}" onchange="currentRdo.equipment[${i}].name=this.value" placeholder="Nome do equipamento"></td>
+      <td><input type="number" value="${e.quantity||1}" min="1" onchange="currentRdo.equipment[${i}].quantity=parseInt(this.value)||1"></td>
+      <td><button class="remove-btn" onclick="removeEquipment(${i})">✕</button></td>
+    </tr>`).join('');
+}
+function addEquipment(){
+  currentRdo.equipment.push({name:'',quantity:1});
+  renderEquipment();
+}
+function removeEquipment(i){
+  currentRdo.equipment.splice(i,1);
+  renderEquipment();
+}
+
+/* ── ACTIVITIES ──────────────────────────────── */
+function getProjectItems(){
+  const projId=document.getElementById('fProject').value;
+  const proj=projects.find(p=>p.id==projId);
+  if(!proj||!proj.items) return [];
+  return Array.isArray(proj.items)?proj.items:Object.values(proj.items);
+}
+
+function calcActivityProgress(a){
+  const total=a.totalQty||0;
+  if(total<=0) return {pct:0,saldo:0};
+  const done=a.qtyDia||0;
+  const pct=Math.min(100,Math.round((done/total)*100));
+  const saldo=Math.max(0,+(total-done).toFixed(2));
+  return {pct,saldo};
+}
+
+function updateActivity(i,val){
+  currentRdo.activities[i].qtyDia=parseFloat(val)||0;
+  const a=currentRdo.activities[i];
+  const {pct,saldo}=calcActivityProgress(a);
+  a.progress=pct;
+  a.saldo=saldo;
+  const row=document.getElementById('actRow'+i);
+  if(row){
+    row.querySelector('.act-pct').textContent=pct+'%';
+    row.querySelector('.act-fill').style.width=pct+'%';
+    row.querySelector('.act-saldo').textContent=saldo+' '+(a.unit||'');
+  }
+}
+
+function renderActivities(){
+  const container=document.getElementById('activitiesContainer');
+  if(!currentRdo.activities.length){
+    container.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:20px">Nenhuma atividade. Clique em "+ Nova Atividade" para adicionar.</div>';
+    return;
+  }
+  container.innerHTML=`<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>#</th><th>Atividade</th><th>Total</th><th>Qtd. Dia</th><th>Avanco</th><th>Saldo</th><th></th></tr></thead>
+    <tbody>${currentRdo.activities.map((a,i)=>{
+      const {pct,saldo}=calcActivityProgress(a);
+      a.progress=pct;
+      a.saldo=saldo;
+      return `<tr id="actRow${i}">
+        <td style="font-weight:600;color:var(--text-dim)">${i+1}</td>
+        <td style="font-weight:600">${a.name}</td>
+        <td style="color:var(--text-dim);white-space:nowrap">${a.totalQty||0} ${a.unit||''}</td>
+        <td><input type="number" value="${a.qtyDia||0}" min="0" step="0.01" style="width:80px" oninput="updateActivity(${i},this.value)"></td>
+        <td style="white-space:nowrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:50px;height:5px;background:#1a1610;border-radius:3px;overflow:hidden">
+              <div class="act-fill" style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px;transition:width .2s"></div>
+            </div>
+            <span class="act-pct" style="font-size:.78rem;font-weight:600;color:var(--orange)">${pct}%</span>
+          </div>
+        </td>
+        <td class="act-saldo" style="font-weight:600;color:var(--text-dim);white-space:nowrap">${saldo} ${a.unit||''}</td>
+        <td><button class="remove-btn" onclick="removeActivity(${i})">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function removeActivity(i){
+  currentRdo.activities.splice(i,1);
+  renderActivities();
+}
+
+function getConsumedQty(projId, itemName){
+  let consumed=0;
+  const projRdos=rdoList.filter(r=>r.projectId==projId && r.id!==editingRdoId);
+  projRdos.forEach(r=>{
+    const acts=r.activities?(Array.isArray(r.activities)?r.activities:Object.values(r.activities)):[];
+    acts.forEach(a=>{
+      if(a.name===itemName) consumed+=(a.qtyDia||0);
+    });
+  });
+  return consumed;
+}
+
+function openActivitySelector(){
+  const items=getProjectItems();
+  const chips=document.getElementById('activityChips');
+  const emptyMsg=document.getElementById('activityEmptyMsg');
+  selectedActivityItems=[];
+
+  if(!items.length){
+    chips.style.display='none';
+    emptyMsg.style.display='block';
+  }else{
+    chips.style.display='';
+    emptyMsg.style.display='none';
+    const addedNames=currentRdo.activities.map(a=>a.name);
+    const available=items.filter(it=>!addedNames.includes(it.name));
+    const projId=document.getElementById('fProject').value;
+    const withSaldo=available.filter(it=>{
+      const consumed=getConsumedQty(projId,it.name);
+      return (it.qty||0)-consumed>0;
+    });
+    if(!withSaldo.length){
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">'+(available.length?'Todos os itens ja foram concluidos ou adicionados.':'Todos os itens ja foram adicionados.')+'</div>';
+    }else{
+      chips.innerHTML=withSaldo.map((it,i)=>{
+        const consumed=getConsumedQty(projId,it.name);
+        const saldo=Math.max(0,+((it.qty||0)-consumed).toFixed(2));
+        return `<div class="chip" data-idx="${i}" onclick="toggleActivityChip(this,${i})">
+          <div class="chip-info" style="flex:1">
+            <div class="chip-name">${it.name}</div>
+            <div class="chip-role">Saldo: ${saldo} ${it.unit||'ML'} (total: ${it.qty||0})</div>
+          </div>
+          <div class="chip-check">✓</div>
+        </div>`;
+      }).join('');
+      window._availableItems=withSaldo;
+    }
+  }
+  document.getElementById('activityModalOverlay').classList.add('open');
+}
+
+function toggleActivityChip(el,idx){
+  const i=selectedActivityItems.indexOf(idx);
+  if(i>=0) selectedActivityItems.splice(i,1);
+  else selectedActivityItems.push(idx);
+  el.classList.toggle('selected');
+}
+
+function closeActivityModal(){
+  document.getElementById('activityModalOverlay').classList.remove('open');
+}
+
+function confirmActivitySelection(){
+  const available=window._availableItems||[];
+  const projId=document.getElementById('fProject').value;
+  selectedActivityItems.forEach(idx=>{
+    const it=available[idx];
+    if(it){
+      const totalOriginal=it.qty||0;
+      const consumed=getConsumedQty(projId, it.name);
+      const saldo=Math.max(0,+(totalOriginal-consumed).toFixed(2));
+      currentRdo.activities.push({
+        name:it.name,
+        totalQty:saldo,
+        originalQty:totalOriginal,
+        unit:it.unit||'ML',
+        progress:0,
+        qtyDia:0
+      });
+    }
+  });
+  renderActivities();
+  closeActivityModal();
+}
+
+/* ── MATERIALS (based on project materials) ────── */
+function getProjectMaterials(){
+  const projId=document.getElementById('fProject').value;
+  if(!projId) return [];
+  const proj=projects.find(p=>p.id==projId);
+  if(!proj||!proj.materials) return [];
+  return Array.isArray(proj.materials)?proj.materials:Object.values(proj.materials);
+}
+
+function getConsumedMaterialQty(projId, matName){
+  let consumed=0;
+  const projRdos=rdoList.filter(r=>r.projectId==projId && r.id!==editingRdoId);
+  projRdos.forEach(r=>{
+    const mats=r.materials?(Array.isArray(r.materials)?r.materials:Object.values(r.materials)):[];
+    mats.forEach(m=>{
+      if(m.name===matName) consumed+=(m.qtyDia||0);
+    });
+  });
+  return consumed;
+}
+
+function calcMaterialProgress(m){
+  const total=m.totalQty||0;
+  if(total<=0) return {pct:0,saldo:0};
+  const done=m.qtyDia||0;
+  const pct=Math.min(100,Math.round((done/total)*100));
+  const saldo=Math.max(0,+(total-done).toFixed(2));
+  return {pct,saldo};
+}
+
+function updateMaterial(i,val){
+  currentRdo.materials[i].qtyDia=parseFloat(val)||0;
+  const m=currentRdo.materials[i];
+  const {pct,saldo}=calcMaterialProgress(m);
+  m.progress=pct;
+  m.saldo=saldo;
+  const row=document.getElementById('matRow'+i);
+  if(row){
+    row.querySelector('.mat-pct').textContent=pct+'%';
+    row.querySelector('.mat-fill').style.width=pct+'%';
+    row.querySelector('.mat-saldo').textContent=saldo+' '+(m.unit||'');
+  }
+}
+
+function renderMaterialsRdo(){
+  const container=document.getElementById('materialsContainer');
+  if(!currentRdo.materials.length){
+    container.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:20px">Nenhum material. Clique em "+ Novo Material" para adicionar.</div>';
+    return;
+  }
+  container.innerHTML=`<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>#</th><th>Material</th><th>Total</th><th>Qtd. Dia</th><th>Avanco</th><th>Saldo</th><th></th></tr></thead>
+    <tbody>${currentRdo.materials.map((m,i)=>{
+      const {pct,saldo}=calcMaterialProgress(m);
+      m.progress=pct;
+      m.saldo=saldo;
+      return `<tr id="matRow${i}">
+        <td style="font-weight:600;color:var(--text-dim)">${i+1}</td>
+        <td style="font-weight:600">${m.name}</td>
+        <td style="color:var(--text-dim);white-space:nowrap">${m.totalQty||0} ${m.unit||''}</td>
+        <td><input type="number" value="${m.qtyDia||0}" min="0" step="0.01" style="width:80px" oninput="updateMaterial(${i},this.value)"></td>
+        <td style="white-space:nowrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:50px;height:5px;background:#1a1610;border-radius:3px;overflow:hidden">
+              <div class="mat-fill" style="width:${pct}%;height:100%;background:var(--orange);border-radius:3px;transition:width .2s"></div>
+            </div>
+            <span class="mat-pct" style="font-size:.78rem;font-weight:600;color:var(--orange)">${pct}%</span>
+          </div>
+        </td>
+        <td class="mat-saldo" style="font-weight:600;color:var(--text-dim);white-space:nowrap">${saldo} ${m.unit||''}</td>
+        <td><button class="remove-btn" onclick="removeMaterial(${i})">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function removeMaterial(i){
+  currentRdo.materials.splice(i,1);
+  renderMaterialsRdo();
+}
+
+function openMaterialSelector(){
+  const mats=getProjectMaterials();
+  const chips=document.getElementById('materialChips');
+  const emptyMsg=document.getElementById('materialEmptyMsg');
+  selectedMaterialItems=[];
+
+  if(!mats.length){
+    chips.style.display='none';
+    emptyMsg.style.display='block';
+  }else{
+    chips.style.display='';
+    emptyMsg.style.display='none';
+    const addedNames=currentRdo.materials.map(m=>m.name);
+    const available=mats.filter(mt=>!addedNames.includes(mt.name));
+    const projId=document.getElementById('fProject').value;
+    const withSaldo=available.filter(mt=>{
+      const consumed=getConsumedMaterialQty(projId,mt.name);
+      return (mt.qty||0)-consumed>0;
+    });
+    if(!withSaldo.length){
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">'+(available.length?'Todos os materiais ja foram concluidos ou adicionados.':'Todos os materiais ja foram adicionados.')+'</div>';
+    }else{
+      chips.innerHTML=withSaldo.map((mt,i)=>{
+        const consumed=getConsumedMaterialQty(projId,mt.name);
+        const saldo=Math.max(0,+((mt.qty||0)-consumed).toFixed(2));
+        return `<div class="chip" data-idx="${i}" onclick="toggleMaterialChip(this,${i})">
+          <div class="chip-info" style="flex:1">
+            <div class="chip-name">${mt.name}</div>
+            <div class="chip-role">Saldo: ${saldo} ${mt.unit||'UNI'} (total: ${mt.qty||0})</div>
+          </div>
+          <div class="chip-check">✓</div>
+        </div>`;
+      }).join('');
+      window._availableMaterials=withSaldo;
+    }
+  }
+  document.getElementById('materialModalOverlay').classList.add('open');
+}
+
+function toggleMaterialChip(el,idx){
+  const i=selectedMaterialItems.indexOf(idx);
+  if(i>=0) selectedMaterialItems.splice(i,1);
+  else selectedMaterialItems.push(idx);
+  el.classList.toggle('selected');
+}
+
+function closeMaterialModal(){
+  document.getElementById('materialModalOverlay').classList.remove('open');
+}
+
+function confirmMaterialSelection(){
+  const available=window._availableMaterials||[];
+  const projId=document.getElementById('fProject').value;
+  selectedMaterialItems.forEach(idx=>{
+    const mt=available[idx];
+    if(mt){
+      const totalOriginal=mt.qty||0;
+      const consumed=getConsumedMaterialQty(projId, mt.name);
+      const saldo=Math.max(0,+(totalOriginal-consumed).toFixed(2));
+      currentRdo.materials.push({
+        name:mt.name,
+        totalQty:saldo,
+        originalQty:totalOriginal,
+        unit:mt.unit||'UNI',
+        progress:0,
+        qtyDia:0
+      });
+    }
+  });
+  renderMaterialsRdo();
+  closeMaterialModal();
+}
+
+/* ── RECORDS ───────────────────────────────────── */
+function renderRecords(){
+  const container=document.getElementById('recordsContainer');
+  if(!currentRdo.records.length){
+    container.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:20px">Nenhum registro.</div>';
+    return;
+  }
+  const labels={ocorrencia:'Ocorrencia',evento:'Evento',comentario:'Comentario'};
+  const icons={ocorrencia:'!',evento:'E',comentario:'C'};
+  container.innerHTML=currentRdo.records.map((r,i)=>`
+    <div class="record-card">
+      <div class="record-icon ${r.type}">${icons[r.type]||'?'}</div>
+      <div style="flex:1"><div class="record-type">${labels[r.type]||r.type}</div><div class="record-text">${r.text||''}</div></div>
+      <button class="remove-btn" onclick="removeRecord(${i})">✕</button>
+    </div>`).join('');
+}
+
+function toggleRecordMenu(){
+  document.getElementById('recordMenu').classList.toggle('open');
+}
+function addRecord(type){
+  document.getElementById('recordMenu').classList.remove('open');
+  pendingRecordType=type;
+  const labels={ocorrencia:'Nova Ocorrencia',evento:'Novo Evento',comentario:'Novo Comentario'};
+  document.getElementById('recordModalTitle').textContent=labels[type]||'Novo Registro';
+  document.getElementById('recordText').value='';
+  document.getElementById('recordModalOverlay').classList.add('open');
+}
+function closeRecordModal(){
+  document.getElementById('recordModalOverlay').classList.remove('open');
+}
+function confirmRecord(){
+  const text=document.getElementById('recordText').value.trim();
+  if(!text) return;
+  currentRdo.records.push({type:pendingRecordType,text:text});
+  renderRecords();
+  closeRecordModal();
+}
+function removeRecord(i){
+  currentRdo.records.splice(i,1);
+  renderRecords();
+}
+
+/* ── PHOTOS ────────────────────────────────────── */
+function renderPhotos(){
+  const grid=document.getElementById('photosGrid');
+  if(!currentRdo.photos.length){
+    grid.innerHTML='';
+    return;
+  }
+  grid.innerHTML=currentRdo.photos.map((p,i)=>`
+    <div class="photo-item">
+      <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      <button class="photo-delete" onclick="removePhoto(${i})">✕</button>
+      <textarea placeholder="Descricao da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
+      <div class="photo-time">${p.timestamp||''}</div>
+    </div>`).join('');
+}
+
+function handlePhotos(event){
+  const files=event.target.files;
+  if(!files.length) return;
+  Array.from(files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      currentRdo.photos.push({
+        dataUrl:e.target.result,
+        description:'',
+        timestamp:new Date().toLocaleString('pt-BR')
+      });
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value='';
+}
+
+function removePhoto(i){
+  currentRdo.photos.splice(i,1);
+  renderPhotos();
+}
+
+// Drag and drop support
+document.addEventListener('DOMContentLoaded',()=>{
+  const area=document.getElementById('photoDropArea');
+  if(!area) return;
+  area.addEventListener('dragover',e=>{e.preventDefault();area.style.borderColor='var(--orange)';});
+  area.addEventListener('dragleave',()=>{area.style.borderColor='#3a3020';});
+  area.addEventListener('drop',e=>{
+    e.preventDefault();area.style.borderColor='#3a3020';
+    const files=e.dataTransfer.files;
+    Array.from(files).forEach(file=>{
+      if(!file.type.startsWith('image/')) return;
+      const reader=new FileReader();
+      reader.onload=function(ev){
+        currentRdo.photos.push({dataUrl:ev.target.result,description:'',timestamp:new Date().toLocaleString('pt-BR')});
+        renderPhotos();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+});
+
+/* ── STATUS SELECTION ──────────────────────────── */
+function selectStatus(el){
+  document.querySelectorAll('.status-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentRdo.status=el.dataset.status;
+}
+
+/* ── SAVE RDO ──────────────────────────────────── */
+function saveRdo(){
+  const projectId=document.getElementById('fProject').value;
+  const date=document.getElementById('fDate').value;
+  if(!date){alert('Informe a data do relatório.');return;}
+  if(!document.getElementById('fDiurno').checked && !document.getElementById('fNoturno').checked){alert('Selecione pelo menos um turno (Diurno ou Noturno).');return;}
+  if(currentRdo.workforce.length<1){alert('Adicione pelo menos 1 pessoa na Mao de Obra.');return;}
+  if(!currentRdo.records.length){alert('Adicione pelo menos 1 registro (Ocorrencia ou Comentario).');return;}
+
+  // Collect weather
+  const weather={};
+  ['manha','tarde','noite'].forEach(p=>{
+    const el=document.querySelector('.weather-indicator[data-period="'+p+'"]');
+    const sel=document.getElementById('clima'+p.charAt(0).toUpperCase()+p.slice(1));
+    weather[p]={
+      praticavel:el?el.classList.contains('green'):true,
+      clima:sel?sel.value:'LIMPO'
+    };
+  });
+
+  const rdo={
+    id:editingRdoId||nextRdoId(),
+    projectId:parseInt(projectId),
+    date:date,
+    shifts:{
+      diurno:document.getElementById('fDiurno').checked,
+      noturno:document.getElementById('fNoturno').checked
+    },
+    holiday:document.getElementById('fFeriado').checked,
+    weather:weather,
+    workforce:currentRdo.workforce,
+    equipment:currentRdo.equipment,
+    activities:currentRdo.activities,
+    materials:currentRdo.materials,
+    records:currentRdo.records,
+    photos:currentRdo.photos,
+    status:currentRdo.status||'preenchendo',
+    createdAt:editingRdoId?(rdoList.find(r=>r.id===editingRdoId)||{}).createdAt||Date.now():Date.now()
+  };
+
+  if(editingRdoId){
+    const idx=rdoList.findIndex(r=>r.id===editingRdoId);
+    if(idx>=0) rdoList[idx]=rdo;
+    else rdoList.push(rdo);
+  }else{
+    rdoList.push(rdo);
+  }
+
+  db.ref('rdo').set(rdoList);
+  showDashboardView();
+  renderDashboard();
+}
+
+/* ── CLOSE DROPDOWNS ON OUTSIDE CLICK ──────────── */
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('recordMenu');
+  if(menu&&!e.target.closest('.dropdown-add')){
+    menu.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
