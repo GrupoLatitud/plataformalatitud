@@ -884,7 +884,8 @@ function loadData(){
 
 function populateProjectFilters(){
   const formSel=document.getElementById('fProject');
-  const opts=projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  const vp=getVisibleProjects();
+  const opts=vp.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   formSel.innerHTML='<option value="">Selecione um projeto...</option>'+opts;
 }
 
@@ -937,16 +938,24 @@ function formatDateBR(d){
 }
 
 /* ── RENDER LIST VIEW ──────────────────────────── */
+function getVisibleProjects(){
+  const u=window.currentUser;
+  if(!u||!u.allowedProjects||u.allowedProjects==='all') return projects;
+  const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+  return projects.filter(p=>ids.includes(p.id));
+}
+
 function renderList(){
   const grid=document.getElementById('projectsGrid');
   document.getElementById('totalCount').textContent=rdoList.length;
+  const visibleProjects=getVisibleProjects();
 
-  if(!projects.length){
+  if(!visibleProjects.length){
     grid.innerHTML='<div class="empty-state"><div class="icon">📁</div><p>Nenhum projeto encontrado.</p></div>';
     return;
   }
 
-  grid.innerHTML=projects.map(p=>{
+  grid.innerHTML=visibleProjects.map(p=>{
     const stage=STAGE_MAP[p.stage]||{label:p.stage||'—',color:'#999'};
     const projRdos=rdoList.filter(r=>r.projectId==p.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     const rdoCount=projRdos.length;

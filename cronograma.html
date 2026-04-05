@@ -448,8 +448,16 @@ team.forEach(t=>teamMap[t.id]=t);
 let activeStageFilter = 'all';
 
 function getFilteredProjects(){
+  // 0. Filter by user visibility
+  let list = allProjects.slice();
+  const u=window.currentUser;
+  if(u&&u.allowedProjects&&u.allowedProjects!=='all'){
+    const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+    list=list.filter(p=>ids.includes(p.id));
+  }
+
   // 1. Remove projects without both dates
-  let list = allProjects.filter(p => p.date && p.endDate);
+  list = list.filter(p => p.date && p.endDate);
 
   // 2. Filter by stage
   if(activeStageFilter !== 'all'){

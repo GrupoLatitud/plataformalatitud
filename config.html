@@ -109,6 +109,12 @@ body{
   background:var(--surface2);color:var(--text-dim);border:1px solid #2e2818;
 }
 .page-tag.on{border-color:var(--orange);color:var(--orange);background:rgba(245,132,31,.08)}
+.proj-tag{
+  font-size:.68rem;padding:2px 8px;border-radius:10px;
+  background:var(--surface2);color:var(--text-dim);border:1px solid #2e2818;
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.proj-tag.on{border-color:var(--green);color:var(--green);background:rgba(143,207,106,.08)}
 .btn-edit{
   background:none;border:none;color:var(--text-dim);cursor:pointer;
   font-size:.85rem;padding:4px 8px;border-radius:4px;transition:all .15s;
@@ -270,6 +276,18 @@ body{
       <div class="pages-checks" id="pagesChecks"></div>
     </div>
     <div class="field">
+      <label>Projetos Visiveis</label>
+      <div class="switch-row" style="margin-bottom:8px">
+        <span class="switch-label">Todos os Projetos</span>
+        <label class="switch">
+          <input type="checkbox" id="uAllProjects" checked onchange="toggleAllProjects()">
+          <div class="switch-track"></div>
+          <div class="switch-thumb"></div>
+        </label>
+      </div>
+      <div class="pages-checks" id="projectsChecks" style="display:none;max-height:180px;overflow-y:auto"></div>
+    </div>
+    <div class="field">
       <div class="switch-row">
         <span class="switch-label">Usuario Ativo</span>
         <label class="switch">
@@ -319,6 +337,7 @@ async function hashPassword(pwd){
 
 /* ── STATE ────────────────────────────────────── */
 let usersData={};  // Firebase object {key: userData}
+let projectsList=[];
 let editingKey=null;
 
 const PAGES=[
@@ -338,6 +357,12 @@ function doLogout(){
   localStorage.removeItem('loggedUser');
   window.location.href='login.html';
 }
+
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  projectsList=d?(Array.isArray(d)?d:Object.values(d)):[];
+  renderUsers();
+});
 
 db.ref('users').on('value',snap=>{
   usersData=snap.val()||{};
@@ -362,6 +387,15 @@ function renderUsers(){
       const on=u.pages&&u.pages[p.key];
       return `<span class="page-tag${on?' on':''}">${p.label}</span>`;
     }).join('');
+    let projHtml='<span class="proj-tag on">Todos</span>';
+    if(u.allowedProjects && u.allowedProjects!=='all'){
+      const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+      projHtml=ids.map(pid=>{
+        const pr=projectsList.find(p=>p.id==pid);
+        return `<span class="proj-tag on">${pr?pr.name:'#'+pid}</span>`;
+      }).join('');
+      if(!ids.length) projHtml='<span class="proj-tag">Nenhum</span>';
+    }
     const isSelf=k===window.currentUser.userId;
     return `<tr>
       <td style="font-weight:600">${u.name||'—'}</td>
@@ -369,6 +403,7 @@ function renderUsers(){
       <td><span class="role-badge ${roleClass}">${ROLE_LABELS[u.role]||u.role}</span></td>
       <td>${statusHtml}</td>
       <td><div class="pages-list">${pagesHtml}</div></td>
+      <td><div class="pages-list">${projHtml}</div></td>
       <td>
         <button class="btn-edit" onclick="editUser('${k}')" title="Editar">&#9998;</button>
         ${isSelf?'':'<button class="btn-delete" onclick="deleteUser(\''+k+'\')" title="Excluir">&#128465;</button>'}
@@ -377,7 +412,7 @@ function renderUsers(){
   }).join('');
 
   wrap.innerHTML=`<table class="users-table">
-    <thead><tr><th>Nome</th><th>Usuario</th><th>Perfil</th><th>Status</th><th>Paginas</th><th></th></tr></thead>
+    <thead><tr><th>Nome</th><th>Usuario</th><th>Perfil</th><th>Status</th><th>Paginas</th><th>Projetos</th><th></th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -399,6 +434,34 @@ function togglePage(key,el){
   el.classList.toggle('checked');
 }
 
+/* ── PROJECT VISIBILITY ──────────────────────── */
+let allProjectsMode=true;
+let selectedProjectIds=new Set();
+
+function toggleAllProjects(){
+  allProjectsMode=document.getElementById('uAllProjects').checked;
+  document.getElementById('projectsChecks').style.display=allProjectsMode?'none':'grid';
+  if(!allProjectsMode) buildProjectsChecks();
+}
+function buildProjectsChecks(){
+  const container=document.getElementById('projectsChecks');
+  const activeProjects=projectsList.filter(p=>p.stage==='andamento'||p.stage==='garantia'||p.stage==='standby');
+  if(!activeProjects.length){
+    container.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;padding:8px">Nenhum projeto cadastrado.</div>';
+    return;
+  }
+  container.innerHTML=activeProjects.map(p=>`
+    <div class="page-check${selectedProjectIds.has(p.id)?' checked':''}" onclick="toggleProject(${p.id},this)">
+      <div class="page-check-box">&#10003;</div>
+      <span class="page-check-label">${p.name}</span>
+    </div>`).join('');
+}
+function toggleProject(id,el){
+  if(selectedProjectIds.has(id)) selectedProjectIds.delete(id);
+  else selectedProjectIds.add(id);
+  el.classList.toggle('checked');
+}
+
 function openUserModal(key){
   editingKey=null;
   document.getElementById('userModalTitle').textContent='Novo Usuario';
@@ -410,6 +473,10 @@ function openUserModal(key){
   document.getElementById('uActive').checked=true;
   selectedPages=new Set(['project-board','cronograma','team','rdo']);
   buildPagesChecks();
+  allProjectsMode=true;
+  selectedProjectIds=new Set();
+  document.getElementById('uAllProjects').checked=true;
+  document.getElementById('projectsChecks').style.display='none';
   document.getElementById('userModalOverlay').classList.add('open');
 }
 
@@ -429,6 +496,20 @@ function editUser(key){
     Object.keys(u.pages).forEach(k=>{ if(u.pages[k]) selectedPages.add(k); });
   }
   buildPagesChecks();
+  // Project visibility
+  if(u.allowedProjects && u.allowedProjects!=='all'){
+    allProjectsMode=false;
+    const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+    selectedProjectIds=new Set(ids.map(Number));
+    document.getElementById('uAllProjects').checked=false;
+    document.getElementById('projectsChecks').style.display='grid';
+    buildProjectsChecks();
+  }else{
+    allProjectsMode=true;
+    selectedProjectIds=new Set();
+    document.getElementById('uAllProjects').checked=true;
+    document.getElementById('projectsChecks').style.display='none';
+  }
   document.getElementById('userModalOverlay').classList.add('open');
 }
 
@@ -461,12 +542,15 @@ async function saveUser(){
   // If admin role, always include config
   if(role==='admin') pages['config']=true;
 
+  const allowedProjects=allProjectsMode?'all':[...selectedProjectIds];
+
   const data={
     name,
     username,
     role,
     pages,
     active,
+    allowedProjects,
   };
 
   if(password){
@@ -488,6 +572,7 @@ async function saveUser(){
         username:data.username,
         role:data.role,
         pages:data.pages,
+        allowedProjects:data.allowedProjects,
         loginAt:Date.now()
       };
       localStorage.setItem('loggedUser',JSON.stringify(sessionData));

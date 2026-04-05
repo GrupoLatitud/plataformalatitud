@@ -202,6 +202,7 @@ async function doLogin(e){
       username:found.username,
       role:found.role,
       pages:found.pages||{},
+      allowedProjects:found.allowedProjects||'all',
       loginAt:Date.now()
     };
     localStorage.setItem('loggedUser',JSON.stringify(sessionData));
@@ -256,6 +257,7 @@ async function doSetup(e){
       username:adminUser.username,
       role:adminUser.role,
       pages:adminUser.pages,
+      allowedProjects:'all',
       loginAt:Date.now()
     };
     localStorage.setItem('loggedUser',JSON.stringify(sessionData));

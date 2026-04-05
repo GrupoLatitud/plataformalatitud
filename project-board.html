@@ -538,19 +538,27 @@ function calcDuration(){
 }
 
 /* ── RENDER ──────────────────────────────────────── */
+function getVisibleProjects(){
+  const u=window.currentUser;
+  if(!u||!u.allowedProjects||u.allowedProjects==='all') return projects;
+  const ids=Array.isArray(u.allowedProjects)?u.allowedProjects:Object.values(u.allowedProjects);
+  return projects.filter(p=>ids.includes(p.id));
+}
+
 function render(){
   const board=document.getElementById('board');
   board.innerHTML='';
+  const visibleProjects=getVisibleProjects();
 
   // Counters
   const counters=document.getElementById('counters');
   counters.innerHTML=STAGES.map(s=>{
-    const c=projects.filter(p=>p.stage===s.key).length;
+    const c=visibleProjects.filter(p=>p.stage===s.key).length;
     return `<div class="counter-pill"><span class="dot" style="background:${s.color}"></span>${s.label}: <strong>${c}</strong></div>`;
   }).join('');
 
   STAGES.forEach(stage=>{
-    const items=projects.filter(p=>p.stage===stage.key);
+    const items=visibleProjects.filter(p=>p.stage===stage.key);
     const lane=document.createElement('div');
     lane.className='lane';
     lane.dataset.stage=stage.key;
