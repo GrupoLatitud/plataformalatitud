@@ -525,6 +525,26 @@ body{
 }
 .pdf-dl-btn:hover{color:var(--orange);background:rgba(245,132,31,.1)}
 
+/* Form locked state (encarregado + approved/rejected) */
+.form-locked input,
+.form-locked select,
+.form-locked textarea,
+.form-locked .rdo-section button,
+.form-locked .weather-indicator,
+.form-locked .status-card{
+  pointer-events:none!important;opacity:.5!important;
+}
+.form-locked .btn-cancel{pointer-events:auto!important;opacity:1!important}
+.form-locked .rdo-section::after{
+  content:'';display:none;
+}
+.form-locked-banner{
+  display:none;background:rgba(240,80,80,.12);border:1px solid #f07070;
+  border-radius:8px;padding:12px 16px;margin-bottom:16px;
+  color:#f07070;font-weight:600;font-size:.88rem;text-align:center;
+}
+.form-locked .form-locked-banner{display:block}
+
 /* Mobile hamburger menu */
 .hamburger{
   display:none;background:none;border:none;color:var(--text-dim);
@@ -699,6 +719,7 @@ body{
     <div class="form-header">
       <h2 id="formTitle">Novo RDO</h2>
     </div>
+    <div class="form-locked-banner">Este relatório foi avaliado e não pode ser editado.</div>
 
     <!-- Hidden project select -->
     <select id="fProject" style="display:none"></select>
@@ -859,7 +880,7 @@ body{
     <!-- Bottom Actions -->
     <div class="form-actions">
       <button class="btn-cancel" onclick="cancelForm()">Cancelar</button>
-      <button class="btn-save" onclick="saveRdo()">Salvar</button>
+      <button class="btn-save" id="btnSaveRdo" onclick="saveRdo()">Salvar</button>
     </div>
   </div>
 </div>
@@ -1435,6 +1456,42 @@ function showRdoFormView(){
   document.getElementById('dashboardView').style.display='none';
   document.getElementById('rdoFormView').style.display='block';
   window.scrollTo(0,0);
+  applyRoleRestrictions();
+}
+
+function applyRoleRestrictions(){
+  const role=window.currentUser.role;
+  const status=currentRdo.status||'preenchendo';
+  const isEncarregado=role==='encarregado';
+  const isLocked=isEncarregado&&(status==='aprovado'||status==='reprovado');
+
+  // Encarregado: hide reprovado/aprovado status options
+  document.querySelectorAll('.status-card').forEach(c=>{
+    if(isEncarregado&&(c.dataset.status==='reprovado'||c.dataset.status==='aprovado')){
+      // Show but disabled if currently selected, otherwise hide
+      if(c.dataset.status===status){
+        c.style.display='';
+        c.style.opacity='.6';
+        c.style.pointerEvents='none';
+      }else{
+        c.style.display='none';
+      }
+    }else{
+      c.style.display='';
+      c.style.opacity='';
+      c.style.pointerEvents='';
+    }
+  });
+
+  // Lock entire form for encarregado when approved/rejected
+  const formView=document.getElementById('rdoFormView');
+  if(isLocked){
+    formView.classList.add('form-locked');
+    document.getElementById('btnSaveRdo').style.display='none';
+  }else{
+    formView.classList.remove('form-locked');
+    document.getElementById('btnSaveRdo').style.display='';
+  }
 }
 
 function openNewRdoInline(projectId){
