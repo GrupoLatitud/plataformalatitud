@@ -169,57 +169,49 @@ body{
 .search-bar input:focus{outline:none;border-color:var(--orange)}
 
 .team-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:16px;
+  display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid #2e2818;border-radius:10px;
+  overflow:hidden;
 }
 
-/* CARD */
-.member-card{
-  background:var(--surface);border:1px solid #2e2818;border-radius:12px;
-  overflow:hidden;transition:transform .15s,box-shadow .15s;
-  position:relative;
+/* LIST ROW */
+.member-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;border-bottom:1px solid #2e2818;
+  transition:background .15s;
 }
-.member-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
-.card-banner{
-  height:60px;position:relative;
-  background:linear-gradient(135deg,var(--surface2),#1a1610);
+.member-row:last-child{border-bottom:none}
+.member-row:hover{background:rgba(245,132,31,.03)}
+.member-avatar{
+  width:36px;height:36px;border-radius:50%;overflow:hidden;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
 }
-.card-color-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
-.card-avatar-wrap{
-  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
-  width:60px;height:60px;border-radius:50%;
-  border:3px solid var(--surface);overflow:hidden;
-  background:var(--surface2);
+.member-avatar img{width:100%;height:100%;object-fit:cover}
+.member-avatar .initials{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:.8rem;color:#fff;width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
 }
-.card-avatar-wrap img{width:100%;height:100%;object-fit:cover}
-.card-avatar-wrap .initials{
-  font-family:'Barlow Condensed',sans-serif;font-weight:700;
-  font-size:1.2rem;color:#fff;
+.member-info{flex:1;min-width:0}
+.member-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.card-info{padding:38px 16px 16px;text-align:center}
-.card-name{
-  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;
-  margin-bottom:2px;
-}
-.card-role{
-  font-size:.78rem;color:var(--text-dim);margin-bottom:10px;
-}
-.card-role-badge{
+.member-role{font-size:.72rem;color:var(--text-dim)}
+.member-badge{
   display:inline-block;padding:3px 10px;border-radius:12px;
-  font-size:.72rem;font-weight:600;
+  font-size:.68rem;font-weight:600;flex-shrink:0;
 }
-.card-actions{
-  display:flex;justify-content:center;gap:6px;margin-top:10px;
+.member-actions{
+  display:flex;gap:4px;margin-left:auto;flex-shrink:0;
 }
-.card-actions button{
-  background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);
-  padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;
-  font-family:'Barlow',sans-serif;transition:all .15s;
+.member-actions button{
+  background:none;border:none;color:var(--text-dim);
+  padding:4px 8px;border-radius:4px;cursor:pointer;font-size:.82rem;
+  transition:all .15s;
 }
-.card-actions button:hover{color:var(--text);border-color:#4a4030}
-.card-actions button.danger:hover{color:#f07070;border-color:#f07070}
+.member-actions button:hover{color:var(--orange);background:rgba(245,132,31,.1)}
+.member-actions button.danger:hover{color:#f07070;background:rgba(240,80,80,.1)}
 
 /* MODAL */
 .modal-overlay{
@@ -361,7 +353,9 @@ body{
   .header{padding:0 14px;gap:10px;flex-wrap:wrap;height:auto;padding:10px 14px}
   .nav{margin-left:0}
   .page-body{padding:16px}
-  .team-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .member-row{padding:8px 12px;gap:8px}
+  .member-badge{display:none}
+  .member-name{font-size:.85rem}
   .modal{padding:20px 16px}
 }
 </style>
@@ -583,23 +577,20 @@ function render(){
   grid.innerHTML=filtered.map(m=>{
     const avatarContent=m.photo
       ?`<img src="${m.photo}" alt="${m.name}">`
-      :`<div class="initials" style="color:#fff;background:${m.color};width:100%;height:100%;display:flex;align-items:center;justify-content:center">${initials(m.name)}</div>`;
+      :`<div class="initials" style="background:${m.color}">${initials(m.name)}</div>`;
     return `
-    <div class="member-card">
-      <div class="card-banner">
-        <div class="card-color-bar" style="background:${m.color}"></div>
-        <div class="card-avatar-wrap" style="border-color:${m.color}">
-          ${avatarContent}
-        </div>
+    <div class="member-row">
+      <div class="member-avatar" style="border:2px solid ${m.color}">
+        ${avatarContent}
       </div>
-      <div class="card-info">
-        <div class="card-name">${m.name}</div>
-        <div class="card-role">${m.role}</div>
-        <div><span class="card-role-badge" style="background:${m.color}22;color:${m.color}">${m.role}</span></div>
-        <div class="card-actions">
-          <button onclick="editMember(${m.id})">✏️ Editar</button>
-          <button class="danger" onclick="removeMember(${m.id})">🗑 Remover</button>
-        </div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-role">${m.role}</div>
+      </div>
+      <span class="member-badge" style="background:${m.color}22;color:${m.color}">${m.role}</span>
+      <div class="member-actions">
+        <button onclick="editMember(${m.id})" title="Editar">✏️</button>
+        <button class="danger" onclick="removeMember(${m.id})" title="Remover">🗑</button>
       </div>
     </div>`;
   }).join('');
