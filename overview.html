@@ -1012,6 +1012,24 @@ body{
   </div>
 </div>
 
+<!-- IMPORT PREVIOUS RDO MODAL -->
+<div class="modal-overlay" id="importRdoModal">
+  <div class="modal">
+    <div class="modal-title">Importar dados do relatório anterior?</div>
+    <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:12px">Foram encontrados relatórios anteriores neste projeto. Selecione o que deseja importar:</p>
+    <div class="pdf-sections">
+      <label class="check-item"><input type="checkbox" id="impMaoObra" checked> Mão de Obra <span style="font-size:.7rem;color:var(--text-dim)">(todos como PRESENTE)</span></label>
+      <label class="check-item"><input type="checkbox" id="impAtividades" checked> Atividades <span style="font-size:.7rem;color:var(--text-dim)">(Qtd. Dia zerada)</span></label>
+      <label class="check-item"><input type="checkbox" id="impMateriais" checked> Materiais <span style="font-size:.7rem;color:var(--text-dim)">(Qtd. Dia zerada)</span></label>
+      <label class="check-item"><input type="checkbox" id="impRegistros" checked> Registros <span style="font-size:.7rem;color:var(--text-dim)">(como Ocorrência)</span></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="skipImportPrevious()">Não, iniciar vazio</button>
+      <button class="btn-save" onclick="confirmImportPrevious()">Importar</button>
+    </div>
+  </div>
+</div>
+
 <!-- PDF SECTION SELECTION MODAL -->
 <div class="modal-overlay" id="pdfModalOverlay">
   <div class="modal">
@@ -1563,12 +1581,92 @@ function applyRoleRestrictions(){
   }
 }
 
+let pendingNewRdoProjectId=null;
+let lastRdoForImport=null;
+
 function openNewRdoInline(projectId){
   editingRdoId=null;
   const p=projects.find(pr=>pr.id==projectId);
   document.getElementById('formTitle').textContent='Novo RDO'+(p?' — '+p.name:'');
   resetForm();
   document.getElementById('fProject').value=projectId;
+
+  // Check for previous RDOs in this project
+  const projRdos=rdoList
+    .filter(r=>r.projectId==projectId)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  if(projRdos.length>0){
+    pendingNewRdoProjectId=projectId;
+    lastRdoForImport=projRdos[0]; // most recent RDO
+    // Check all checkboxes
+    document.getElementById('impMaoObra').checked=true;
+    document.getElementById('impAtividades').checked=true;
+    document.getElementById('impMateriais').checked=true;
+    document.getElementById('impRegistros').checked=true;
+    document.getElementById('importRdoModal').classList.add('open');
+  }else{
+    showRdoFormView();
+  }
+}
+
+function confirmImportPrevious(){
+  document.getElementById('importRdoModal').classList.remove('open');
+  const rdo=lastRdoForImport;
+  if(!rdo){showRdoFormView();return;}
+
+  // Import Mão de Obra
+  if(document.getElementById('impMaoObra').checked){
+    const wf=rdo.workforce?(Array.isArray(rdo.workforce)?rdo.workforce:Object.values(rdo.workforce)):[];
+    currentRdo.workforce=wf.map(w=>({
+      ...JSON.parse(JSON.stringify(w)),
+      situacao:'PRESENTE',
+      jornadaInicio:w.jornadaInicio||'07:00',
+      jornadaFim:w.jornadaFim||'17:00',
+      totalHoras:w.totalHoras||''
+    }));
+    renderWorkforce();
+  }
+
+  // Import Atividades
+  if(document.getElementById('impAtividades').checked){
+    const acts=rdo.activities?(Array.isArray(rdo.activities)?rdo.activities:Object.values(rdo.activities)):[];
+    currentRdo.activities=acts.map(a=>({
+      ...JSON.parse(JSON.stringify(a)),
+      qtyDia:0
+    }));
+    renderActivities();
+  }
+
+  // Import Materiais
+  if(document.getElementById('impMateriais').checked){
+    const mats=rdo.materials?(Array.isArray(rdo.materials)?rdo.materials:Object.values(rdo.materials)):[];
+    currentRdo.materials=mats.map(m=>({
+      ...JSON.parse(JSON.stringify(m)),
+      qtyDia:0
+    }));
+    renderMaterialsRdo();
+  }
+
+  // Import Registros
+  if(document.getElementById('impRegistros').checked){
+    const recs=rdo.records?(Array.isArray(rdo.records)?rdo.records:Object.values(rdo.records)):[];
+    currentRdo.records=recs.map(r=>({
+      type:'ocorrencia',
+      text:r.text||''
+    }));
+    renderRecords();
+  }
+
+  pendingNewRdoProjectId=null;
+  lastRdoForImport=null;
+  showRdoFormView();
+}
+
+function skipImportPrevious(){
+  document.getElementById('importRdoModal').classList.remove('open');
+  pendingNewRdoProjectId=null;
+  lastRdoForImport=null;
   showRdoFormView();
 }
 
