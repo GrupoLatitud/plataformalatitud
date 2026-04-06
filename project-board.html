@@ -693,11 +693,13 @@ function render(){
 
 function renderCard(p,stage){
   const resp=TEAM.find(t=>t.id===p.responsible);
-  const collabs=p.collabs.map(id=>TEAM.find(t=>t.id===id)).filter(Boolean);
+  const rawCollabs=Array.isArray(p.collabs)?p.collabs:(p.collabs?Object.values(p.collabs):[]);
+  const collabs=rawCollabs.map(id=>TEAM.find(t=>t.id===id)).filter(Boolean);
   const visCollabs=collabs.slice(0,3);
   const extraCount=collabs.length-3;
   const sc=stageColor(p.stage);
-  const isOverdue=p.endDate && p.progress<100 && new Date(p.endDate+'T23:59:59')<new Date();
+  const prog=p.progress||0;
+  const isOverdue=p.endDate && prog<100 && new Date(p.endDate+'T23:59:59')<new Date();
 
   return `
     <div class="card${isOverdue?' overdue':''}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${p.id}')" id="card-${p.id}">
@@ -708,8 +710,8 @@ function renderCard(p,stage){
           <button class="card-menu-btn" onclick="event.stopPropagation();toggleMenu(${p.id})">⋯</button>
         </div>
         <div class="progress-wrap">
-          <div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%;background:${sc}"></div></div>
-          <span class="progress-pct" style="color:${sc}">${p.progress}%</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${sc}"></div></div>
+          <span class="progress-pct" style="color:${sc}">${prog}%</span>
         </div>
         <div class="card-meta">
           <div><div class="meta-label">Início</div><div class="meta-value">${formatDate(p.date)}</div></div>
