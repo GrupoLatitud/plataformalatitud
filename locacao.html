@@ -188,15 +188,32 @@ body{
 .time-bar-pct{font-size:.72rem;font-weight:600;margin-top:2px}
 
 /* NF */
-.nf-link{color:var(--blue);text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:4px}
-.nf-link:hover{text-decoration:underline}
+.nf-link{color:var(--blue);text-decoration:none;font-size:.82rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.nf-link:hover{text-decoration:underline;color:#8cc8e8}
 .nf-empty{color:var(--text-dim);font-size:.8rem;font-style:italic}
+.nf-list{display:flex;flex-direction:column;gap:2px}
+.nf-count{font-size:.72rem;color:var(--text-dim);margin-top:1px}
 .btn-attach{
   background:none;border:1px dashed #3a3020;color:var(--text-dim);
   padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;
   transition:border-color .2s,color .2s;
 }
 .btn-attach:hover{border-color:var(--orange);color:var(--orange)}
+
+/* NF list in modal */
+.nf-files-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.nf-file-item{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1px solid #2e2818;border-radius:6px;
+  padding:6px 10px;font-size:.82rem;
+}
+.nf-file-item .nf-file-name{flex:1;color:var(--blue);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-file-item .nf-file-name:hover{text-decoration:underline}
+.nf-file-item .nf-file-remove{
+  background:none;border:none;color:#f07070;cursor:pointer;font-size:.9rem;
+  padding:2px 4px;border-radius:4px;flex-shrink:0;
+}
+.nf-file-item .nf-file-remove:hover{background:rgba(240,80,80,.15)}
 
 /* ACTIONS */
 .row-actions{display:flex;gap:4px}
@@ -406,9 +423,10 @@ body{
     </div>
 
     <div class="field">
-      <label>Nota Fiscal (NF)</label>
-      <input type="file" id="fNF" accept=".pdf,.jpg,.jpeg,.png,.xml">
-      <div class="hint">Aceita PDF, JPG, PNG ou XML</div>
+      <label>Notas Fiscais (NF)</label>
+      <div class="nf-files-list" id="nfFilesList"></div>
+      <input type="file" id="fNF" accept=".pdf,.jpg,.jpeg,.png,.xml" multiple>
+      <div class="hint">Aceita PDF, JPG, PNG ou XML — pode selecionar vários arquivos</div>
     </div>
 
     <div class="modal-actions">
@@ -487,6 +505,7 @@ let projects=[];
 let nextLocId=1;
 let editingId=null;
 let dateEditId=null;
+let currentArquivos=[];
 
 /* Load projects for dropdown */
 db.ref('projects').on('value',snap=>{
@@ -552,9 +571,19 @@ function render(){
     const pct=calcTempo(l.dataInicio,l.dataFinal);
     const cor=tempoColor(pct);
     const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
-    const nfHTML=l.nfName?
-      `<span class="nf-link" title="${l.nfName}">📎 ${l.nfName.length>15?l.nfName.substring(0,15)+'...':l.nfName}</span>`:
-      `<span class="nf-empty">—</span>`;
+    const arquivos=l.arquivos||[];
+    // Compatibilidade com formato antigo (nfData/nfName único)
+    if(!arquivos.length&&l.nfData&&l.nfName) arquivos.push({name:l.nfName,data:l.nfData});
+    let nfHTML='';
+    if(arquivos.length){
+      const first=arquivos[0];
+      nfHTML=`<div class="nf-list">
+        <a class="nf-link" href="#" onclick="event.preventDefault();openNF(${l.id},0)">📎 ${first.name.length>15?first.name.substring(0,15)+'...':first.name}</a>
+        ${arquivos.length>1?`<span class="nf-count">+${arquivos.length-1} arquivo(s)</span>`:''}
+      </div>`;
+    }else{
+      nfHTML=`<span class="nf-empty">—</span>`;
+    }
 
     return `<tr>
       <td style="font-weight:600">${l.equipamento}</td>
@@ -611,6 +640,7 @@ function formatDateBR(d){
 /* ── MODAL ─────────────────────────────────────── */
 function openModal(loc){
   editingId=null;
+  currentArquivos=[];
   document.getElementById('modalTitle').textContent='Nova Locação';
   document.getElementById('fEquipamento').value='';
   document.getElementById('fFornecedor').value='';
@@ -631,11 +661,56 @@ function openModal(loc){
     document.getElementById('fDataFinal').value=loc.dataFinal;
     document.getElementById('fCodigo').value=loc.codigo||'';
     document.getElementById('fObs').value=loc.obs||'';
+    // Carregar arquivos existentes
+    if(loc.arquivos&&loc.arquivos.length){
+      currentArquivos=JSON.parse(JSON.stringify(loc.arquivos));
+    }else if(loc.nfData&&loc.nfName){
+      currentArquivos=[{name:loc.nfName,data:loc.nfData}];
+    }
   }
 
+  renderNfList();
   populateProjectSelect();
   if(loc) document.getElementById('fProjeto').value=loc.projeto;
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function renderNfList(){
+  const container=document.getElementById('nfFilesList');
+  if(!currentArquivos.length){
+    container.innerHTML='';
+    return;
+  }
+  container.innerHTML=currentArquivos.map((a,i)=>`
+    <div class="nf-file-item">
+      <span class="nf-file-name" onclick="openArquivo(${i})" title="${a.name}">📎 ${a.name}</span>
+      <button class="nf-file-remove" onclick="removeArquivo(${i})" title="Remover">✕</button>
+    </div>
+  `).join('');
+}
+
+function openArquivo(idx){
+  const a=currentArquivos[idx];
+  if(a&&a.data){
+    const w=window.open();
+    if(w){
+      w.document.write('<html><head><title>'+a.name+'</title></head><body style="margin:0">');
+      if(a.data.startsWith('data:image')){
+        w.document.write('<img src="'+a.data+'" style="max-width:100%">');
+      }else if(a.data.startsWith('data:application/pdf')){
+        w.document.write('<iframe src="'+a.data+'" style="width:100%;height:100vh;border:none"></iframe>');
+      }else{
+        w.document.write('<iframe src="'+a.data+'" style="width:100%;height:100vh;border:none"></iframe>');
+      }
+      w.document.write('</body></html>');
+      w.document.close();
+    }
+  }
+}
+
+function removeArquivo(idx){
+  currentArquivos.splice(idx,1);
+  renderNfList();
 }
 
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
@@ -656,22 +731,19 @@ function saveLocacao(){
   if(!dataFinal){alert('Informe a data final.');return;}
 
   const fileInput=document.getElementById('fNF');
-  const file=fileInput.files&&fileInput.files[0];
+  const newFiles=fileInput.files?Array.from(fileInput.files):[];
 
-  function doSave(nfData,nfName){
+  function doSave(novosArquivos){
+    const arquivos=[...currentArquivos,...novosArquivos];
     const data={
       equipamento,fornecedor,projeto,dataInicio,dataFinal,
-      codigo,obs,nfData:nfData||null,nfName:nfName||null
+      codigo,obs,arquivos:arquivos
     };
 
     if(editingId!==null){
       const idx=locacoes.findIndex(l=>l.id===editingId);
       if(idx>=0){
         data.id=editingId;
-        if(!nfData&&locacoes[idx].nfData){
-          data.nfData=locacoes[idx].nfData;
-          data.nfName=locacoes[idx].nfName;
-        }
         locacoes[idx]=data;
       }
     }else{
@@ -683,14 +755,20 @@ function saveLocacao(){
     render();
   }
 
-  if(file){
-    const reader=new FileReader();
-    reader.onload=function(e){
-      doSave(e.target.result,file.name);
-    };
-    reader.readAsDataURL(file);
+  if(newFiles.length){
+    let loaded=[];
+    let count=0;
+    newFiles.forEach((file,i)=>{
+      const reader=new FileReader();
+      reader.onload=function(e){
+        loaded.push({name:file.name,data:e.target.result});
+        count++;
+        if(count===newFiles.length) doSave(loaded);
+      };
+      reader.readAsDataURL(file);
+    });
   }else{
-    doSave(null,null);
+    doSave([]);
   }
 }
 
@@ -704,6 +782,27 @@ function deleteLocacao(id){
   locacoes=locacoes.filter(l=>l.id!==id);
   saveData();
   render();
+}
+
+function openNF(locId,fileIdx){
+  const l=locacoes.find(x=>x.id===locId);
+  if(!l)return;
+  const arquivos=l.arquivos||[];
+  if(!arquivos.length&&l.nfData) arquivos.push({name:l.nfName,data:l.nfData});
+  const a=arquivos[fileIdx];
+  if(a&&a.data){
+    const w=window.open();
+    if(w){
+      w.document.write('<html><head><title>'+a.name+'</title></head><body style="margin:0">');
+      if(a.data.startsWith('data:image')){
+        w.document.write('<img src="'+a.data+'" style="max-width:100%">');
+      }else{
+        w.document.write('<iframe src="'+a.data+'" style="width:100%;height:100vh;border:none"></iframe>');
+      }
+      w.document.write('</body></html>');
+      w.document.close();
+    }
+  }
 }
 
 /* ── DATE POPUP (inline edit) ──────────────────── */
