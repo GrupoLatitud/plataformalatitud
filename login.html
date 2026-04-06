@@ -255,7 +255,7 @@ async function doLogin(e){
     };
     localStorage.setItem('loggedUser',JSON.stringify(sessionData));
     // Redirect based on role
-    const dest=found.role==='encarregado'?'overview.html':found.role==='compras'?'locacao.html':'project-board.html';
+    const dest=found.role==='encarregado'?'overview.html':found.role==='dp'?'locacao.html':'project-board.html';
     window.location.href=dest;
   }catch(err){
     errEl.textContent='Erro ao conectar. Tente novamente.';

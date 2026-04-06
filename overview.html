@@ -1063,8 +1063,8 @@ console.log('[Overview] Script iniciado');
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  // Compras só acessa locação
-  if(u.role==='compras'){window.location.href='locacao.html';return;}
+  // DP só acessa locação e team
+  if(u.role==='dp'){window.location.href='locacao.html';return;}
   // Todos os demais perfis tem acesso ao overview
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{

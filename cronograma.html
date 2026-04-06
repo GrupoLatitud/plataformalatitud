@@ -454,7 +454,7 @@ body{
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
   if(u.role==='encarregado'){window.location.href='overview.html';return;}
-  if(u.role==='compras'){window.location.href='locacao.html';return;}
+  if(u.role==='dp'){window.location.href='locacao.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
