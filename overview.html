@@ -1226,7 +1226,7 @@ function checkReady(){
 
 db.ref('projects').on('value',snap=>{
   const d=snap.val();
-  if(d){const arr=Array.isArray(d)?d:Object.values(d);if(arr.length)projects=arr;}
+  if(d){const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null);if(arr.length)projects=arr;}
   populateProjectFilter();
   checkReady();
 },()=>checkReady());
