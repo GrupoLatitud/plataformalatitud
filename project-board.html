@@ -489,6 +489,14 @@ body{
       <div id="fDurationDisplay" style="padding:8px 12px;background:#ffffff;border-radius:6px;color:#2c2a26;font-size:.85rem">—</div>
     </div>
 
+    <div class="field" id="fieldContrato" style="display:none">
+      <label>Status do Contrato</label>
+      <select id="fContrato">
+        <option value="pendente">🟠 Pendente</option>
+        <option value="assinado">✅ Assinado</option>
+      </select>
+    </div>
+
     <input type="hidden" id="fProgress" value="0">
     <span id="progressVal" style="display:none">0%</span>
 
@@ -911,6 +919,15 @@ function openModal(proj){
   currentItems=[];
   currentMaterials=[];
 
+  // Mostrar campo contrato apenas para admin
+  const contratoField=document.getElementById('fieldContrato');
+  if(window.currentUser&&window.currentUser.role==='admin'){
+    contratoField.style.display='';
+  }else{
+    contratoField.style.display='none';
+  }
+  document.getElementById('fContrato').value='pendente';
+
   if(proj){
     editingId=proj.id;
     document.getElementById('modalTitle').textContent='Editar Projeto';
@@ -921,6 +938,7 @@ function openModal(proj){
     calcDuration();
     document.getElementById('fProgress').value=proj.progress;
     document.getElementById('progressVal').textContent=proj.progress+'%';
+    document.getElementById('fContrato').value=proj.contratoAssinado?'assinado':'pendente';
     selectedResp=proj.responsible;
     selectedCollabs=new Set(proj.collabs);
     currentItems=proj.items?JSON.parse(JSON.stringify(Array.isArray(proj.items)?proj.items:Object.values(proj.items))):[];
@@ -947,6 +965,7 @@ function saveProject(){
 
   const items=currentItems.filter(it=>it.name.trim());
   const materials=currentMaterials.filter(mt=>mt.name.trim());
+  const contratoVal=document.getElementById('fContrato').value;
   const data={
     name,
     stage:document.getElementById('fStage').value,
@@ -956,7 +975,8 @@ function saveProject(){
     responsible:selectedResp,
     collabs:[...selectedCollabs],
     items:items,
-    materials:materials
+    materials:materials,
+    contratoAssinado:contratoVal==='assinado'
   };
 
   if(editingId){
