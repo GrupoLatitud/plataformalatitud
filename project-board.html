@@ -718,6 +718,7 @@ function renderCard(p,stage){
           <div><div class="meta-label">Final</div><div class="meta-value">${formatDate(p.endDate)}</div></div>
           <div><div class="meta-label">Duração</div><div class="meta-value">${calcDurationStr(p.date,p.endDate)}</div></div>
           <div><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
+          <div><div class="meta-label">Contrato</div><div class="meta-value">${p.contratoAssinado?'✅':'🟠'}</div></div>
         </div>
         ${resp?`
         <div class="card-responsavel">
