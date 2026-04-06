@@ -1678,10 +1678,10 @@ function confirmImportPrevious(){
     renderMaterialsRdo();
   }
 
-  // Import Registros
+  // Import Registros (somente comentários, ignora ocorrências)
   if(document.getElementById('impRegistros').checked){
     const recs=rdo.records?(Array.isArray(rdo.records)?rdo.records:Object.values(rdo.records)):[];
-    currentRdo.records=recs.map(r=>({
+    currentRdo.records=recs.filter(r=>r.type==='comentario').map(r=>({
       type:'comentario',
       text:r.text||''
     }));
