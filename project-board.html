@@ -455,7 +455,7 @@ body{
 
 <div style="display:flex;align-items:center;gap:14px;padding:16px 28px 0;flex-wrap:wrap">
   <div class="counters" id="counters"></div>
-  <button class="btn-new" style="margin-left:auto" onclick="openModal()">+ Novo Projeto</button>
+  <button class="btn-new btn-admin-only" style="margin-left:auto" onclick="openModal()">+ Novo Projeto</button>
 </div>
 
 <main class="board" id="board"></main>
@@ -548,6 +548,7 @@ body{
     const cl=document.getElementById('configLink');
     if(cl&&u.role!=='admin') cl.style.display='none';
     document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
+    if(u.role!=='admin') document.querySelectorAll('.btn-admin-only').forEach(el=>el.style.display='none');
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
   });
