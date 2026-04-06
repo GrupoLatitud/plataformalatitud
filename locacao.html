@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>PROJETOCTRL — Locação de Equipamentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;z-index:200;
+  width:60px;background:var(--surface);border-right:1px solid #2e2818;
+  display:flex;flex-direction:column;padding:12px 0;
+  transition:width .2s ease;overflow:hidden;
+}
+.sidebar:hover{width:220px}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;
+  text-decoration:none;white-space:nowrap;
+}
+.sidebar-logo svg{height:32px;width:32px;flex-shrink:0}
+.sidebar-logo-text{
+  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.3rem;
+  color:#fff;letter-spacing:2px;opacity:0;transition:opacity .2s;
+  white-space:nowrap;
+}
+.sidebar:hover .sidebar-logo-text{opacity:1}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;flex:1;padding:0 8px}
+.sidebar-link{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:8px;
+  color:var(--text-dim);text-decoration:none;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.sidebar-link:hover{color:#ffffff;background:rgba(255,255,255,.08)}
+.sidebar-link.active{color:#F5841F;background:rgba(245,132,31,.2)}
+.sidebar-link svg{flex-shrink:0}
+.sidebar-link-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  letter-spacing:.3px;opacity:0;transition:opacity .2s;
+}
+.sidebar:hover .sidebar-link-label{opacity:1}
+.sidebar-bottom{
+  padding:8px;border-top:1px solid #2e2818;margin-top:auto;
+}
+.sidebar-user{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  white-space:nowrap;overflow:hidden;
+}
+.sidebar-user-name{
+  font-size:.78rem;color:var(--text-dim);opacity:0;transition:opacity .2s;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.sidebar:hover .sidebar-user-name{opacity:1}
+.sidebar-user-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid #3a3020;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.btn-logout-sidebar{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:none;border:none;color:var(--text-dim);
+  padding:8px 12px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.btn-logout-sidebar:hover{color:#f07070;background:rgba(240,80,80,.08)}
+.btn-logout-sidebar svg{flex-shrink:0}
+.btn-logout-sidebar span{opacity:0;transition:opacity .2s}
+.sidebar:hover .btn-logout-sidebar span{opacity:1}
+
+/* TOPBAR (mobile) */
+.topbar{
+  display:none;position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  align-items:center;padding:0 14px;height:52px;
+  backdrop-filter:blur(8px);
+}
+.topbar-logo svg{height:28px;width:auto}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-hamburger{
+  background:none;border:none;color:var(--text-dim);
+  cursor:pointer;padding:6px;border-radius:6px;
+}
+
+/* MAIN CONTENT */
+.main-content{margin-left:60px;transition:margin-left .2s}
+
+/* MOBILE MENU */
+.mobile-menu-overlay{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+}
+.mobile-menu-overlay.open{display:flex}
+.mobile-menu-panel{
+  position:absolute;top:0;right:0;width:260px;height:100%;
+  background:var(--surface);border-left:1px solid #2e2818;
+  padding:20px;display:flex;flex-direction:column;gap:4px;
+  animation:mmSlide .2s ease;
+}
+@keyframes mmSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.mobile-menu-close{
+  align-self:flex-end;background:none;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:1.4rem;padding:4px 8px;margin-bottom:12px;
+}
+.mobile-menu-panel a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+  color:var(--text-dim);text-decoration:none;padding:12px 16px;border-radius:8px;
+  transition:color .15s,background .15s;display:flex;align-items:center;gap:12px;
+}
+.mobile-menu-panel a:hover{color:var(--text);background:var(--surface2)}
+.mobile-menu-panel a.active{color:var(--orange);background:rgba(245,132,31,.12)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .topbar{display:flex}
+  .main-content{margin-left:0}
+}
+
+/* PAGE */
+.page-body{padding:28px}
+.page-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;
+  margin-bottom:6px;
+}
+.page-sub{color:var(--text-dim);font-size:.88rem;margin-bottom:24px}
+.btn-new{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 18px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  white-space:nowrap;transition:background .2s;
+}
+.btn-new:hover{background:#e0750f}
+
+/* SEARCH */
+.search-bar{
+  display:flex;align-items:center;gap:10px;margin-bottom:24px;
+}
+.search-bar input{
+  flex:1;max-width:360px;background:var(--surface);border:1px solid #2e2818;
+  color:var(--text);padding:9px 14px 9px 36px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239a9080' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:12px center;
+}
+.search-bar input:focus{outline:none;border-color:var(--orange)}
+
+/* TABLE */
+.loc-table-wrap{
+  background:var(--surface);border:1px solid #2e2818;border-radius:10px;
+  overflow-x:auto;
+}
+.loc-table{width:100%;border-collapse:collapse;min-width:900px}
+.loc-table thead th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.82rem;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  padding:12px 14px;text-align:left;border-bottom:1px solid #2e2818;
+  white-space:nowrap;
+}
+.loc-table tbody tr{border-bottom:1px solid #2e2818;transition:background .15s}
+.loc-table tbody tr:last-child{border-bottom:none}
+.loc-table tbody tr:hover{background:rgba(245,132,31,.04)}
+.loc-table td{padding:10px 14px;font-size:.88rem;vertical-align:middle}
+
+/* TIME BAR */
+.time-bar-wrap{min-width:160px;cursor:pointer}
+.time-bar-label{font-size:.72rem;color:var(--text-dim);margin-bottom:3px;white-space:nowrap}
+.time-bar{height:6px;background:#1a1610;border-radius:3px;overflow:hidden}
+.time-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.time-bar-pct{font-size:.72rem;font-weight:600;margin-top:2px}
+
+/* NF */
+.nf-link{color:var(--blue);text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:4px}
+.nf-link:hover{text-decoration:underline}
+.nf-empty{color:var(--text-dim);font-size:.8rem;font-style:italic}
+.btn-attach{
+  background:none;border:1px dashed #3a3020;color:var(--text-dim);
+  padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;
+  transition:border-color .2s,color .2s;
+}
+.btn-attach:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ACTIONS */
+.row-actions{display:flex;gap:4px}
+.row-actions button{
+  background:none;border:none;cursor:pointer;font-size:1rem;
+  padding:4px 6px;border-radius:4px;transition:background .15s;
+}
+.row-actions button:hover{background:rgba(255,255,255,.08)}
+.row-actions .danger:hover{background:rgba(240,80,80,.15)}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
+  padding:28px 24px;width:95%;max-width:520px;max-height:90vh;overflow-y:auto;
+  animation:mPop .2s ease;
+}
+@keyframes mPop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.25rem;
+  margin-bottom:20px;
+}
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:.78rem;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg);border:1px solid #2e2818;
+  color:var(--text);padding:9px 12px;border-radius:8px;
+  font-family:'Barlow',sans-serif;font-size:.9rem;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange)}
+.field textarea{resize:vertical;min-height:60px}
+.field .hint{font-size:.72rem;color:var(--text-dim);margin-top:3px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.btn-cancel{
+  background:none;border:1px solid #3a3020;color:var(--text-dim);
+  padding:8px 20px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+}
+.btn-cancel:hover{border-color:var(--text);color:var(--text)}
+.btn-save{
+  background:var(--orange);color:#fff;border:none;
+  padding:8px 24px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+}
+.btn-save:hover{background:#e0750f}
+
+/* DATE PICKER POPUP */
+.date-popup{
+  position:fixed;z-index:600;background:var(--surface);border:1px solid #2e2818;
+  border-radius:10px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.5);
+  animation:mPop .15s ease;
+}
+.date-popup label{
+  display:block;font-size:.75rem;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+}
+.date-popup input{
+  width:100%;background:var(--bg);border:1px solid #2e2818;
+  color:var(--text);padding:7px 10px;border-radius:6px;
+  font-family:'Barlow',sans-serif;font-size:.85rem;margin-bottom:10px;
+}
+.date-popup input:focus{outline:none;border-color:var(--orange)}
+.date-popup-actions{display:flex;gap:8px;justify-content:flex-end}
+.date-popup-actions button{
+  padding:5px 14px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  border:none;
+}
+.btn-dp-cancel{background:none;border:1px solid #3a3020;color:var(--text-dim)}
+.btn-dp-save{background:var(--orange);color:#fff}
+
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--text-dim);
+}
+.empty-state svg{margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:.95rem}
+
+@media(max-width:600px){
+  .page-body{padding:16px}
+  .loc-table{min-width:700px}
+  .modal{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a href="project-board.html" class="sidebar-logo">
+    <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg>
+    <span class="sidebar-logo-text">LATITUD</span>
+  </a>
+  <nav class="sidebar-nav">
+    <a href="project-board.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="sidebar-link-label">Projetos</span></a>
+    <a href="overview.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="sidebar-link-label">Overview</span></a>
+    <a href="cronograma.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="sidebar-link-label">Cronograma</span></a>
+    <a href="team.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span class="sidebar-link-label">Equipe</span></a>
+    <a href="locacao.html" class="sidebar-link active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span class="sidebar-link-label">Locação</span></a>
+    <a href="config.html" class="sidebar-link sidebar-link-config" id="configLink"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="sidebar-link-label">Configuracoes</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-user-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <span class="sidebar-user-name" id="userBadge"></span>
+    </div>
+    <button class="btn-logout-sidebar" onclick="doLogout()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sair</span></button>
+  </div>
+</aside>
+
+<div class="main-content">
+  <!-- TOPBAR (mobile) -->
+  <div class="topbar">
+    <a href="project-board.html" class="topbar-logo"><svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg></a>
+    <div class="topbar-right">
+      <button class="topbar-hamburger" onclick="document.getElementById('mobileMenuOverlay').classList.add('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </div>
+
+<main class="page-body">
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+    <h1 class="page-title" style="margin-bottom:0">Locação de Equipamentos</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span style="font-size:.85rem;color:var(--text-dim)">Total: <strong id="totalCount" style="color:var(--text)">0</strong></span>
+      <button class="btn-new" onclick="openModal()">+ Nova Locação</button>
+    </div>
+  </div>
+  <p class="page-sub">Controle de equipamentos locados, prazos e notas fiscais.</p>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Buscar por equipamento, fornecedor ou projeto..." oninput="render()">
+  </div>
+
+  <div class="loc-table-wrap">
+    <table class="loc-table">
+      <thead>
+        <tr>
+          <th>Equipamento</th>
+          <th>Fornecedor</th>
+          <th>Projeto</th>
+          <th>Tempo</th>
+          <th>Código</th>
+          <th>Observação</th>
+          <th>NF</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" id="emptyState" style="display:none">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <p>Nenhuma locação cadastrada.</p>
+  </div>
+</main>
+
+<!-- MODAL NOVA/EDITAR LOCAÇÃO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Nova Locação</div>
+
+    <div class="field">
+      <label>Equipamento *</label>
+      <input type="text" id="fEquipamento" placeholder="Ex: Andaime Fachadeiro">
+    </div>
+
+    <div class="field">
+      <label>Fornecedor *</label>
+      <input type="text" id="fFornecedor" placeholder="Ex: Mills Locações">
+    </div>
+
+    <div class="field">
+      <label>Projeto *</label>
+      <select id="fProjeto">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Data Início *</label>
+      <input type="date" id="fDataInicio">
+    </div>
+
+    <div class="field">
+      <label>Data Final *</label>
+      <input type="date" id="fDataFinal">
+    </div>
+
+    <div class="field">
+      <label>Código</label>
+      <input type="text" id="fCodigo" placeholder="Ex: EQ-0042">
+    </div>
+
+    <div class="field">
+      <label>Observação</label>
+      <textarea id="fObs" placeholder="Observações adicionais..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Nota Fiscal (NF)</label>
+      <input type="file" id="fNF" accept=".pdf,.jpg,.jpeg,.png,.xml">
+      <div class="hint">Aceita PDF, JPG, PNG ou XML</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveLocacao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DATE PICKER POPUP -->
+<div class="date-popup" id="datePopup" style="display:none">
+  <label>Data Início</label>
+  <input type="date" id="dpStart">
+  <label>Data Final</label>
+  <input type="date" id="dpEnd">
+  <div class="date-popup-actions">
+    <button class="btn-dp-cancel" onclick="closeDatePopup()">Cancelar</button>
+    <button class="btn-dp-save" onclick="saveDatePopup()">Salvar</button>
+  </div>
+</div>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mobile-menu-panel">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobileMenuOverlay').classList.remove('open')">&times;</button>
+    <a href="project-board.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Projetos</a>
+    <a href="overview.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</a>
+    <a href="cronograma.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma</a>
+    <a href="team.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Equipe</a>
+    <a href="locacao.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Locação</a>
+    <a href="config.html" class="mm-link-config"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuracoes</a>
+  </div>
+</div>
+
+</div><!-- /main-content -->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ── AUTH GUARD ─────────────────────────────── */
+(function(){
+  const s=localStorage.getItem('loggedUser');
+  if(!s){window.location.href='login.html';return;}
+  const u=JSON.parse(s);
+  if(u.role==='encarregado'){window.location.href='overview.html';return;}
+  window.currentUser=u;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const cl=document.getElementById('configLink');
+    if(cl&&u.role!=='admin') cl.style.display='none';
+    document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
+    const ub=document.getElementById('userBadge');
+    if(ub) ub.textContent=u.name;
+  });
+})();
+function doLogout(){localStorage.removeItem('loggedUser');window.location.href='login.html';}
+
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+/* ── SYNC SESSION ─────────────────────────────── */
+(function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
+
+/* ── DATA ─────────────────────────────────────── */
+let locacoes=[];
+let projects=[];
+let nextLocId=1;
+let editingId=null;
+let dateEditId=null;
+
+/* Load projects for dropdown */
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d){
+    const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null);
+    projects=arr.filter(p=>p.stage==='andamento');
+  }
+  populateProjectSelect();
+});
+
+/* Load locações */
+db.ref('locacoes').on('value',snap=>{
+  const d=snap.val();
+  if(d){
+    const arr=Array.isArray(d)?d:Object.values(d);
+    locacoes=arr.filter(l=>l!=null);
+    if(locacoes.length) nextLocId=Math.max(...locacoes.map(l=>l.id||0))+1;
+  }else{
+    locacoes=[];
+  }
+  render();
+});
+
+function saveData(){
+  const clean=locacoes.filter(l=>l!=null);
+  locacoes=clean;
+  db.ref('locacoes').set(clean);
+}
+
+function populateProjectSelect(){
+  const sel=document.getElementById('fProjeto');
+  if(!sel)return;
+  const val=sel.value;
+  sel.innerHTML='<option value="">Selecione...</option>'+
+    projects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+  sel.value=val;
+}
+
+/* ── RENDER ───────────────────────────────────── */
+function render(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const filtered=locacoes.filter(l=>{
+    if(!q)return true;
+    return (l.equipamento||'').toLowerCase().includes(q)||
+           (l.fornecedor||'').toLowerCase().includes(q)||
+           (l.projeto||'').toLowerCase().includes(q)||
+           (l.codigo||'').toLowerCase().includes(q);
+  });
+
+  document.getElementById('totalCount').textContent=locacoes.length;
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+
+  if(!filtered.length){
+    tbody.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+
+  tbody.innerHTML=filtered.map(l=>{
+    const pct=calcTempo(l.dataInicio,l.dataFinal);
+    const cor=tempoColor(pct);
+    const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
+    const nfHTML=l.nfName?
+      `<span class="nf-link" title="${l.nfName}">📎 ${l.nfName.length>15?l.nfName.substring(0,15)+'...':l.nfName}</span>`:
+      `<span class="nf-empty">—</span>`;
+
+    return `<tr>
+      <td style="font-weight:600">${l.equipamento}</td>
+      <td>${l.fornecedor}</td>
+      <td>${l.projeto}</td>
+      <td>
+        <div class="time-bar-wrap" onclick="openDatePopup(${l.id},event)">
+          <div class="time-bar-label">${dateLabel}</div>
+          <div class="time-bar">
+            <div class="time-bar-fill" style="width:${pct}%;background:${cor}"></div>
+          </div>
+          <div class="time-bar-pct" style="color:${cor}">${pct}%</div>
+        </div>
+      </td>
+      <td>${l.codigo||'—'}</td>
+      <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.obs||''}">${l.obs||'—'}</td>
+      <td>${nfHTML}</td>
+      <td>
+        <div class="row-actions">
+          <button onclick="editLocacao(${l.id})" title="Editar">✏️</button>
+          <button class="danger" onclick="deleteLocacao(${l.id})" title="Remover">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── HELPERS ───────────────────────────────────── */
+function calcTempo(startStr,endStr){
+  if(!startStr||!endStr)return 0;
+  const start=new Date(startStr+'T00:00:00');
+  const end=new Date(endStr+'T23:59:59');
+  const now=new Date();
+  const total=end-start;
+  if(total<=0)return 100;
+  const elapsed=now-start;
+  if(elapsed<=0)return 0;
+  return Math.min(100,Math.round((elapsed/total)*100));
+}
+
+function tempoColor(pct){
+  if(pct>=100)return '#e74c3c';
+  if(pct>=75)return '#f39c12';
+  if(pct>=50)return '#f1c40f';
+  return '#2ecc71';
+}
+
+function formatDateBR(d){
+  if(!d)return'—';
+  const [y,m,dd]=d.split('-');
+  return dd+'/'+m+'/'+y;
+}
+
+/* ── MODAL ─────────────────────────────────────── */
+function openModal(loc){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Nova Locação';
+  document.getElementById('fEquipamento').value='';
+  document.getElementById('fFornecedor').value='';
+  document.getElementById('fProjeto').value='';
+  document.getElementById('fDataInicio').value='';
+  document.getElementById('fDataFinal').value='';
+  document.getElementById('fCodigo').value='';
+  document.getElementById('fObs').value='';
+  document.getElementById('fNF').value='';
+
+  if(loc){
+    editingId=loc.id;
+    document.getElementById('modalTitle').textContent='Editar Locação';
+    document.getElementById('fEquipamento').value=loc.equipamento;
+    document.getElementById('fFornecedor').value=loc.fornecedor;
+    document.getElementById('fProjeto').value=loc.projeto;
+    document.getElementById('fDataInicio').value=loc.dataInicio;
+    document.getElementById('fDataFinal').value=loc.dataFinal;
+    document.getElementById('fCodigo').value=loc.codigo||'';
+    document.getElementById('fObs').value=loc.obs||'';
+  }
+
+  populateProjectSelect();
+  if(loc) document.getElementById('fProjeto').value=loc.projeto;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+
+function saveLocacao(){
+  const equipamento=document.getElementById('fEquipamento').value.trim();
+  const fornecedor=document.getElementById('fFornecedor').value.trim();
+  const projeto=document.getElementById('fProjeto').value;
+  const dataInicio=document.getElementById('fDataInicio').value;
+  const dataFinal=document.getElementById('fDataFinal').value;
+  const codigo=document.getElementById('fCodigo').value.trim();
+  const obs=document.getElementById('fObs').value.trim();
+
+  if(!equipamento){alert('Informe o equipamento.');return;}
+  if(!fornecedor){alert('Informe o fornecedor.');return;}
+  if(!projeto){alert('Selecione o projeto.');return;}
+  if(!dataInicio){alert('Informe a data de início.');return;}
+  if(!dataFinal){alert('Informe a data final.');return;}
+
+  const fileInput=document.getElementById('fNF');
+  const file=fileInput.files&&fileInput.files[0];
+
+  function doSave(nfData,nfName){
+    const data={
+      equipamento,fornecedor,projeto,dataInicio,dataFinal,
+      codigo,obs,nfData:nfData||null,nfName:nfName||null
+    };
+
+    if(editingId!==null){
+      const idx=locacoes.findIndex(l=>l.id===editingId);
+      if(idx>=0){
+        data.id=editingId;
+        if(!nfData&&locacoes[idx].nfData){
+          data.nfData=locacoes[idx].nfData;
+          data.nfName=locacoes[idx].nfName;
+        }
+        locacoes[idx]=data;
+      }
+    }else{
+      data.id=nextLocId++;
+      locacoes.push(data);
+    }
+    closeModal();
+    saveData();
+    render();
+  }
+
+  if(file){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      doSave(e.target.result,file.name);
+    };
+    reader.readAsDataURL(file);
+  }else{
+    doSave(null,null);
+  }
+}
+
+function editLocacao(id){
+  const l=locacoes.find(x=>x.id===id);
+  if(l)openModal(l);
+}
+
+function deleteLocacao(id){
+  if(!confirm('Remover esta locação?'))return;
+  locacoes=locacoes.filter(l=>l.id!==id);
+  saveData();
+  render();
+}
+
+/* ── DATE POPUP (inline edit) ──────────────────── */
+function openDatePopup(id,event){
+  event.stopPropagation();
+  const l=locacoes.find(x=>x.id===id);
+  if(!l)return;
+  dateEditId=id;
+  const popup=document.getElementById('datePopup');
+  document.getElementById('dpStart').value=l.dataInicio||'';
+  document.getElementById('dpEnd').value=l.dataFinal||'';
+
+  const rect=event.currentTarget.getBoundingClientRect();
+  popup.style.top=Math.min(rect.bottom+4,window.innerHeight-200)+'px';
+  popup.style.left=Math.min(rect.left,window.innerWidth-260)+'px';
+  popup.style.display='block';
+}
+
+function closeDatePopup(){
+  document.getElementById('datePopup').style.display='none';
+  dateEditId=null;
+}
+
+function saveDatePopup(){
+  if(dateEditId===null)return;
+  const l=locacoes.find(x=>x.id===dateEditId);
+  if(!l)return;
+  const s=document.getElementById('dpStart').value;
+  const e=document.getElementById('dpEnd').value;
+  if(!s||!e){alert('Preencha ambas as datas.');return;}
+  l.dataInicio=s;
+  l.dataFinal=e;
+  saveData();
+  render();
+  closeDatePopup();
+}
+
+// Close date popup on outside click
+document.addEventListener('click',function(e){
+  const popup=document.getElementById('datePopup');
+  if(popup.style.display==='block'&&!popup.contains(e.target)){
+    closeDatePopup();
+  }
+});
+</script>
+</body>
+</html>
