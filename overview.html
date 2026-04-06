@@ -230,16 +230,18 @@ body{
 .detail-progress .pct{font-size:1.1rem;font-weight:700;margin-top:4px}
 
 /* Team section */
-.team-grid{display:flex;flex-wrap:wrap;gap:10px}
-.team-card{
+.team-list{display:flex;flex-direction:column;gap:0}
+.team-row{
   display:flex;align-items:center;gap:10px;
-  background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
-  padding:8px 12px;min-width:160px;
+  padding:8px 10px;border-bottom:1px solid #1a1610;
 }
-.team-card.lead{border-color:var(--orange);background:rgba(245,132,31,.06)}
-.team-name{font-size:.82rem;font-weight:600}
+.team-row:last-child{border-bottom:none}
+.team-row:hover{background:rgba(245,132,31,.03)}
+.team-row .avatar-wrap{flex-shrink:0}
+.team-info{flex:1;min-width:0}
+.team-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .team-role{font-size:.65rem;color:var(--text-dim)}
-.team-badge{font-size:.6rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.team-badge{font-size:.58rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-left:auto;flex-shrink:0}
 
 /* Data tables */
 .dash-table{width:100%;border-collapse:collapse;font-size:.82rem}
@@ -667,8 +669,8 @@ body{
   .mg-month{font-size:.55rem;padding:3px 0}
   .mg-bar-label{font-size:.6rem;padding:0 4px}
   .mg-bar{padding:0 4px}
-  .team-grid{gap:6px}
-  .team-card{padding:8px 10px;min-width:auto}
+  .team-list{gap:0}
+  .team-row{padding:6px 8px}
   .detail-grid{grid-template-columns:1fr 1fr}
   .detail-item .value{font-size:.82rem}
   .rdo-table th,.rdo-table td{padding:6px 4px;font-size:.72rem}
@@ -1328,20 +1330,21 @@ function renderDetails(p,stage,pct){
 function renderTeamSection(p){
   const resp=team.find(t=>t.id===p.responsible);
   const collabs=(p.collabs||[]).map(id=>team.find(t=>t.id===id)).filter(Boolean);
-  let html='';
+  let rows='';
   if(resp){
-    html+=`<div class="team-card lead">
-      ${avatarHTML(resp,32)}
-      <div><div class="team-name">${resp.name}</div><div class="team-role">${resp.role}</div><div class="team-badge">Responsavel</div></div>
+    rows+=`<div class="team-row">
+      ${avatarHTML(resp,28)}
+      <div class="team-info"><div class="team-name">${resp.name}</div><div class="team-role">${resp.role}</div></div>
+      <span class="team-badge">Responsavel</span>
     </div>`;
   }
   collabs.forEach(c=>{
-    html+=`<div class="team-card">
+    rows+=`<div class="team-row">
       ${avatarHTML(c,28)}
-      <div><div class="team-name">${c.name}</div><div class="team-role">${c.role}</div></div>
+      <div class="team-info"><div class="team-name">${c.name}</div><div class="team-role">${c.role}</div></div>
     </div>`;
   });
-  document.getElementById('teamContent').innerHTML=html?`<div class="team-grid">${html}</div>`:'<div class="empty-msg">Nenhum membro vinculado.</div>';
+  document.getElementById('teamContent').innerHTML=rows?`<div class="team-list">${rows}</div>`:'<div class="empty-msg">Nenhum membro vinculado.</div>';
 }
 
 /* ── ITEMS TABLE ──────────────────────────────── */
