@@ -301,6 +301,32 @@ body{
 .empty-state svg{margin-bottom:12px;opacity:.4}
 .empty-state p{font-size:.95rem}
 
+/* Finalizadas section */
+.section-header{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:10px 0;margin-bottom:12px;user-select:none;
+}
+.section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;
+  color:var(--text-dim);
+}
+.section-count{
+  background:rgba(255,255,255,.08);color:var(--text-dim);
+  font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:10px;
+}
+.section-toggle{
+  color:var(--text-dim);font-size:.8rem;margin-left:auto;
+  transition:transform .2s;
+}
+.section-toggle.collapsed{transform:rotate(-90deg)}
+.row-finalizada td{color:var(--text-dim)!important;font-weight:400!important}
+.btn-finalizar{
+  background:none;border:none;cursor:pointer;font-size:1rem;
+  padding:4px 6px;border-radius:4px;transition:background .15s;
+  color:#2ecc71;
+}
+.btn-finalizar:hover{background:rgba(46,204,113,.15)}
+
 @media(max-width:600px){
   .page-body{padding:16px}
   .loc-table{min-width:700px}
@@ -376,7 +402,32 @@ body{
 
   <div class="empty-state" id="emptyState" style="display:none">
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <p>Nenhuma locação cadastrada.</p>
+    <p>Nenhuma locação ativa.</p>
+  </div>
+
+  <!-- FINALIZADAS -->
+  <div id="finalizadasSection" style="display:none;margin-top:36px">
+    <div class="section-header" onclick="toggleFinalizadas()">
+      <h2 class="section-title">Locações Finalizadas</h2>
+      <span class="section-count" id="finCount">0</span>
+      <span class="section-toggle" id="finToggle">▼</span>
+    </div>
+    <div id="finalizadasWrap" class="loc-table-wrap" style="opacity:.6">
+      <table class="loc-table">
+        <thead>
+          <tr>
+            <th>Equipamento</th>
+            <th>Fornecedor</th>
+            <th>Projeto</th>
+            <th>Tempo</th>
+            <th>Código</th>
+            <th>Observação</th>
+            <th>NF</th>
+          </tr>
+        </thead>
+        <tbody id="tableBodyFin"></tbody>
+      </table>
+    </div>
   </div>
 </main>
 
@@ -546,69 +597,103 @@ function populateProjectSelect(){
 }
 
 /* ── RENDER ───────────────────────────────────── */
+function buildNfHTML(l){
+  const arquivos=l.arquivos?[...l.arquivos]:[];
+  if(!arquivos.length&&l.nfData&&l.nfName) arquivos.push({name:l.nfName,data:l.nfData});
+  if(arquivos.length){
+    const first=arquivos[0];
+    return `<div class="nf-list">
+      <a class="nf-link" href="#" onclick="event.preventDefault();openNF(${l.id},0)">📎 ${first.name.length>15?first.name.substring(0,15)+'...':first.name}</a>
+      ${arquivos.length>1?`<span class="nf-count">+${arquivos.length-1} arquivo(s)</span>`:''}
+    </div>`;
+  }
+  return `<span class="nf-empty">—</span>`;
+}
+
 function render(){
   const q=document.getElementById('searchInput').value.toLowerCase();
-  const filtered=locacoes.filter(l=>{
+  function matchQ(l){
     if(!q)return true;
     return (l.equipamento||'').toLowerCase().includes(q)||
            (l.fornecedor||'').toLowerCase().includes(q)||
            (l.projeto||'').toLowerCase().includes(q)||
            (l.codigo||'').toLowerCase().includes(q);
-  });
+  }
 
-  document.getElementById('totalCount').textContent=locacoes.length;
+  const ativos=locacoes.filter(l=>!l.finalizado&&matchQ(l));
+  const finalizados=locacoes.filter(l=>l.finalizado&&matchQ(l));
+
+  const totalAtivos=locacoes.filter(l=>!l.finalizado).length;
+  document.getElementById('totalCount').textContent=totalAtivos;
+
   const tbody=document.getElementById('tableBody');
   const empty=document.getElementById('emptyState');
 
-  if(!filtered.length){
+  if(!ativos.length){
     tbody.innerHTML='';
     empty.style.display='block';
-    return;
-  }
-  empty.style.display='none';
-
-  tbody.innerHTML=filtered.map(l=>{
-    const pct=calcTempo(l.dataInicio,l.dataFinal);
-    const cor=tempoColor(pct);
-    const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
-    const arquivos=l.arquivos||[];
-    // Compatibilidade com formato antigo (nfData/nfName único)
-    if(!arquivos.length&&l.nfData&&l.nfName) arquivos.push({name:l.nfName,data:l.nfData});
-    let nfHTML='';
-    if(arquivos.length){
-      const first=arquivos[0];
-      nfHTML=`<div class="nf-list">
-        <a class="nf-link" href="#" onclick="event.preventDefault();openNF(${l.id},0)">📎 ${first.name.length>15?first.name.substring(0,15)+'...':first.name}</a>
-        ${arquivos.length>1?`<span class="nf-count">+${arquivos.length-1} arquivo(s)</span>`:''}
-      </div>`;
-    }else{
-      nfHTML=`<span class="nf-empty">—</span>`;
-    }
-
-    return `<tr>
-      <td style="font-weight:600">${l.equipamento}</td>
-      <td>${l.fornecedor}</td>
-      <td>${l.projeto}</td>
-      <td>
-        <div class="time-bar-wrap" onclick="openDatePopup(${l.id},event)">
-          <div class="time-bar-label">${dateLabel}</div>
-          <div class="time-bar">
-            <div class="time-bar-fill" style="width:${pct}%;background:${cor}"></div>
+  }else{
+    empty.style.display='none';
+    tbody.innerHTML=ativos.map(l=>{
+      const pct=calcTempo(l.dataInicio,l.dataFinal);
+      const cor=tempoColor(pct);
+      const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
+      return `<tr>
+        <td style="font-weight:600">${l.equipamento}</td>
+        <td>${l.fornecedor}</td>
+        <td>${l.projeto}</td>
+        <td>
+          <div class="time-bar-wrap" onclick="openDatePopup(${l.id},event)">
+            <div class="time-bar-label">${dateLabel}</div>
+            <div class="time-bar">
+              <div class="time-bar-fill" style="width:${pct}%;background:${cor}"></div>
+            </div>
+            <div class="time-bar-pct" style="color:${cor}">${pct}%</div>
           </div>
-          <div class="time-bar-pct" style="color:${cor}">${pct}%</div>
-        </div>
-      </td>
-      <td>${l.codigo||'—'}</td>
-      <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.obs||''}">${l.obs||'—'}</td>
-      <td>${nfHTML}</td>
-      <td>
-        <div class="row-actions">
-          <button onclick="editLocacao(${l.id})" title="Editar">✏️</button>
-          <button class="danger" onclick="deleteLocacao(${l.id})" title="Remover">🗑</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
+        </td>
+        <td>${l.codigo||'—'}</td>
+        <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.obs||''}">${l.obs||'—'}</td>
+        <td>${buildNfHTML(l)}</td>
+        <td>
+          <div class="row-actions">
+            <button onclick="editLocacao(${l.id})" title="Editar">✏️</button>
+            <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})" title="Finalizar locação">✅</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Finalizadas ── */
+  const finSection=document.getElementById('finalizadasSection');
+  const totalFin=locacoes.filter(l=>l.finalizado).length;
+  if(totalFin){
+    finSection.style.display='';
+    document.getElementById('finCount').textContent=totalFin;
+    const tbodyFin=document.getElementById('tableBodyFin');
+    tbodyFin.innerHTML=finalizados.map(l=>{
+      const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
+      return `<tr class="row-finalizada">
+        <td>${l.equipamento}</td>
+        <td>${l.fornecedor}</td>
+        <td>${l.projeto}</td>
+        <td>
+          <div class="time-bar-wrap" style="cursor:default">
+            <div class="time-bar-label">${dateLabel}</div>
+            <div class="time-bar">
+              <div class="time-bar-fill" style="width:100%;background:var(--text-dim)"></div>
+            </div>
+            <div class="time-bar-pct" style="color:var(--text-dim)">100%</div>
+          </div>
+        </td>
+        <td>${l.codigo||'—'}</td>
+        <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.obs||''}">${l.obs||'—'}</td>
+        <td>${buildNfHTML(l)}</td>
+      </tr>`;
+    }).join('');
+  }else{
+    finSection.style.display='none';
+  }
 }
 
 /* ── HELPERS ───────────────────────────────────── */
@@ -782,6 +867,24 @@ function deleteLocacao(id){
   locacoes=locacoes.filter(l=>l.id!==id);
   saveData();
   render();
+}
+
+function finalizarLocacao(id){
+  if(!confirm('Finalizar esta locação? Ela será movida para "Locações Finalizadas".'))return;
+  const l=locacoes.find(x=>x.id===id);
+  if(l){
+    l.finalizado=true;
+    l.dataFinalizacao=new Date().toISOString().split('T')[0];
+    saveData();
+    render();
+  }
+}
+
+let finalizadasVisible=true;
+function toggleFinalizadas(){
+  finalizadasVisible=!finalizadasVisible;
+  document.getElementById('finalizadasWrap').style.display=finalizadasVisible?'':'none';
+  document.getElementById('finToggle').classList.toggle('collapsed',!finalizadasVisible);
 }
 
 function openNF(locId,fileIdx){
