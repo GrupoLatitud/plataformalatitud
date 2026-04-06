@@ -1018,10 +1018,10 @@ body{
     <div class="modal-title">Importar dados do relatório anterior?</div>
     <p style="font-size:.85rem;color:var(--text-dim);margin-bottom:12px">Foram encontrados relatórios anteriores neste projeto. Selecione o que deseja importar:</p>
     <div class="pdf-sections">
-      <label class="check-item"><input type="checkbox" id="impMaoObra" checked> Mão de Obra <span style="font-size:.7rem;color:var(--text-dim)">(todos como PRESENTE)</span></label>
-      <label class="check-item"><input type="checkbox" id="impAtividades" checked> Atividades <span style="font-size:.7rem;color:var(--text-dim)">(Qtd. Dia zerada)</span></label>
-      <label class="check-item"><input type="checkbox" id="impMateriais" checked> Materiais <span style="font-size:.7rem;color:var(--text-dim)">(Qtd. Dia zerada)</span></label>
-      <label class="check-item"><input type="checkbox" id="impRegistros" checked> Registros <span style="font-size:.7rem;color:var(--text-dim)">(como Ocorrência)</span></label>
+      <label class="check-item"><input type="checkbox" id="impMaoObra" checked> Mão de Obra</label>
+      <label class="check-item"><input type="checkbox" id="impAtividades" checked> Atividades</label>
+      <label class="check-item"><input type="checkbox" id="impMateriais" checked> Materiais</label>
+      <label class="check-item"><input type="checkbox" id="impRegistros" checked> Registros</label>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="skipImportPrevious()">Não, iniciar vazio</button>
@@ -1682,7 +1682,7 @@ function confirmImportPrevious(){
   if(document.getElementById('impRegistros').checked){
     const recs=rdo.records?(Array.isArray(rdo.records)?rdo.records:Object.values(rdo.records)):[];
     currentRdo.records=recs.map(r=>({
-      type:'ocorrencia',
+      type:'comentario',
       text:r.text||''
     }));
     renderRecords();
