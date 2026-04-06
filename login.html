@@ -13,21 +13,21 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f4f2ee;--surface:#ffffff;--surface2:#f0ede7;
-  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
-  --text:#2c2a26;--text-dim:#8a8478;--radius:10px;
+  --bg:#eef1f5;--surface:#ffffff;--surface2:#e4e9ef;
+  --orange:#F5841F;--blue:#2d8f9e;--green:#5cb85c;
+  --text:#1a2030;--text-dim:#6b7585;--radius:10px;
 }
 html{font-size:14px}
 body{
   font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.02'/%3E%3C/svg%3E");
 }
 
 .login-card{
-  background:var(--surface);border:1px solid #e0dcd4;border-radius:16px;
+  background:var(--surface);border:1px solid #dce1e8;border-radius:16px;
   padding:40px 36px 32px;width:380px;max-width:92vw;
-  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  box-shadow:0 20px 60px rgba(0,0,0,.06);
 }
 .login-logo{
   display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:32px;
@@ -44,7 +44,7 @@ body{
   margin-bottom:5px;
 }
 .field input{
-  width:100%;background:var(--surface2);border:1px solid #e0dcd4;
+  width:100%;background:var(--surface2);border:1px solid #dce1e8;
   color:var(--text);padding:11px 14px;border-radius:8px;
   font-family:'Barlow',sans-serif;font-size:.92rem;
 }
