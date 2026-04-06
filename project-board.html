@@ -209,10 +209,13 @@ body{
 .card-menu-btn:hover{color:var(--text)}
 
 /* Progress */
+.progress-section{margin-bottom:2px}
+.progress-label{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
 .progress-wrap{display:flex;align-items:center;gap:8px}
 .progress-bar{flex:1;height:5px;background:#1a1610;border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;border-radius:3px;transition:width .3s}
 .progress-pct{font-size:.75rem;font-weight:600;min-width:30px;text-align:right}
+.prazo-fill{height:100%;border-radius:3px;transition:width .3s}
 
 /* Meta grid */
 .card-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
@@ -717,9 +720,19 @@ function renderCard(p,stage){
           <div class="card-name">${p.name}</div>
           <button class="card-menu-btn" onclick="event.stopPropagation();toggleMenu(${p.id})">⋯</button>
         </div>
-        <div class="progress-wrap">
-          <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${sc}"></div></div>
-          <span class="progress-pct" style="color:${sc}">${prog}%</span>
+        <div class="progress-section">
+          <div class="progress-label">Avanço Físico</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${sc}"></div></div>
+            <span class="progress-pct" style="color:${sc}">${prog}%</span>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label">Prazo Contratual</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="prazo-fill" style="width:${calcPrazo(p.date,p.endDate)}%;background:${prazoColor(calcPrazo(p.date,p.endDate))}"></div></div>
+            <span class="progress-pct" style="color:${prazoColor(calcPrazo(p.date,p.endDate))}">${calcPrazo(p.date,p.endDate)}%</span>
+          </div>
         </div>
         <div class="card-meta">
           <div><div class="meta-label">Início</div><div class="meta-value">${formatDate(p.date)}</div></div>
@@ -753,6 +766,25 @@ function formatDate(d){
   if(!d)return"—";
   const [y,m,dd]=d.split('-');
   return `${dd}/${m}/${y}`;
+}
+
+function calcPrazo(dateStr,endDateStr){
+  if(!dateStr||!endDateStr)return 0;
+  const start=new Date(dateStr+'T00:00:00');
+  const end=new Date(endDateStr+'T23:59:59');
+  const now=new Date();
+  const total=end-start;
+  if(total<=0)return 100;
+  const elapsed=now-start;
+  if(elapsed<=0)return 0;
+  return Math.min(100,Math.round((elapsed/total)*100));
+}
+
+function prazoColor(pct){
+  if(pct>=100)return '#e74c3c';
+  if(pct>=75)return '#f39c12';
+  if(pct>=50)return '#f1c40f';
+  return '#2ecc71';
 }
 
 /* ── CONTEXT MENU ────────────────────────────────── */
