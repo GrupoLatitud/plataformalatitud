@@ -24,36 +24,118 @@ body{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
 }
 
-/* HEADER */
-.header{
-  position:sticky;top:0;z-index:100;
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;z-index:200;
+  width:60px;background:var(--surface);border-right:1px solid #2e2818;
+  display:flex;flex-direction:column;padding:12px 0;
+  transition:width .2s ease;overflow:hidden;
+}
+.sidebar:hover{width:220px}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;
+  text-decoration:none;white-space:nowrap;
+}
+.sidebar-logo svg{height:32px;width:32px;flex-shrink:0}
+.sidebar-logo-text{
+  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.3rem;
+  color:#fff;letter-spacing:2px;opacity:0;transition:opacity .2s;
+  white-space:nowrap;
+}
+.sidebar:hover .sidebar-logo-text{opacity:1}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;flex:1;padding:0 8px}
+.sidebar-link{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:8px;
+  color:var(--text-dim);text-decoration:none;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.sidebar-link:hover{color:var(--text);background:var(--surface2)}
+.sidebar-link.active{color:var(--orange);background:rgba(245,132,31,.1)}
+.sidebar-link svg{flex-shrink:0}
+.sidebar-link-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  letter-spacing:.3px;opacity:0;transition:opacity .2s;
+}
+.sidebar:hover .sidebar-link-label{opacity:1}
+.sidebar-bottom{
+  padding:8px;border-top:1px solid #2e2818;margin-top:auto;
+}
+.sidebar-user{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  white-space:nowrap;overflow:hidden;
+}
+.sidebar-user-name{
+  font-size:.78rem;color:var(--text-dim);opacity:0;transition:opacity .2s;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.sidebar:hover .sidebar-user-name{opacity:1}
+.sidebar-user-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--surface2);border:1px solid #3a3020;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.btn-logout-sidebar{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:none;border:none;color:var(--text-dim);
+  padding:8px 12px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.btn-logout-sidebar:hover{color:#f07070;background:rgba(240,80,80,.08)}
+.btn-logout-sidebar svg{flex-shrink:0}
+.btn-logout-sidebar span{opacity:0;transition:opacity .2s}
+.sidebar:hover .btn-logout-sidebar span{opacity:1}
+
+/* TOPBAR (mobile) */
+.topbar{
+  display:none;position:sticky;top:0;z-index:100;
   background:var(--surface);border-bottom:1px solid #2e2818;
-  display:flex;align-items:center;gap:20px;
-  padding:0 28px;height:58px;
+  align-items:center;padding:0 14px;height:52px;
   backdrop-filter:blur(8px);
 }
-.logo{
-  display:flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap;
+.topbar-logo svg{height:28px;width:auto}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-hamburger{
+  background:none;border:none;color:var(--text-dim);
+  cursor:pointer;padding:6px;border-radius:6px;
 }
-.logo svg{height:32px;width:auto}
-.logo-text{
-  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.5rem;
-  color:#fff;letter-spacing:2px;
+
+/* MAIN CONTENT */
+.main-content{margin-left:60px;transition:margin-left .2s}
+
+/* MOBILE MENU */
+.mobile-menu-overlay{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
 }
-.nav{display:flex;gap:4px;margin-left:16px}
-.nav a{
-  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
-  color:var(--text-dim);text-decoration:none;padding:8px 16px;border-radius:8px;
-  transition:color .2s,background .2s;letter-spacing:.3px;
+.mobile-menu-overlay.open{display:flex}
+.mobile-menu-panel{
+  position:absolute;top:0;right:0;width:260px;height:100%;
+  background:var(--surface);border-left:1px solid #2e2818;
+  padding:20px;display:flex;flex-direction:column;gap:4px;
+  animation:mmSlide .2s ease;
 }
-.nav a:hover{color:var(--text);background:var(--surface2)}
-.nav a.active{color:var(--orange);background:rgba(245,132,31,.1)}
-.nav-icon{
-  display:flex;align-items:center;padding:8px;border-radius:8px;
-  color:var(--text-dim);text-decoration:none;transition:color .2s,background .2s;
+@keyframes mmSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.mobile-menu-close{
+  align-self:flex-end;background:none;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:1.4rem;padding:4px 8px;margin-bottom:12px;
 }
-.nav-icon:hover{color:var(--text);background:var(--surface2)}
-.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.mobile-menu-panel a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+  color:var(--text-dim);text-decoration:none;padding:12px 16px;border-radius:8px;
+  transition:color .15s,background .15s;display:flex;align-items:center;gap:12px;
+}
+.mobile-menu-panel a:hover{color:var(--text);background:var(--surface2)}
+.mobile-menu-panel a.active{color:var(--orange);background:rgba(245,132,31,.1)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .topbar{display:flex}
+  .main-content{margin-left:0}
+}
+
 .team-count{
   font-size:.85rem;color:var(--text-dim);
   display:flex;align-items:center;gap:6px;
@@ -286,30 +368,43 @@ body{
 </head>
 <body>
 
-<header class="header">
-  <a href="project-board.html" class="logo">
-    <svg viewBox="0 0 623.71 198.2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#f18819}.cls-2{fill:#fff}.cls-3{fill:#ed7203}</style></defs><g><g><g><path class="cls-1" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/><g><path class="cls-2" d="M121.94,119.06s3.28,.78,2.91,2.89"/><path class="cls-2" d="M120.1,123.46s2.19,.13,3.11-.27-2.88,0-2.88,0l-.22,.27Z"/><path class="cls-2" d="M144.86,118.97c-6.46-5.15-11.81-15.53-11.81-15.53-1.55-1.27-.45-2.41-.45-2.41,4.58-.53,7.8-3.15,10.54-4.86,2.74-1.72-1.14-11.19-1.14-11.19,0,0,0-5.11,.16-5.19,.16-.08,.65-2.12,.65-2.12,0,0,.26-3.24-.42-5.15-1.11-.85-2.44-.81-3.69-.27-.3,.46-.66,1.09-1.01,1.96,0,.05,.02,.11,.02,.16,.02,.48-.08,.98-.25,1.46,0,.04-.02,.08-.03,.12,0,.02,0,.03,0,.05,0,0,0,0,0,0,.01,.07,0,.13-.02,.19,0,0,0,0,0,.01-.13,.68,0,1.42,.19,2.08,.1,.34,.26,.65,.4,.96,.11,.11,.19,.17,.19,.17l.12,1.06c.74,1.55-.82,10.05-.69,11.28,.12,1.23-.9,1.43-1.35,1.96-.43,.51-8.72,1.31-9.5,1.38,0,0,0,0,0,0,0,0,0,0,0,0-.03,0-.05,0-.05,0v-.03s-.01-.01-.02-.02c0,0-.02-.02-.03-.03-.07-.23-.07-.43-.05-.66-.06-.49,.2-1.03,.29-1.52-.04-.34-.08-.7-.11-1.12-.27-3.44,.14-4.2,.41-4.58,.22-.31,.65-.76,1.46-1.1,.23-.37,.52-.71,.87-.99v-.16s-.08-.05-.12-.08h-.25l-.08-.05-.7-.4s-1.79,.01-2.63,.01c-.38,0-.73-.04-1.06-.11-.26,.05-.53,.08-.82,.08-3.03,0-4.64-4.73-4.64-4.73-4.17,.25-4.86,4.33-4.86,4.33-.53,1.63,0,4.66,0,4.66,1.27-.61,3.06,3.27,3.06,3.27,.74,4.13-2.37,4.29-2.37,4.29h-4.86c-7.4,6.5-6.78,20.26-6.78,20.26-.04,3.6,14.1,10.83,14.1,10.83,.74,.94,3.31,2.17,3.31,2.17,2.08-.08,2.74-.78,2.74-.78,1.31-.29,1.55-.41,1.55-.41v-.65h.98v.45c-.08,.69,1.23,2.04,1.23,2.04,8.42,3.31,12.09,9.32,12.09,9.32v5.31c-4.25,1.55-5.43,4.9-5.43,4.9,.33,1.55,3.43,3.19,3.43,3.19l2.45-.04c1.8,0,4.29,3.06,4.29,3.06,3.06,4.29,3.47,9.72,3.47,9.72-.98,1.35-.08,2.9-.08,2.9l-.04,4.37-.08,.82c0,3.27,.49,3.19,1.23,3.47,.74,.29,2.25,.04,2.66,0,.41-.04,1.59-.94,1.96-1.14,.37-.2,.74-1.1,.94-2.29,.2-1.18-.57-2.04-.57-2.04,0,0-.08-1.88-.04-3.68,.04-1.8-1.02-3.15-1.02-3.15-1.39-.45-4.17-20.92-4.17-20.92-.37-1.84,11.44-7.64,11.44-7.64,1.88-1.14,2.08-5.8,2.08-5.8-.08-2.9-17.08-11.48-17.08-11.48Zm-20.29,4.22h-2.89v.27h-2.78s-6.41-4.66-8.77-8.39c-.86-1.36,0-2.18,0-2.18l1.69-3.65s.71-2.72,2.18,0c0,0,4.41,9.04,10.13,10.9v.33s.16,.16,.33,.43c.3,.49,.64,1.35,.11,2.3Zm22.61,13.24s-.6-2.4-1.14-2.94l-.54-.54v-1.36h.82s4.52,1.04,4.36,1.58c-.16,.54-3.49,3.27-3.49,3.27Z"/><path class="cls-2" d="M129.35,84.77c-.86-.19-.96-.41-.96-.41-2.33-6.03-9.74-4.74-9.74-4.74l.3,3.15,4.68,2.86,4.75-1.14-1.18,2.66c.14-.57,2.33-1.37,2.33-1.37,.5-.13,.25-.6,.1-.83-.1-.05-.19-.11-.28-.17Z"/><path class="cls-2" d="M139.41,96.35c-.11-.52-.9-.3-.79,.22,.96,4.53,1.96,9.12-.11,13.5-1.39,2.93-3.39,5.48-4.33,8.62-.15,.51,.64,.73,.79,.22,1.11-3.72,3.83-6.66,5.02-10.33,1.29-3.96,.25-8.27-.58-12.22Z"/><path class="cls-2" d="M125.19,154.89c-3.32-8.55-6.88-18.42-1.92-27.09,.3-.52-.5-.99-.8-.47-5.09,8.9-1.59,18.99,1.83,27.8,.21,.55,1.11,.31,.89-.25Z"/><path class="cls-2" d="M144.47,59.7c.24,2.93-1.29,5.94-2.34,8.58-.58,1.45-1.12,2.93-1.41,4.47-.31,1.7-.15,3.46-.77,5.1-.14,.36,.45,.52,.58,.16,.66-1.72,.47-3.57,.83-5.35,.36-1.8,1.06-3.5,1.75-5.2,.84-2.06,1.79-4.33,1.94-6.6-.22-.38-.42-.76-.59-1.17Z"/></g></g><g><g><path class="cls-2" d="M201.75,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M340.67,152.56c-2.24,0-4-1.84-4-4.08V57.47h-25.35c-2.24,0-4.08-1.84-4.08-4.08v-12.64c0-2.24,1.84-4,4.08-4h73.02c2.24,0,4.08,1.76,4.08,4v12.64c0,2.24-1.84,4.08-4.08,4.08h-25.35v91.01c0,2.24-1.76,4.08-4,4.08h-14.32Z"/><path class="cls-2" d="M433.28,150.64c-6-2.56-11.2-6.4-15.44-11.44-3.84-4.56-6.72-9.92-8.64-16-1.84-5.68-2.72-11.68-2.72-17.99V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,7.68,1.76,14.08,5.36,19.19,4.24,6.16,10.24,9.2,18.07,9.2s13.76-3.04,18.07-9.2c3.6-5.2,5.36-11.6,5.36-19.19V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4V105.21c0,6.32-.88,12.32-2.72,17.99-1.92,6.08-4.8,11.44-8.64,16-4.24,5.04-9.44,8.88-15.52,11.44-5.76,2.48-12.08,3.76-18.95,3.76s-13.2-1.28-19.03-3.76Z"/><path class="cls-2" d="M530.62,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h37.51c17.59,0,31.51,5.92,41.75,17.75,4.72,5.36,8.24,11.68,10.56,18.79,2.16,6.64,3.28,13.76,3.28,21.35s-1.12,14.64-3.28,21.35c-2.32,7.12-5.84,13.36-10.56,18.71-10.16,11.92-24.07,17.83-41.75,17.83h-37.51Zm37.51-20.79c11.2,0,19.83-4.08,25.83-12.24,4.88-6.64,7.36-14.96,7.36-24.87,0-4.56-.56-8.96-1.68-13.04-2.96-10.16-8.64-17.2-17.04-21.11-4.32-2-9.12-3.04-14.47-3.04h-19.2v74.3h19.2Z"/></g><path class="cls-2" d="M4.08,152.56c-2.24,0-4.08-1.84-4.08-4.08V40.75c0-2.24,1.84-4,4.08-4h14.24c2.24,0,4.08,1.76,4.08,4v91.01h49.74c2.24,0,4.08,1.84,4.08,4.08v12.64c0,2.24-1.84,4.08-4.08,4.08H4.08Z"/><path class="cls-2" d="M277.9,63.32c-4.42,0-8.39-1.86-11.21-4.83v89.99c0,2.24,1.84,4.08,4.08,4.08h14.24c2.24,0,4.08-1.84,4.08-4.08V58.52c-2.82,2.95-6.78,4.8-11.18,4.8Z"/><circle class="cls-3" cx="277.9" cy="47.85" r="11.09"/></g></g></g></svg>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a href="project-board.html" class="sidebar-logo">
+    <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg>
+    <span class="sidebar-logo-text">LATITUD</span>
   </a>
-  <nav class="nav">
-    <a href="project-board.html">Projetos</a>
-    <a href="overview.html">Overview</a>
-    <a href="cronograma.html">Cronograma</a>
-    <a href="team.html" class="active">Equipe</a>
-    <a href="rdo.html">RDO</a>
-    <a href="config.html" class="nav-icon" id="configLink" title="Configuracoes">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    </a>
+  <nav class="sidebar-nav">
+    <a href="project-board.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="sidebar-link-label">Projetos</span></a>
+    <a href="overview.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="sidebar-link-label">Overview</span></a>
+    <a href="cronograma.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="sidebar-link-label">Cronograma</span></a>
+    <a href="team.html" class="sidebar-link active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span class="sidebar-link-label">Equipe</span></a>
+    <a href="config.html" class="sidebar-link sidebar-link-config" id="configLink"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="sidebar-link-label">Configuracoes</span></a>
   </nav>
-  <div class="header-right">
-    <span id="userBadge" style="font-size:.78rem;color:var(--text-dim)"></span>
-    <button onclick="doLogout()" style="background:none;border:1px solid #3a3020;color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;font-family:'Barlow',sans-serif">Sair</button>
-    <div class="team-count">Membros: <strong id="totalCount">0</strong></div>
-    <button class="btn-new" onclick="openModal()">+ Novo Colaborador</button>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-user-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <span class="sidebar-user-name" id="userBadge"></span>
+    </div>
+    <button class="btn-logout-sidebar" onclick="doLogout()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sair</span></button>
   </div>
-</header>
+</aside>
+
+<div class="main-content">
+  <!-- TOPBAR (mobile) -->
+  <div class="topbar">
+    <a href="project-board.html" class="topbar-logo"><svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg></a>
+    <div class="topbar-right">
+      <button class="topbar-hamburger" onclick="document.getElementById('mobileMenuOverlay').classList.add('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </div>
 
 <main class="page-body">
-  <h1 class="page-title">Equipe do Projeto</h1>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+    <h1 class="page-title" style="margin-bottom:0">Equipe do Projeto</h1>
+    <div class="team-count" style="margin-left:auto">Membros: <strong id="totalCount">0</strong></div>
+    <button class="btn-new" onclick="openModal()">+ Novo Colaborador</button>
+  </div>
   <p class="page-sub">Gerencie os colaboradores, suas fotos, cargos e cores de identificação.</p>
 
   <div class="search-bar">
@@ -396,6 +491,7 @@ body{
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
     if(cl&&u.role!=='admin') cl.style.display='none';
+    document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
   });
@@ -692,5 +788,19 @@ db.ref('projects').on('value',snap=>{
 // Fallback
 setTimeout(()=>{ if(!_fbReady){ _fbReady=true; render(); } }, 3000);
 </script>
+</div><!-- /main-content -->
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mobile-menu-panel">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobileMenuOverlay').classList.remove('open')">&times;</button>
+    <a href="project-board.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Projetos</a>
+    <a href="overview.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</a>
+    <a href="cronograma.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma</a>
+    <a href="team.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Equipe</a>
+    <a href="config.html" class="mm-link-config"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuracoes</a>
+  </div>
+</div>
+
 </body>
 </html>
