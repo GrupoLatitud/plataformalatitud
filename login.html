@@ -254,8 +254,9 @@ async function doLogin(e){
       loginAt:Date.now()
     };
     localStorage.setItem('loggedUser',JSON.stringify(sessionData));
-    // Encarregado goes to overview, others to project-board
-    window.location.href=found.role==='encarregado'?'overview.html':'project-board.html';
+    // Redirect based on role
+    const dest=found.role==='encarregado'?'overview.html':found.role==='compras'?'locacao.html':'project-board.html';
+    window.location.href=dest;
   }catch(err){
     errEl.textContent='Erro ao conectar. Tente novamente.';
     errEl.classList.add('show');

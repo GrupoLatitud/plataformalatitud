@@ -358,6 +358,7 @@ body{
         <option value="admin">Administrador</option>
         <option value="gestao">Gestao</option>
         <option value="encarregado">Encarregado</option>
+        <option value="compras">Compras</option>
       </select>
     </div>
     <div class="field" id="fieldProjetos">
@@ -397,6 +398,7 @@ body{
   const session=localStorage.getItem('loggedUser');
   if(!session){window.location.href='login.html';return;}
   const user=JSON.parse(session);
+  if(user.role==='compras'){window.location.href='locacao.html';return;}
   if(user.role!=='admin'&&user.role!=='gestao'){window.location.href='overview.html';return;}
   window.currentUser=user;
 })();
@@ -472,13 +474,14 @@ let usersData={};  // Firebase object {key: userData}
 let projectsList=[];
 let editingKey=null;
 
-const ROLE_LABELS={admin:'Administrador',gestao:'Gestao',encarregado:'Encarregado'};
+const ROLE_LABELS={admin:'Administrador',gestao:'Gestao',encarregado:'Encarregado',compras:'Compras'};
 
 /* Pages per role (auto-assigned) */
 const ROLE_PAGES={
-  admin:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'config':true},
+  admin:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'locacao':true,'config':true},
   gestao:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'config':true},
-  encarregado:{'overview':true}
+  encarregado:{'overview':true},
+  compras:{'locacao':true}
 };
 
 /* ── INIT ─────────────────────────────────────── */
@@ -558,7 +561,10 @@ function onRoleChange(){
   const role=document.getElementById('uRole').value;
   const fieldProjetos=document.getElementById('fieldProjetos');
   const allRow=document.getElementById('allProjectsRow');
-  if(role==='admin'||role==='gestao'){
+  if(role==='compras'){
+    // Compras: não precisa selecionar projetos
+    fieldProjetos.style.display='none';
+  }else if(role==='admin'||role==='gestao'){
     // Admin/Gestao: show projects with "Todos" option
     fieldProjetos.style.display='block';
     allRow.style.display='flex';
@@ -578,6 +584,7 @@ function onRoleChange(){
     sel.querySelectorAll('option').forEach(opt=>{
       if(opt.value==='admin') opt.disabled=true;
       if(opt.value==='gestao') opt.disabled=true;
+      if(opt.value==='compras') opt.disabled=true;
     });
     sel.value='encarregado';
   }
@@ -694,6 +701,8 @@ async function saveUser(){
   if(role==='encarregado' && selectedProjectIds.size===0){
     alert('Selecione pelo menos 1 projeto para o Encarregado.');return;
   }
+  // Compras: não precisa de projetos
+
 
   // Check for duplicate email
   const existingKeys=Object.keys(usersData);
@@ -706,9 +715,11 @@ async function saveUser(){
   // Auto-assign pages based on role
   const pages=ROLE_PAGES[role]||ROLE_PAGES.encarregado;
 
-  // Admin/Gestao: can choose all or specific; Encarregado: must select specific
+  // Admin/Gestao: can choose all or specific; Encarregado: must select specific; Compras: no projects
   let allowedProjects;
-  if(role==='admin'||role==='gestao'){
+  if(role==='compras'){
+    allowedProjects='none';
+  }else if(role==='admin'||role==='gestao'){
     allowedProjects=allProjectsMode?'all':[...selectedProjectIds];
   }else{
     // Encarregado: never "all", always specific

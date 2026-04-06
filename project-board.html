@@ -543,12 +543,17 @@ body{
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
   if(u.role==='encarregado'){window.location.href='overview.html';return;}
+  if(u.role==='compras'){window.location.href='locacao.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
     if(cl&&u.role!=='admin') cl.style.display='none';
     document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
     if(u.role!=='admin') document.querySelectorAll('.btn-admin-only').forEach(el=>el.style.display='none');
+    // Ocultar Locação para gestão (só admin e compras veem)
+    if(u.role!=='admin'){
+      document.querySelectorAll('a[href="locacao.html"]').forEach(el=>el.style.display='none');
+    }
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
   });

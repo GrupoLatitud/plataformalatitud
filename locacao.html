@@ -522,12 +522,26 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.role==='encarregado'){window.location.href='overview.html';return;}
+  // Apenas admin e compras podem acessar locação
+  if(u.role!=='admin'&&u.role!=='compras'){
+    if(u.role==='encarregado') window.location.href='overview.html';
+    else window.location.href='project-board.html';
+    return;
+  }
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
     if(cl&&u.role!=='admin') cl.style.display='none';
     document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
+    // Compras: ocultar links de outras páginas na sidebar e mobile menu
+    if(u.role==='compras'){
+      document.querySelectorAll('.sidebar-link:not(.active)').forEach(el=>{
+        if(!el.href.includes('locacao.html')) el.style.display='none';
+      });
+      document.querySelectorAll('.mobile-menu-panel a:not(.active)').forEach(el=>{
+        if(!el.href.includes('locacao.html')) el.style.display='none';
+      });
+    }
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
   });

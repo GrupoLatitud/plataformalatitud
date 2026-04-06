@@ -1063,8 +1063,9 @@ console.log('[Overview] Script iniciado');
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  // Admin sempre tem acesso; outros verificam permissao
-  // Todos os perfis tem acesso ao overview
+  // Compras só acessa locação
+  if(u.role==='compras'){window.location.href='locacao.html';return;}
+  // Todos os demais perfis tem acesso ao overview
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     // Encarregado: hide all nav links except Overview (desktop + mobile)
@@ -1077,6 +1078,10 @@ console.log('[Overview] Script iniciado');
     if(cl&&u.role!=='admin'&&u.role!=='gestao') cl.style.display='none';
     if(u.role!=='admin'&&u.role!=='gestao'){
       document.querySelectorAll('.mm-link-config').forEach(el=>el.style.display='none');
+    }
+    // Ocultar Locação para gestão e encarregado
+    if(u.role!=='admin'){
+      document.querySelectorAll('a[href="locacao.html"]').forEach(el=>el.style.display='none');
     }
     const ub=document.getElementById('userBadge');
     if(ub) ub.textContent=u.name;
