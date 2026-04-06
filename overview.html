@@ -1628,23 +1628,53 @@ function confirmImportPrevious(){
     renderWorkforce();
   }
 
-  // Import Atividades
+  // Import Atividades (recalcular saldo atualizado)
   if(document.getElementById('impAtividades').checked){
     const acts=rdo.activities?(Array.isArray(rdo.activities)?rdo.activities:Object.values(rdo.activities)):[];
-    currentRdo.activities=acts.map(a=>({
-      ...JSON.parse(JSON.stringify(a)),
-      qtyDia:0
-    }));
+    const projId=rdo.projectId;
+    const proj=projects.find(p=>p.id==projId);
+    const projItems=(proj&&proj.items)?(Array.isArray(proj.items)?proj.items:Object.values(proj.items)):[];
+    currentRdo.activities=acts.map(a=>{
+      const copy=JSON.parse(JSON.stringify(a));
+      // Find original total from project items
+      const projItem=projItems.find(it=>it.name===a.name);
+      const totalOriginal=projItem?(projItem.qty||0):(a.originalQty||a.totalQty||0);
+      // Calculate consumed across ALL other RDOs (excluding current new one)
+      const consumed=getConsumedQty(projId, a.name);
+      const saldo=Math.max(0,+(totalOriginal-consumed).toFixed(2));
+      return {
+        name:copy.name,
+        totalQty:saldo,
+        originalQty:totalOriginal,
+        unit:copy.unit||'ML',
+        progress:0,
+        qtyDia:0
+      };
+    }).filter(a=>a.totalQty>0); // Remove atividades já concluídas
     renderActivities();
   }
 
-  // Import Materiais
+  // Import Materiais (recalcular saldo atualizado)
   if(document.getElementById('impMateriais').checked){
     const mats=rdo.materials?(Array.isArray(rdo.materials)?rdo.materials:Object.values(rdo.materials)):[];
-    currentRdo.materials=mats.map(m=>({
-      ...JSON.parse(JSON.stringify(m)),
-      qtyDia:0
-    }));
+    const projId=rdo.projectId;
+    const proj=projects.find(p=>p.id==projId);
+    const projMats=(proj&&proj.materials)?(Array.isArray(proj.materials)?proj.materials:Object.values(proj.materials)):[];
+    currentRdo.materials=mats.map(m=>{
+      const copy=JSON.parse(JSON.stringify(m));
+      const projMat=projMats.find(mt=>mt.name===m.name);
+      const totalOriginal=projMat?(projMat.qty||0):(m.originalQty||m.totalQty||0);
+      const consumed=getConsumedMaterialQty(projId, m.name);
+      const saldo=Math.max(0,+(totalOriginal-consumed).toFixed(2));
+      return {
+        name:copy.name,
+        totalQty:saldo,
+        originalQty:totalOriginal,
+        unit:copy.unit||'UNI',
+        progress:0,
+        qtyDia:0
+      };
+    }).filter(m=>m.totalQty>0); // Remove materiais já consumidos
     renderMaterialsRdo();
   }
 
