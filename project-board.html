@@ -178,7 +178,7 @@ body{
 }
 .lane-cards{
   display:flex;gap:14px;padding:14px;
-  overflow-x:auto;flex:1;align-items:flex-start;flex-wrap:wrap;
+  overflow-x:auto;flex:1;align-items:flex-start;
 }
 .lane-cards::-webkit-scrollbar{height:6px}
 .lane-cards::-webkit-scrollbar-track{background:transparent}
@@ -186,7 +186,7 @@ body{
 
 /* CARD */
 .card{
-  width:calc(20% - 12px);min-width:180px;flex-shrink:0;flex-grow:1;max-width:260px;
+  width:210px;min-width:210px;flex-shrink:0;
   background:var(--surface2);border-radius:var(--radius);
   overflow:hidden;cursor:grab;position:relative;
   transition:transform .15s,box-shadow .15s;
@@ -514,8 +514,7 @@ body{
   .board{padding:12px}
   .lane{flex-direction:column}
   .lane-sidebar{width:100%;min-width:100%;flex-direction:row;border-right:none;border-bottom:1px solid #2e2818;padding:8px 14px;gap:8px}
-  .lane-cards{padding:10px;flex-wrap:wrap}
-  .card{width:calc(50% - 7px);min-width:150px}
+  .lane-cards{padding:10px}
   .modal{padding:20px 16px}
   .chips-grid.cols-3{grid-template-columns:1fr 1fr}
 }
