@@ -1089,7 +1089,20 @@ function openNewRdoForProject(projectId){
   document.getElementById('formTitle').textContent='Novo RDO — '+(p?p.name:'');
   resetForm();
   document.getElementById('fProject').value=projectId;
+  autoFillEquipment(projectId);
   showFormView();
+}
+
+function autoFillEquipment(projectId){
+  const proj=projects.find(p=>p.id==projectId);
+  if(!proj)return;
+  const projLocs=locacoes.filter(l=>l.projeto===proj.name);
+  if(!projLocs.length)return;
+  currentRdo.equipment=projLocs.map(l=>({
+    name:l.equipamento,
+    fornecedor:l.fornecedor||''
+  }));
+  renderEquipment();
 }
 
 /* ── OPEN EDIT RDO ─────────────────────────────── */
