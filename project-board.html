@@ -280,6 +280,47 @@ body{
 .team-expanded-name{font-size:.78rem;font-weight:500;line-height:1.15}
 .team-expanded-role{font-size:.62rem;color:var(--text-dim)}
 
+/* Projetos Finalizados */
+.fin-header{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:12px 16px;background:var(--surface);border:1px solid #2e2818;
+  border-radius:8px;user-select:none;transition:background .15s;
+}
+.fin-header:hover{background:var(--surface2)}
+.fin-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;
+  color:var(--text-dim);
+}
+.fin-count{
+  background:rgba(255,255,255,.08);color:var(--text-dim);
+  font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:10px;
+}
+.fin-toggle{
+  color:var(--text-dim);font-size:.7rem;margin-left:auto;
+  transition:transform .2s;
+}
+.fin-toggle.open{transform:rotate(90deg)}
+.fin-list{
+  background:var(--surface);border:1px solid #2e2818;border-top:none;
+  border-radius:0 0 8px 8px;overflow:hidden;
+}
+.fin-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;border-bottom:1px solid #1a1610;
+  font-size:.85rem;color:var(--text-dim);transition:background .15s;
+}
+.fin-row:last-child{border-bottom:none}
+.fin-row:hover{background:rgba(255,255,255,.03)}
+.fin-row-name{flex:1;font-weight:600;font-family:'Barlow Condensed',sans-serif;font-size:.95rem}
+.fin-row-date{font-size:.75rem;color:var(--text-dim)}
+.btn-garantia{
+  background:none;border:1px solid var(--orange);color:var(--orange);
+  padding:4px 12px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.78rem;
+  white-space:nowrap;transition:background .2s,color .2s;
+}
+.btn-garantia:hover{background:var(--orange);color:#fff}
+
 /* ITEMS (avanços) */
 .card-items{margin-top:4px;display:flex;flex-direction:column;gap:5px}
 .card-item{
@@ -483,6 +524,16 @@ body{
 </div>
 
 <main class="board" id="board"></main>
+
+<!-- PROJETOS FINALIZADOS -->
+<div id="finalizadosSection" style="display:none;padding:0 28px 28px">
+  <div class="fin-header" onclick="toggleFinalizados()">
+    <span class="fin-title">Projetos Finalizados</span>
+    <span class="fin-count" id="finProjCount">0</span>
+    <span class="fin-toggle" id="finProjToggle">▶</span>
+  </div>
+  <div id="finalizadosList" class="fin-list" style="display:none"></div>
+</div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
@@ -696,7 +747,9 @@ function getVisibleProjects(){
 function render(){
   const board=document.getElementById('board');
   board.innerHTML='';
-  const visibleProjects=getVisibleProjects();
+  const allVisible=getVisibleProjects();
+  const visibleProjects=allVisible.filter(p=>!p.finalizado);
+  const finalizados=allVisible.filter(p=>p.finalizado);
 
   // Counters
   const counters=document.getElementById('counters');
@@ -716,7 +769,7 @@ function render(){
       e.preventDefault();lane.classList.remove('drag-over');
       const id=+e.dataTransfer.getData('text/plain');
       const proj=projects.find(p=>p.id===id);
-      if(proj){proj.stage=stage.key;saveProjects();render()}
+      if(proj&&!proj.finalizado){proj.stage=stage.key;saveProjects();render()}
     });
 
     lane.innerHTML=`
@@ -729,6 +782,24 @@ function render(){
     `;
     board.appendChild(lane);
   });
+
+  // Finalizados
+  const finSection=document.getElementById('finalizadosSection');
+  if(finalizados.length){
+    finSection.style.display='';
+    document.getElementById('finProjCount').textContent=finalizados.length;
+    const list=document.getElementById('finalizadosList');
+    list.innerHTML=finalizados.map(p=>{
+      const dateFin=p.dataFinalizacao?formatDate(p.dataFinalizacao):'—';
+      return `<div class="fin-row">
+        <span class="fin-row-name">${p.name}</span>
+        <span class="fin-row-date">Finalizado: ${dateFin}</span>
+        <button class="btn-garantia" onclick="retornoGarantia(${p.id})">⚠️ Retorno Garantia</button>
+      </div>`;
+    }).join('');
+  }else{
+    finSection.style.display='none';
+  }
 
   // Close context menus on outside click
   document.addEventListener('click',closeAllMenus);
@@ -802,7 +873,7 @@ function renderCard(p,stage){
           <div class="ctx-sep"></div>
           ${STAGES.filter(s=>s.key!==p.stage).map(s=>`<div class="ctx-item" onclick="moveProject(${p.id},'${s.key}')">→ ${s.label}</div>`).join('')}
           <div class="ctx-sep"></div>
-          <div class="ctx-item danger" onclick="removeProject(${p.id})">🗑 Remover projeto</div>
+          <div class="ctx-item" onclick="finalizarProject(${p.id})" style="color:#2ecc71">✅ Finalizar projeto</div>
         </div>
       </div>
     </div>`;
@@ -844,10 +915,30 @@ function moveProject(id,stage){
   const p=projects.find(x=>x.id===id);
   if(p){p.stage=stage;saveProjects();render()}
 }
-function removeProject(id){
-  if(confirm('Tem certeza que deseja remover este projeto?')){
-    projects=projects.filter(p=>p.id!==id);saveProjects();render();
+function finalizarProject(id){
+  closeAllMenus();
+  if(!confirm('Finalizar este projeto? Ele será movido para "Projetos Finalizados".'))return;
+  const p=projects.find(x=>x.id===id);
+  if(p){
+    p.finalizado=true;
+    p.dataFinalizacao=new Date().toISOString().split('T')[0];
+    saveProjects();render();
   }
+}
+function retornoGarantia(id){
+  const p=projects.find(x=>x.id===id);
+  if(p){
+    p.finalizado=false;
+    delete p.dataFinalizacao;
+    p.stage='garantia';
+    saveProjects();render();
+  }
+}
+let finalizadosVisible=false;
+function toggleFinalizados(){
+  finalizadosVisible=!finalizadosVisible;
+  document.getElementById('finalizadosList').style.display=finalizadosVisible?'':'none';
+  document.getElementById('finProjToggle').classList.toggle('open',finalizadosVisible);
 }
 
 /* ── MODAL ───────────────────────────────────────── */
