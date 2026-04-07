@@ -338,7 +338,14 @@ body{
   background:var(--surface2);border:1px solid #2e2818;border-radius:10px;
   overflow:hidden;position:relative;display:flex;align-items:stretch;
 }
-.photo-item img{width:200px;min-height:140px;object-fit:cover;display:block;flex-shrink:0}
+.photo-item-thumb{width:180px;height:180px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0a0906;cursor:pointer}
+.photo-item-thumb img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.photo-lightbox{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;
+  background:rgba(0,0,0,.9);align-items:center;justify-content:center;cursor:zoom-out;
+}
+.photo-lightbox.open{display:flex}
+.photo-lightbox img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:8px}
 .photo-item-info{flex:1;display:flex;flex-direction:column;padding:12px 14px;min-width:0}
 .photo-item textarea{
   flex:1;background:var(--bg);border:1px solid #2e2818;border-radius:6px;
@@ -1856,7 +1863,9 @@ function renderPhotos(){
   }
   grid.innerHTML=currentRdo.photos.map((p,i)=>`
     <div class="photo-item">
-      <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      <div class="photo-item-thumb" onclick="openLightbox('${p.dataUrl.replace(/'/g,"\\'")}')">
+        <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      </div>
       <div class="photo-item-info">
         <textarea placeholder="Descrição da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
         <div class="photo-time">${p.timestamp||''}</div>
@@ -1908,6 +1917,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   });
 });
+
+/* ── LIGHTBOX ──────────────────────────────────── */
+function openLightbox(src){
+  const lb=document.getElementById('photoLightbox');
+  document.getElementById('lightboxImg').src=src;
+  lb.classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('photoLightbox').classList.remove('open');
+}
 
 /* ── STATUS SELECTION ──────────────────────────── */
 function selectStatus(el){
@@ -2020,5 +2039,10 @@ loadData();
   }
 })();
 </script>
+
+<div class="photo-lightbox" id="photoLightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="Foto ampliada">
+</div>
+
 </body>
 </html>
