@@ -2417,7 +2417,7 @@ function renderRecords(){
     <div class="record-card">
       <div class="record-icon ${r.type}">${icons[r.type]||'?'}</div>
       <div style="flex:1;min-width:0"><div class="record-type">${labels[r.type]||r.type}</div><div class="record-text">${r.text||''}</div></div>
-      <button class="remove-btn" onclick="removeRecord(${i})">✕</button>
+      <button class="remove-btn" onclick="editRecord(${i})" title="Editar" style="font-size:1rem">✏️</button>
     </div>`).join('');
 }
 
@@ -2426,6 +2426,7 @@ function toggleRecordMenu(){
 }
 function addRecord(type){
   document.getElementById('recordMenu').classList.remove('open');
+  editingRecordIdx=null;
   pendingRecordType=type;
   const labels={ocorrencia:'Nova Ocorrencia',evento:'Novo Evento',comentario:'Novo Comentario'};
   document.getElementById('recordModalTitle').textContent=labels[type]||'Novo Registro';
@@ -2435,16 +2436,29 @@ function addRecord(type){
 function closeRecordModal(){
   document.getElementById('recordModalOverlay').classList.remove('open');
 }
+let editingRecordIdx=null;
+
 function confirmRecord(){
   const text=document.getElementById('recordText').value.trim();
   if(!text) return;
-  currentRdo.records.push({type:pendingRecordType,text:text});
+  if(editingRecordIdx!==null){
+    currentRdo.records[editingRecordIdx].text=text;
+    editingRecordIdx=null;
+  }else{
+    currentRdo.records.push({type:pendingRecordType,text:text});
+  }
   renderRecords();
   closeRecordModal();
 }
-function removeRecord(i){
-  currentRdo.records.splice(i,1);
-  renderRecords();
+
+function editRecord(i){
+  const r=currentRdo.records[i];
+  if(!r)return;
+  editingRecordIdx=i;
+  const labels={ocorrencia:'Editar Ocorrencia',evento:'Editar Evento',comentario:'Editar Comentario'};
+  document.getElementById('recordModalTitle').textContent=labels[r.type]||'Editar Registro';
+  document.getElementById('recordText').value=r.text||'';
+  document.getElementById('recordModalOverlay').classList.add('open');
 }
 
 /* ── PHOTOS ────────────────────────────────────── */
