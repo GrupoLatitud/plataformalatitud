@@ -479,6 +479,7 @@ body{
 .record-card{
   background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
   padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px;
+  overflow:hidden;min-width:0;
 }
 .record-icon{
   width:28px;height:28px;border-radius:6px;flex-shrink:0;
@@ -488,7 +489,7 @@ body{
 .record-icon.ocorrencia{background:#f44336}
 .record-icon.evento{background:#2196f3}
 .record-icon.comentario{background:#9c27b0}
-.record-text{flex:1;font-size:.88rem;line-height:1.4}
+.record-text{flex:1;font-size:.88rem;line-height:1.4;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap;min-width:0}
 .record-type{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;font-weight:600}
 .dropdown-add{position:relative;display:inline-block}
 .dropdown-add-menu{
@@ -2415,7 +2416,7 @@ function renderRecords(){
   container.innerHTML=currentRdo.records.map((r,i)=>`
     <div class="record-card">
       <div class="record-icon ${r.type}">${icons[r.type]||'?'}</div>
-      <div style="flex:1"><div class="record-type">${labels[r.type]||r.type}</div><div class="record-text">${r.text||''}</div></div>
+      <div style="flex:1;min-width:0"><div class="record-type">${labels[r.type]||r.type}</div><div class="record-text">${r.text||''}</div></div>
       <button class="remove-btn" onclick="removeRecord(${i})">✕</button>
     </div>`).join('');
 }
