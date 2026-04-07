@@ -333,26 +333,27 @@ body{
 .photo-upload-area:hover{border-color:var(--orange)}
 .photo-upload-area p{color:var(--text-dim);font-size:.88rem}
 .photo-upload-area .icon{font-size:1.8rem;margin-bottom:6px;opacity:.5}
-.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.photos-grid{display:flex;flex-direction:column;gap:14px}
 .photo-item{
   background:var(--surface2);border:1px solid #2e2818;border-radius:10px;
-  overflow:hidden;position:relative;
+  overflow:hidden;position:relative;display:flex;align-items:stretch;
 }
-.photo-item img{width:100%;height:150px;object-fit:cover;display:block}
+.photo-item img{width:200px;min-height:140px;object-fit:cover;display:block;flex-shrink:0}
+.photo-item-info{flex:1;display:flex;flex-direction:column;padding:12px 14px;min-width:0}
 .photo-item textarea{
-  width:100%;background:var(--bg);border:none;border-top:1px solid #2e2818;
-  color:var(--text);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.82rem;
-  resize:none;min-height:50px;
+  flex:1;background:var(--bg);border:1px solid #2e2818;border-radius:6px;
+  color:var(--text);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.85rem;
+  resize:none;min-height:60px;
 }
-.photo-item textarea:focus{outline:none}
+.photo-item textarea:focus{outline:none;border-color:var(--orange)}
 .photo-item .photo-time{
-  font-size:.68rem;color:var(--text-dim);padding:0 10px 8px;
+  font-size:.68rem;color:var(--text-dim);margin-top:8px;
 }
 .photo-item .photo-delete{
-  position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);
+  position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);
   border:none;color:#fff;width:24px;height:24px;border-radius:50%;
   cursor:pointer;font-size:.8rem;display:flex;align-items:center;
-  justify-content:center;transition:background .15s;
+  justify-content:center;transition:background .15s;z-index:2;
 }
 .photo-item .photo-delete:hover{background:#f44336}
 
@@ -1856,9 +1857,11 @@ function renderPhotos(){
   grid.innerHTML=currentRdo.photos.map((p,i)=>`
     <div class="photo-item">
       <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      <div class="photo-item-info">
+        <textarea placeholder="Descrição da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
+        <div class="photo-time">${p.timestamp||''}</div>
+      </div>
       <button class="photo-delete" onclick="removePhoto(${i})">✕</button>
-      <textarea placeholder="Descricao da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
-      <div class="photo-time">${p.timestamp||''}</div>
     </div>`).join('');
 }
 
