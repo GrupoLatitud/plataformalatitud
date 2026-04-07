@@ -241,10 +241,11 @@ body{
 .resp-role{font-size:.62rem;color:var(--text-dim)}
 
 /* Colaboradores */
-.card-collabs{display:flex;align-items:center;gap:0;margin-top:2px}
+.card-collabs{display:flex;align-items:center;gap:0;margin-top:2px;position:relative}
 .card-collabs .avatar{
   width:24px;height:24px;font-size:.58rem;
   border:2px solid var(--surface2);margin-left:-6px;
+  transition:margin .2s,transform .2s;
 }
 .card-collabs .avatar.has-photo{
   border:2px solid;margin-left:-6px;
@@ -255,6 +256,29 @@ body{
   font-size:.6rem;font-weight:600;color:var(--text-dim);
   margin-left:4px;
 }
+
+/* Team expand on hover */
+.card-team{position:relative}
+.card-team-expanded{
+  display:none;position:absolute;bottom:100%;left:0;right:0;
+  background:var(--surface);border:1px solid #2e2818;border-radius:8px;
+  padding:8px;margin-bottom:6px;z-index:50;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);
+  animation:teamPop .15s ease;
+}
+@keyframes teamPop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card-team:hover .card-team-expanded{display:block}
+.card-team:hover .card-collabs .avatar{margin-left:-3px;transform:scale(1.1)}
+.card-team:hover .card-collabs .avatar:first-child{margin-left:0}
+.team-expanded-title{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;font-weight:600}
+.team-expanded-item{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 0;border-bottom:1px solid #1a1610;
+}
+.team-expanded-item:last-child{border-bottom:none}
+.team-expanded-item .avatar{width:22px;height:22px;font-size:.55rem}
+.team-expanded-name{font-size:.78rem;font-weight:500;line-height:1.15}
+.team-expanded-role{font-size:.62rem;color:var(--text-dim)}
 
 /* ITEMS (avanços) */
 .card-items{margin-top:4px;display:flex;flex-direction:column;gap:5px}
@@ -749,15 +773,29 @@ function renderCard(p,stage){
           <div><div class="meta-label">Tempo em Campo</div><div class="meta-value">${tempoEmCampo(p.date)}</div></div>
           <div><div class="meta-label">Contrato: ${p.contratoAssinado?'✅':'🟠'}</div></div>
         </div>
-        ${resp?`
-        <div class="card-responsavel">
-          <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
-          <div><div class="resp-name">${resp.name}</div><div class="resp-role">${resp.role}</div></div>
-        </div>`:''}
-        ${collabs.length?`
-        <div class="card-collabs">
-          ${visCollabs.map(c=>`<div class="avatar${c.photo?' has-photo':''}" style="${c.photo?'border-color:'+c.color:'background:'+c.color}" title="${c.name}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>`).join('')}
-          ${extraCount>0?`<span class="collab-badge">+${extraCount}</span>`:''}
+        ${resp||collabs.length?`
+        <div class="card-team">
+          ${resp?`
+          <div class="card-responsavel">
+            <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
+            <div><div class="resp-name">${resp.name}</div><div class="resp-role">${resp.role}</div></div>
+          </div>`:''}
+          ${collabs.length?`
+          <div class="card-collabs">
+            ${visCollabs.map(c=>`<div class="avatar${c.photo?' has-photo':''}" style="${c.photo?'border-color:'+c.color:'background:'+c.color}" title="${c.name}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>`).join('')}
+            ${extraCount>0?`<span class="collab-badge">+${extraCount}</span>`:''}
+          </div>`:''}
+          <div class="card-team-expanded">
+            <div class="team-expanded-title">Equipe do Projeto</div>
+            ${resp?`<div class="team-expanded-item">
+              <div class="avatar${resp.photo?' has-photo':''}" style="${resp.photo?'border-color:'+resp.color:'background:'+resp.color}">${resp.photo?`<img src="${resp.photo}" alt="${resp.name}">`:initials(resp.name)}</div>
+              <div><div class="team-expanded-name">${resp.name}</div><div class="team-expanded-role">⭐ ${resp.role}</div></div>
+            </div>`:''}
+            ${collabs.map(c=>`<div class="team-expanded-item">
+              <div class="avatar${c.photo?' has-photo':''}" style="${c.photo?'border-color:'+c.color:'background:'+c.color}">${c.photo?`<img src="${c.photo}" alt="${c.name}">`:initials(c.name)}</div>
+              <div><div class="team-expanded-name">${c.name}</div><div class="team-expanded-role">${c.role}</div></div>
+            </div>`).join('')}
+          </div>
         </div>`:''}
         <div class="ctx-menu" id="ctx-${p.id}">
           <div class="ctx-item" onclick="editProject(${p.id})">✏️ Editar projeto</div>
