@@ -766,7 +766,7 @@ body{
     <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">Equipamentos locados para este projeto:</p>
     <div class="chips-grid" id="equipChips" style="grid-template-columns:1fr"></div>
     <div id="equipEmptyMsg" style="display:none;text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem">
-      Nenhum equipamento locado para este projeto.<br>Cadastre na página Locação de Equipamentos.
+      Nenhum equipamento locado para este projeto.
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeEquipModal()">Cancelar</button>
@@ -1388,7 +1388,7 @@ function openEquipSelector(){
     const addedNames=currentRdo.equipment.map(e=>e.name);
     const available=projLocs.filter(l=>!addedNames.includes(l.equipamento));
     if(!available.length){
-      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">Todos os equipamentos já foram adicionados.</div>';
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">Todos os equipamentos vinculados a esse projeto já foram adicionados.</div>';
     }else{
       chips.innerHTML=available.map((l,i)=>{
         return `<div class="chip" data-idx="${i}" onclick="toggleEquipChip(this,${i})">
