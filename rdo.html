@@ -110,7 +110,16 @@ body{
 /* SECTION */
 .rdo-section{
   background:var(--surface);border:1px solid #2e2818;border-radius:12px;
-  padding:20px;margin-bottom:20px;
+  padding:20px;margin-bottom:20px;transition:border-color .3s;
+}
+.rdo-section.field-error{
+  border-color:#e74c3c!important;
+  animation:shakeError .4s ease;
+}
+@keyframes shakeError{
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-6px)}
+  40%,80%{transform:translateX(6px)}
 }
 .rdo-section-title{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;
@@ -571,7 +580,7 @@ body{
 
     <!-- Date -->
     <select id="fProject" style="display:none"></select>
-    <div class="rdo-section">
+    <div class="rdo-section" id="secDate">
       <div class="rdo-section-title">Data do Relatório</div>
       <div class="field">
         <div class="field-inline">
@@ -582,7 +591,7 @@ body{
     </div>
 
     <!-- Detalhes do Dia -->
-    <div class="rdo-section">
+    <div class="rdo-section" id="secTurnos">
       <div class="rdo-section-title">Detalhes do Dia</div>
       <div class="check-group">
         <label class="check-item"><input type="checkbox" id="fDiurno" checked onchange="updateWeatherVisibility()"> Diurno</label>
@@ -621,7 +630,7 @@ body{
     </div>
 
     <!-- Mao de Obra -->
-    <div class="rdo-section">
+    <div class="rdo-section" id="secWorkforce">
       <div class="section-header">
         <div class="rdo-section-title">Mao de Obra <span class="count-badge" id="workforceCount">0</span></div>
         <button class="btn-apropriar" onclick="openTeamModal()">+ Apropriar</button>
@@ -671,7 +680,7 @@ body{
     </div>
 
     <!-- Registros -->
-    <div class="rdo-section">
+    <div class="rdo-section" id="secRecords">
       <div class="section-header">
         <div class="rdo-section-title">Registros</div>
         <div class="dropdown-add">
@@ -1890,13 +1899,30 @@ function selectStatus(el){
 }
 
 /* ── SAVE RDO ──────────────────────────────────── */
+function highlightRequiredSection(section){
+  document.querySelectorAll('.rdo-section.field-error').forEach(s=>s.classList.remove('field-error'));
+  section.classList.add('field-error');
+  section.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>section.classList.remove('field-error'),3000);
+}
+
 function saveRdo(){
   const projectId=document.getElementById('fProject').value;
   const date=document.getElementById('fDate').value;
-  if(!date){alert('Informe a data do relatório.');return;}
-  if(!document.getElementById('fDiurno').checked && !document.getElementById('fNoturno').checked){alert('Selecione pelo menos um turno (Diurno ou Noturno).');return;}
-  if(currentRdo.workforce.length<1){alert('Adicione pelo menos 1 pessoa na Mão de Obra.');return;}
-  if(!currentRdo.records.length){alert('Adicione pelo menos 1 registro (Ocorrência ou Comentário).');return;}
+
+  // Validação de campos obrigatórios
+  if(!date){
+    highlightRequiredSection(document.getElementById('secDate'));return;
+  }
+  if(!document.getElementById('fDiurno').checked && !document.getElementById('fNoturno').checked){
+    highlightRequiredSection(document.getElementById('secTurnos'));return;
+  }
+  if(currentRdo.workforce.length<1){
+    highlightRequiredSection(document.getElementById('secWorkforce'));return;
+  }
+  if(!currentRdo.records.length){
+    highlightRequiredSection(document.getElementById('secRecords'));return;
+  }
 
   // Collect weather
   const weather={};
