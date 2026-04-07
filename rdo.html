@@ -829,6 +829,7 @@ const db=firebase.database();
 let rdoList=[];
 let projects=[];
 let team=[];
+let locacoes=[];
 let editingRdoId=null;
 let currentRdo={
   workforce:[],
@@ -885,6 +886,17 @@ function loadData(){
   }, err=>{
     console.error('Error loading rdo:', err);
     rdoLoaded=true;rdoList=[];renderList();
+  });
+
+  // Load locações for equipment
+  db.ref('locacoes').on('value', snap=>{
+    const data=snap.val();
+    if(data){
+      const arr=Array.isArray(data)?data:Object.values(data);
+      locacoes=arr.filter(l=>l!=null&&!l.finalizado);
+    }else{
+      locacoes=[];
+    }
   });
 }
 
@@ -1316,21 +1328,41 @@ function confirmTeamSelection(){
 }
 
 /* ── EQUIPMENT ─────────────────────────────────── */
+function getProjectLocacoes(){
+  const projId=document.getElementById('fProject').value;
+  if(!projId)return[];
+  const proj=projects.find(p=>p.id==projId);
+  if(!proj)return[];
+  return locacoes.filter(l=>l.projeto===proj.name);
+}
+
 function renderEquipment(){
   const body=document.getElementById('equipmentBody');
   document.getElementById('equipmentCount').textContent=currentRdo.equipment.length;
+  const projLocs=getProjectLocacoes();
   if(!currentRdo.equipment.length){
-    body.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px">Nenhum equipamento.</td></tr>';
+    const msg=projLocs.length?'Nenhum equipamento adicionado.':'Nenhum equipamento locado para este projeto.';
+    body.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px">'+msg+'</td></tr>';
     return;
   }
-  body.innerHTML=currentRdo.equipment.map((e,i)=>`
-    <tr>
-      <td><input type="text" value="${e.name||''}" onchange="currentRdo.equipment[${i}].name=this.value" placeholder="Nome do equipamento"></td>
+  body.innerHTML=currentRdo.equipment.map((e,i)=>{
+    const opts=projLocs.map(l=>`<option value="${l.equipamento}" ${e.name===l.equipamento?'selected':''}>${l.equipamento} (${l.fornecedor})</option>`).join('');
+    return `<tr>
+      <td><select onchange="currentRdo.equipment[${i}].name=this.value" style="width:100%">
+        <option value="">Selecione...</option>
+        ${opts}
+      </select></td>
       <td><input type="number" value="${e.quantity||1}" min="1" onchange="currentRdo.equipment[${i}].quantity=parseInt(this.value)||1"></td>
       <td><button class="remove-btn" onclick="removeEquipment(${i})">✕</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 function addEquipment(){
+  const projLocs=getProjectLocacoes();
+  if(!projLocs.length){
+    alert('Nenhum equipamento locado para este projeto. Cadastre na página Locação de Equipamentos.');
+    return;
+  }
   currentRdo.equipment.push({name:'',quantity:1});
   renderEquipment();
 }
