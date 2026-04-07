@@ -639,7 +639,7 @@ body{
     <div class="rdo-section">
       <div class="section-header">
         <div class="rdo-section-title">Equipamentos <span class="count-badge" id="equipmentCount">0</span></div>
-        <button class="btn-add-small" onclick="addEquipment()">+ Adicionar</button>
+        <button class="btn-add-small" onclick="openEquipSelector()">+ Adicionar</button>
       </div>
       <div class="table-scroll">
         <table class="data-table" id="equipmentTable">
@@ -754,6 +754,22 @@ body{
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeActivityModal()">Cancelar</button>
       <button class="btn-save" onclick="confirmActivitySelection()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUIPMENT SELECTOR MODAL -->
+<div class="modal-overlay" id="equipModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Selecionar Equipamento</div>
+    <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">Equipamentos locados para este projeto:</p>
+    <div class="chips-grid" id="equipChips" style="grid-template-columns:1fr"></div>
+    <div id="equipEmptyMsg" style="display:none;text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem">
+      Nenhum equipamento locado para este projeto.<br>Cadastre na página Locação de Equipamentos.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEquipModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmEquipSelection()">Adicionar</button>
     </div>
   </div>
 </div>
@@ -1339,32 +1355,80 @@ function getProjectLocacoes(){
 function renderEquipment(){
   const body=document.getElementById('equipmentBody');
   document.getElementById('equipmentCount').textContent=currentRdo.equipment.length;
-  const projLocs=getProjectLocacoes();
   if(!currentRdo.equipment.length){
+    const projLocs=getProjectLocacoes();
     const msg=projLocs.length?'Nenhum equipamento adicionado.':'Nenhum equipamento locado para este projeto.';
     body.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px">'+msg+'</td></tr>';
     return;
   }
   body.innerHTML=currentRdo.equipment.map((e,i)=>{
-    const opts=projLocs.map(l=>`<option value="${l.equipamento}" ${e.name===l.equipamento?'selected':''}>${l.equipamento} (${l.fornecedor})</option>`).join('');
     return `<tr>
-      <td><select onchange="currentRdo.equipment[${i}].name=this.value" style="width:100%">
-        <option value="">Selecione...</option>
-        ${opts}
-      </select></td>
+      <td style="padding:8px 10px">${e.name} <span style="color:var(--text-dim);font-size:.8rem">${e.fornecedor?'('+e.fornecedor+')':''}</span></td>
       <td><input type="number" value="${e.quantity||1}" min="1" onchange="currentRdo.equipment[${i}].quantity=parseInt(this.value)||1"></td>
       <td><button class="remove-btn" onclick="removeEquipment(${i})">✕</button></td>
     </tr>`;
   }).join('');
 }
-function addEquipment(){
+
+let selectedEquipItems=[];
+
+function openEquipSelector(){
   const projLocs=getProjectLocacoes();
+  const chips=document.getElementById('equipChips');
+  const emptyMsg=document.getElementById('equipEmptyMsg');
+  selectedEquipItems=[];
+
   if(!projLocs.length){
-    alert('Nenhum equipamento locado para este projeto. Cadastre na página Locação de Equipamentos.');
-    return;
+    chips.style.display='none';
+    emptyMsg.style.display='block';
+  }else{
+    chips.style.display='';
+    emptyMsg.style.display='none';
+    const addedNames=currentRdo.equipment.map(e=>e.name);
+    const available=projLocs.filter(l=>!addedNames.includes(l.equipamento));
+    if(!available.length){
+      chips.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:16px;font-size:.85rem">Todos os equipamentos já foram adicionados.</div>';
+    }else{
+      chips.innerHTML=available.map((l,i)=>{
+        return `<div class="chip" data-idx="${i}" onclick="toggleEquipChip(this,${i})">
+          <div class="chip-info" style="flex:1">
+            <div class="chip-name">${l.equipamento}</div>
+            <div class="chip-role">${l.fornecedor} · ${l.codigo||'Sem código'}</div>
+          </div>
+          <div class="chip-check">✓</div>
+        </div>`;
+      }).join('');
+      window._availableEquip=available;
+    }
   }
-  currentRdo.equipment.push({name:'',quantity:1});
+  document.getElementById('equipModalOverlay').classList.add('open');
+}
+
+function toggleEquipChip(el,idx){
+  const i=selectedEquipItems.indexOf(idx);
+  if(i>=0) selectedEquipItems.splice(i,1);
+  else selectedEquipItems.push(idx);
+  el.classList.toggle('selected');
+}
+
+function closeEquipModal(){
+  document.getElementById('equipModalOverlay').classList.remove('open');
+}
+
+function confirmEquipSelection(){
+  const available=window._availableEquip||[];
+  selectedEquipItems.forEach(idx=>{
+    const l=available[idx];
+    if(l){
+      currentRdo.equipment.push({
+        name:l.equipamento,
+        fornecedor:l.fornecedor||'',
+        quantity:1
+      });
+    }
+  });
   renderEquipment();
+  closeEquipModal();
 }
 function removeEquipment(i){
   currentRdo.equipment.splice(i,1);
