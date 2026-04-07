@@ -868,7 +868,7 @@ body{
       <div class="table-scroll">
         <table class="data-table" id="equipmentTable">
           <thead>
-            <tr><th>Nome</th><th>Quantidade</th><th></th></tr>
+            <tr><th>Nome</th><th>Fornecedor</th><th></th></tr>
           </thead>
           <tbody id="equipmentBody"></tbody>
         </table>
@@ -2001,8 +2001,8 @@ function renderEquipment(){
   }
   body.innerHTML=currentRdo.equipment.map((e,i)=>{
     return `<tr>
-      <td style="padding:8px 10px">${e.name} <span style="color:var(--text-dim);font-size:.8rem">${e.fornecedor?'('+e.fornecedor+')':''}</span></td>
-      <td><input type="number" value="${e.quantity||1}" min="1" onchange="currentRdo.equipment[${i}].quantity=parseInt(this.value)||1"></td>
+      <td style="padding:8px 10px">${e.name}</td>
+      <td style="padding:8px 10px">${e.fornecedor||''}</td>
       <td><button class="remove-btn" onclick="removeEquipment(${i})">✕</button></td>
     </tr>`;
   }).join('');
