@@ -49,6 +49,14 @@ body{
   font-family:'Barlow',sans-serif;font-size:.92rem;
 }
 .field input:focus{outline:none;border-color:var(--orange)}
+.field-pass{position:relative}
+.field-pass input{padding-right:42px}
+.toggle-pass{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--text-dim);
+  font-size:1.1rem;padding:4px;line-height:1;
+}
+.toggle-pass:hover{color:var(--text)}
 .btn-login{
   width:100%;background:var(--orange);color:#fff;border:none;
   padding:12px;border-radius:var(--radius);cursor:pointer;
@@ -91,7 +99,10 @@ body{
     </div>
     <div class="field">
       <label>Senha</label>
-      <input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password" required>
+      <div class="field-pass">
+        <input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password" required>
+        <button type="button" class="toggle-pass" onclick="togglePass('loginPass',this)">&#128065;</button>
+      </div>
     </div>
     <button type="submit" class="btn-login" id="btnLogin">ENTRAR</button>
   </form>
@@ -111,11 +122,17 @@ body{
     </div>
     <div class="field">
       <label>Senha</label>
-      <input type="password" id="setupPass" placeholder="Minimo 4 caracteres" required minlength="4">
+      <div class="field-pass">
+        <input type="password" id="setupPass" placeholder="Minimo 4 caracteres" required minlength="4">
+        <button type="button" class="toggle-pass" onclick="togglePass('setupPass',this)">&#128065;</button>
+      </div>
     </div>
     <div class="field">
       <label>Confirmar Senha</label>
-      <input type="password" id="setupPass2" placeholder="Repita a senha" required>
+      <div class="field-pass">
+        <input type="password" id="setupPass2" placeholder="Repita a senha" required>
+        <button type="button" class="toggle-pass" onclick="togglePass('setupPass2',this)">&#128065;</button>
+      </div>
     </div>
     <button type="submit" class="btn-login" id="btnSetup">CRIAR ADMINISTRADOR</button>
   </form>
@@ -135,6 +152,18 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+
+/* ── TOGGLE PASSWORD VISIBILITY ──────────────── */
+function togglePass(inputId,btn){
+  const inp=document.getElementById(inputId);
+  if(inp.type==='password'){
+    inp.type='text';
+    btn.innerHTML='&#128064;';
+  }else{
+    inp.type='password';
+    btn.innerHTML='&#128065;';
+  }
+}
 
 /* ── HASH (fallback for non-HTTPS / iOS) ──────── */
 async function hashPassword(pwd){
