@@ -815,7 +815,7 @@ function render(){
     lane.addEventListener('drop',e=>{
       e.preventDefault();lane.classList.remove('drag-over');
       const id=+e.dataTransfer.getData('text/plain');
-      const proj=projects.find(p=>p.id===id);
+      const proj=projects.find(p=>p.id==id);
       if(proj&&!proj.finalizado){proj.stage=stage.key;saveProjects();render()}
     });
 
@@ -962,18 +962,18 @@ function toggleMenu(id){
 function closeAllMenus(){document.querySelectorAll('.ctx-menu.open').forEach(m=>m.classList.remove('open'))}
 function moveProject(id,stage){
   closeAllMenus();
-  const p=projects.find(x=>x.id===id);
+  const p=projects.find(x=>x.id==id);
   if(p){
     const oldStage=STAGES.find(s=>s.key===p.stage);
     const newStage=STAGES.find(s=>s.key===stage);
-    addLog(id,'etapa','De '+(oldStage?oldStage.label:p.stage)+' para '+(newStage?newStage.label:stage));
+    addLog(p.id,'etapa','De '+(oldStage?oldStage.label:p.stage)+' para '+(newStage?newStage.label:stage));
     p.stage=stage;saveProjects();render();
   }
 }
 function finalizarProject(id){
   closeAllMenus();
   if(!confirm('Finalizar este projeto? Ele será movido para "Projetos Finalizados".'))return;
-  const p=projects.find(x=>x.id===id);
+  const p=projects.find(x=>x.id==id);
   if(p){
     addLog(id,'finalizado','Projeto finalizado');
     p.finalizado=true;
@@ -982,7 +982,7 @@ function finalizarProject(id){
   }
 }
 function retornoGarantia(id){
-  const p=projects.find(x=>x.id===id);
+  const p=projects.find(x=>x.id==id);
   if(p){
     addLog(id,'retorno_garantia','Projeto retornou do finalizado para Retorno Garantia');
     p.finalizado=false;
@@ -1007,7 +1007,7 @@ const LOG_ICONS={
 };
 
 function addLog(projectId,action,details){
-  const p=projects.find(x=>x.id===projectId);
+  const p=projects.find(x=>x.id==projectId);
   if(!p)return;
   if(!p.logs) p.logs=[];
   const userName=window.currentUser?window.currentUser.name:'Sistema';
@@ -1021,7 +1021,7 @@ function addLog(projectId,action,details){
 
 function openLogModal(id){
   closeAllMenus();
-  const p=projects.find(x=>x.id===id);
+  const p=projects.find(x=>x.id==id);
   if(!p)return;
   document.getElementById('logModalTitle').textContent='Atividades — '+p.name;
   const logs=p.logs?[...p.logs].reverse():[];
@@ -1243,7 +1243,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 
 function editProject(id){
   closeAllMenus();
-  const p=projects.find(x=>x.id===id);
+  const p=projects.find(x=>x.id==id);
   if(p)openModal(p);
 }
 
@@ -1267,7 +1267,7 @@ function saveProject(){
   };
 
   if(editingId){
-    const p=projects.find(x=>x.id===editingId);
+    const p=projects.find(x=>x.id==editingId);
     if(p){
       // Log changes
       if(p.date!==data.date){
