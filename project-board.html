@@ -748,10 +748,12 @@ const DEFAULT_PROJECTS=[
   {id:4,name:"Clínica São Rafael",stage:"garantia",date:"2025-05-05",endDate:"2025-06-19",progress:100,responsible:11,collabs:[4,6,12,10]}
 ];
 function saveProjects(){
-  // Filtrar nulls e reindexar antes de salvar
   const clean=projects.filter(p=>p!=null);
   projects=clean;
-  db.ref('projects').set(clean);
+  // Salvar como objeto indexado por ID para evitar problemas com IDs grandes
+  const obj={};
+  clean.forEach(p=>{ obj['p'+p.id]=p; });
+  db.ref('projects').set(obj);
   db.ref('nextId').set(nextId);
 }
 let projects=JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
@@ -1349,8 +1351,13 @@ db.ref('team').on('value', snap=>{
 
 db.ref('projects').on('value', snap=>{
   const d=snap.val();
-  if(d){ const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null); if(arr.length) projects=arr; }
-  nextId=projects.reduce((m,p)=>Math.max(m,p.id),0)+1;
+  if(d){
+    const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null);
+    // Garantir que todos os projetos tenham ID numérico
+    arr.forEach(p=>{ if(typeof p.id==='string') p.id=parseInt(p.id); });
+    if(arr.length) projects=arr;
+  }
+  nextId=projects.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
   fbRender();
 }, err=>{ console.warn('Firebase projects error:',err); fbRender(); });
 
