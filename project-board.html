@@ -1174,7 +1174,7 @@ function buildChips(){
   const respEl=document.getElementById('chipsResp');
   const encarregados=TEAM.filter(t=>t.role==='Encarregado');
   respEl.innerHTML=encarregados.map(t=>`
-    <div class="chip ${selectedResp===t.id?'selected':''}" onclick="selectResp(${t.id})">
+    <div class="chip ${selectedResp==t.id?'selected':''}" onclick="selectResp(${t.id})">
       ${avatarHTML(t)}
       <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
     </div>`).join('')||('<div style="color:var(--text-dim);font-size:.8rem;padding:8px">Nenhum Encarregado cadastrado</div>');
@@ -1183,7 +1183,7 @@ function buildChips(){
   const collEl=document.getElementById('chipsCollab');
   const opEmpr=TEAM.filter(t=>t.role==='Operação'||t.role==='Empreiteiro');
   collEl.innerHTML=opEmpr.map(t=>`
-    <div class="chip ${selectedCollabs.has(t.id)?'selected':''}" onclick="toggleCollab(${t.id})">
+    <div class="chip ${[...selectedCollabs].some(c=>c==t.id)?'selected':''}" onclick="toggleCollab(${t.id})">
       ${avatarHTML(t)}
       <div class="chip-info"><div class="chip-name">${t.name}</div><div class="chip-role">${t.role}</div></div>
       <div class="chip-check">✓</div>
@@ -1278,9 +1278,9 @@ function saveProject(){
       if(p.endDate!==data.endDate){
         addLog(editingId,'data_final','De '+formatDate(p.endDate)+' para '+formatDate(data.endDate));
       }
-      if(p.responsible!==data.responsible){
-        const oldResp=TEAM.find(t=>t.id===p.responsible);
-        const newResp=TEAM.find(t=>t.id===data.responsible);
+      if(p.responsible!=data.responsible){
+        const oldResp=TEAM.find(t=>t.id==p.responsible);
+        const newResp=TEAM.find(t=>t.id==data.responsible);
         addLog(editingId,'responsavel','De '+(oldResp?oldResp.name:'Nenhum')+' para '+(newResp?newResp.name:'Nenhum'));
       }
       if((p.contratoAssinado||false)!==(data.contratoAssinado||false)){
