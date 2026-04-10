@@ -1259,7 +1259,6 @@ function saveProject(){
     stage:document.getElementById('fStage').value,
     date:document.getElementById('fDate').value,
     endDate:document.getElementById('fEndDate').value,
-    progress:0,
     responsible:selectedResp,
     collabs:[...selectedCollabs],
     items:items,
@@ -1290,12 +1289,17 @@ function saveProject(){
         const newStage=STAGES.find(s=>s.key===data.stage);
         addLog(editingId,'etapa','De '+(oldStage?oldStage.label:p.stage)+' para '+(newStage?newStage.label:data.stage));
       }
-      // Preserve logs
+      // Preserve fields not in form
       data.logs=p.logs||[];
+      data.id=p.id;
+      data.progress=p.progress||0;
+      if(p.finalizado) data.finalizado=p.finalizado;
+      if(p.dataFinalizacao) data.dataFinalizacao=p.dataFinalizacao;
       Object.assign(p,data);
     }
   }else{
     data.id=nextId++;
+    data.progress=0;
     data.logs=[];
     addLog(data.id,'criado','Projeto criado: '+data.name);
     // Need to push first so addLog can find it — re-add log
