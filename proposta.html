@@ -291,6 +291,13 @@ body{
   background:var(--bg);border:1px solid #2e2818;border-radius:var(--radius);
   padding:14px 16px;margin-bottom:10px;
 }
+.comp-input{
+  width:75px;padding:4px 6px;border-radius:4px;
+  background:var(--surface2);border:1px solid #3a3020;color:var(--orange);
+  font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:600;
+  text-align:right;font-variant-numeric:tabular-nums;
+}
+.comp-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 2px rgba(245,132,31,.2)}
 
 .toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;
@@ -819,60 +826,59 @@ const db=firebase.database();
    PRICING TABLES
    ══════════════════════════════════════════════ */
 
-const FUNDO_VALOR = {
-  'Textura': 61.00,
-  'Parede Lisa': 150.00,
-  'Monocapa': 100.00,
-  'Grafiato': 80.00,
-  'Projetada Acrílico': 110.00
+const FUNDO_VALOR_DEFAULT = {
+  'Textura': 61.00, 'Parede Lisa': 150.00, 'Monocapa': 100.00,
+  'Grafiato': 80.00, 'Projetada Acrílico': 110.00
 };
-
 const FUNDO_RENDIMENTO = {
-  'Textura': 200,
-  'Parede Lisa': 250,
-  'Monocapa': 200,
-  'Grafiato': 200,
-  'Projetada Acrílico': 200
+  'Textura': 200, 'Parede Lisa': 250, 'Monocapa': 200,
+  'Grafiato': 200, 'Projetada Acrílico': 200
 };
-
-const TINTA_VALOR_POR_WALL = [450.00, 600.00, 600.00];
-
+const TINTA_VALOR_DEFAULT = [450.00, 600.00, 600.00];
 const TINTA_RENDIMENTO = {
-  'Textura': 110,
-  'Parede Lisa': 120,
-  'Monocapa': 80,
-  'Grafiato': 100,
-  'Projetada Acrílico': 90
+  'Textura': 110, 'Parede Lisa': 120, 'Monocapa': 80,
+  'Grafiato': 100, 'Projetada Acrílico': 90
 };
-
 const DESPLAC_RENDIMENTO = {
-  'Textura': 11,
-  'Parede Lisa': 100,
-  'Monocapa': 10,
-  'Grafiato': 10,
-  'Projetada Acrílico': 11
+  'Textura': 11, 'Parede Lisa': 100, 'Monocapa': 10,
+  'Grafiato': 10, 'Projetada Acrílico': 11
 };
-
 const EQUIP_PRECO = {
-  'Lavadora WAP': 545.00,
-  'Andaime (túnel)': 44.00,
-  'Balancim Manual': 1200.00,
-  'Martelete': 550.00,
-  'Escada (diaria)': 90.00,
-  'Lixadeira': 370.00
+  'Lavadora WAP': 545.00, 'Andaime (túnel)': 44.00, 'Balancim Manual': 1200.00,
+  'Martelete': 550.00, 'Escada (diaria)': 90.00, 'Lixadeira': 370.00
+};
+const KM_MUNICIPIO = {
+  'São Paulo': 70, 'Sorocaba': 200, 'Itapetininga': 300, 'São Roque': 120,
+  'Guarujá': 150, 'Santos': 130, 'Itú': 180, 'Campinas': 160, 'Outro': 250
 };
 
-const KM_MUNICIPIO = {
-  'São Paulo': 70,
-  'Sorocaba': 200,
-  'Itapetininga': 300,
-  'São Roque': 120,
-  'Guarujá': 150,
-  'Santos': 130,
-  'Itú': 180,
-  'Campinas': 160,
-  'Outro': 250
+// Overrides editáveis na composição
+let compOverrides = {
+  alpinistaDiaria: 180,
+  encarregadoDiaria: 150,
+  fundoValor: {}, // por tipo
+  tintaValor: [450, 600, 600], // por wall index
+  deplacValor: {}, // por tipo (usa mesmo que fundo por padrão)
+  ancoragemUni: 310,
+  artSeguroUni: 3305,
+  vedacaoQtd: null, // null = usa puTelhado do form
+  insumosPercent: 5,
+  combustivelUni: 5.60,
+  hospedagemUni: 3000,
+  pedagioUni: 13,
+  alimentacaoUni: 30
 };
+
+// Funções para obter valores com override
+function getFundoValor(tipo){ return compOverrides.fundoValor[tipo] ?? FUNDO_VALOR_DEFAULT[tipo]; }
+function getTintaValor(i){ return compOverrides.tintaValor[i] ?? TINTA_VALOR_DEFAULT[i] ?? 600; }
+function getDesplacValor(tipo){ return compOverrides.deplacValor[tipo] ?? FUNDO_VALOR_DEFAULT[tipo]; }
+
+// Input HTML helper para composição
+function compInput(id, val, w){
+  w = w || 70;
+  return '<input type="number" step="any" class="comp-input" id="'+id+'" value="'+val+'" style="width:'+w+'px" onchange="onCompChange()">';
+}
 
 const IMPOSTOS_MUNICIPIO = {
   'São Paulo': 0.09,
@@ -1023,17 +1029,17 @@ function calcular(){
 
     // Fundo Preparador
     const quantFundo = m2 / FUNDO_RENDIMENTO[tipo];
-    const valorFundo = FUNDO_VALOR[tipo] * quantFundo;
+    const valorFundo = getFundoValor(tipo) * quantFundo;
 
     // Tinta
-    const valorLataTinta = TINTA_VALOR_POR_WALL[i] || 600;
+    const valorLataTinta = getTintaValor(i);
     const quantTinta = (m2 / TINTA_RENDIMENTO[tipo]) * w.demaos;
     const valorTinta = valorLataTinta * quantTinta;
 
     // Desplacamento
     const m2Desplac = m2 * inp.desplacamento;
     const quantDesplac = m2Desplac / DESPLAC_RENDIMENTO[tipo];
-    const valorDesplac = FUNDO_VALOR[tipo] * quantDesplac;
+    const valorDesplac = getDesplacValor(tipo) * quantDesplac;
 
     totalFundo += valorFundo;
     totalTinta += valorTinta;
@@ -1047,28 +1053,38 @@ function calcular(){
   });
 
   // Mao de Obra per tower
-  const alpinistasValor = 180 * prazo * inp.colaboradores;
-  const encarregadoValor = 150 * prazo * 0.5;
+  const alpDiaria = compOverrides.alpinistaDiaria;
+  const encDiaria = compOverrides.encarregadoDiaria;
+  const alpinistasValor = alpDiaria * prazo * inp.colaboradores;
+  const encarregadoValor = encDiaria * prazo * 0.5;
   const maoDeObraPerTower = alpinistasValor + encarregadoValor;
 
   // Deslocamento per tower
   const km = KM_MUNICIPIO[inp.municipio] || 250;
-  const combustivel = (km / 10 * 5.6) * totalDias;
-  const hospedagem = (totalDias / 30) * 3000;
-  const pedagio = 13 * totalDias;
-  const alimentacao = (inp.colaboradores + 0.5) * 30 * totalDias;
+  const combUni = compOverrides.combustivelUni;
+  const hospUni = compOverrides.hospedagemUni;
+  const pedUni = compOverrides.pedagioUni;
+  const alimUni = compOverrides.alimentacaoUni;
+  const combustivel = (km / 10 * combUni) * totalDias;
+  const hospedagem = (totalDias / 30) * hospUni;
+  const pedagio = pedUni * totalDias;
+  const alimentacao = (inp.colaboradores + 0.5) * alimUni * totalDias;
   const deslocamentoPerTower = combustivel + hospedagem + pedagio + alimentacao;
 
   // Seguranca (total, not per tower)
-  const ancoragem = 310 * torres;
-  const artSeguro = (1855 + 1450) * 1 + 450; // 3755
+  const ancUni = compOverrides.ancoragemUni;
+  const artUni = compOverrides.artSeguroUni;
+  const ancoragem = ancUni * torres;
+  const artSeguro = artUni + 450;
 
   // Vedacao PU per tower
-  const telhadoPU = 29.9 * inp.puTelhado;
+  const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : inp.puTelhado;
+  const telhadoPU = 29.9 * vedQtd;
   const vedacaoPerTower = telhadoPU;
 
   // Insumos per tower
-  const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * 0.05;
+  const insPct = compOverrides.insumosPercent / 100;
+  const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * insPct;
 
   // Locacao per tower
   let locacaoPerTower = 0;
@@ -1199,13 +1215,45 @@ function toggleComposicao(){
   }
 }
 
+function onCompChange(){
+  // Read all comp inputs and update overrides
+  const v = id => { const el=document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
+  compOverrides.alpinistaDiaria = v('comp_alp_diaria');
+  compOverrides.encarregadoDiaria = v('comp_enc_diaria');
+
+  // Fundo por tipo
+  document.querySelectorAll('[data-comp-fundo]').forEach(el => {
+    compOverrides.fundoValor[el.dataset.compFundo] = parseFloat(el.value) || 0;
+  });
+  // Tinta por index
+  document.querySelectorAll('[data-comp-tinta]').forEach(el => {
+    compOverrides.tintaValor[parseInt(el.dataset.compTinta)] = parseFloat(el.value) || 0;
+  });
+  // Desplac por tipo
+  document.querySelectorAll('[data-comp-desplac]').forEach(el => {
+    compOverrides.deplacValor[el.dataset.compDesplac] = parseFloat(el.value) || 0;
+  });
+
+  compOverrides.ancoragemUni = v('comp_anc_uni');
+  compOverrides.artSeguroUni = v('comp_art_uni');
+  compOverrides.vedacaoQtd = v('comp_ved_qtd');
+  compOverrides.insumosPercent = v('comp_ins_pct');
+  compOverrides.combustivelUni = v('comp_comb_uni');
+  compOverrides.hospedagemUni = v('comp_hosp_uni');
+  compOverrides.pedagioUni = v('comp_ped_uni');
+  compOverrides.alimentacaoUni = v('comp_alim_uni');
+
+  calcular();
+}
+
 function renderComposicao(r){
-  const TINTA_VALOR_WALL = [450, 600, 600];
+  const ci = (id, val, extra) => `<input type="number" step="any" class="comp-input" id="${id}" value="${val}" ${extra||''} onchange="onCompChange()">`;
+  const ciData = (attr, key, val) => `<input type="number" step="any" class="comp-input" data-comp-${attr}="${key}" value="${val}" onchange="onCompChange()">`;
 
   // ── MÃO DE OBRA ──
   document.getElementById('compMaoObra').innerHTML = `
-    <tr><td>Alpinistas</td><td>${fmtBRL(180)}</td><td>${r.inp.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
-    <tr><td>Encarregado</td><td>${fmtBRL(150)}</td><td>0,5</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
+    <tr><td>Alpinistas</td><td>${ci('comp_alp_diaria', compOverrides.alpinistaDiaria)}</td><td>${r.inp.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
+    <tr><td>Encarregado</td><td>${ci('comp_enc_diaria', compOverrides.encarregadoDiaria)}</td><td>0,5</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
     <tr class="comp-total"><td colspan="4">Total M.O. por Torre</td><td>${fmtBRL(r.maoDeObraPerTower)}</td></tr>
   `;
 
@@ -1213,7 +1261,8 @@ function renderComposicao(r){
   let fundoHTML = '';
   let fundoTotal = 0;
   r.wallDetails.forEach((w, i) => {
-    fundoHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(FUNDO_VALOR[w.tipo])}</td><td>1</td><td>${w.quantFundo.toFixed(1)}</td><td>${fmtBRL(w.valorFundo)}</td></tr>`;
+    const vl = getFundoValor(w.tipo);
+    fundoHTML += `<tr><td>${w.tipo}</td><td>${ciData('fundo', w.tipo, vl)}</td><td>1</td><td>${w.quantFundo.toFixed(1)}</td><td>${fmtBRL(w.valorFundo)}</td></tr>`;
     fundoTotal += w.valorFundo;
   });
   fundoHTML += `<tr class="comp-total"><td colspan="4">Total Fundo</td><td>${fmtBRL(fundoTotal)}</td></tr>`;
@@ -1223,8 +1272,8 @@ function renderComposicao(r){
   let tintaHTML = '';
   let tintaTotal = 0;
   r.wallDetails.forEach((w, i) => {
-    const valorLata = TINTA_VALOR_WALL[i] || 600;
-    tintaHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(valorLata)}</td><td>${w.demaos}</td><td>${w.quantTinta.toFixed(1)}</td><td>${fmtBRL(w.valorTinta)}</td></tr>`;
+    const vl = getTintaValor(i);
+    tintaHTML += `<tr><td>${w.tipo}</td><td>${ciData('tinta', i, vl)}</td><td>${w.demaos}</td><td>${w.quantTinta.toFixed(1)}</td><td>${fmtBRL(w.valorTinta)}</td></tr>`;
     tintaTotal += w.valorTinta;
   });
   tintaHTML += `<tr class="comp-total"><td colspan="4">Total Tinta</td><td>${fmtBRL(tintaTotal)}</td></tr>`;
@@ -1234,7 +1283,8 @@ function renderComposicao(r){
   let desplacHTML = '';
   let desplacTotal = 0;
   r.wallDetails.forEach((w, i) => {
-    desplacHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(FUNDO_VALOR[w.tipo])}</td><td>${fmtNum(w.m2Desplac)}</td><td>${w.quantDesplac.toFixed(1)}</td><td>${fmtBRL(w.valorDesplac)}</td></tr>`;
+    const vl = getDesplacValor(w.tipo);
+    desplacHTML += `<tr><td>${w.tipo}</td><td>${ciData('desplac', w.tipo, vl)}</td><td>${fmtNum(w.m2Desplac)}</td><td>${w.quantDesplac.toFixed(1)}</td><td>${fmtBRL(w.valorDesplac)}</td></tr>`;
     desplacTotal += w.valorDesplac;
   });
   desplacHTML += `<tr class="comp-total"><td colspan="4">Total Desplacamento</td><td>${fmtBRL(desplacTotal)}</td></tr>`;
@@ -1242,22 +1292,22 @@ function renderComposicao(r){
 
   // ── SEGURANÇA ──
   document.getElementById('compSeguranca').innerHTML = `
-    <tr><td>Ancoragem</td><td>${fmtBRL(310)}</td><td>${r.torres}</td><td>${fmtBRL(r.ancoragem)}</td></tr>
-    <tr><td>ART e Seguro</td><td>${fmtBRL(3305)}</td><td>1</td><td>${fmtBRL(r.artSeguro)}</td></tr>
+    <tr><td>Ancoragem</td><td>${ci('comp_anc_uni', compOverrides.ancoragemUni)}</td><td>${r.torres}</td><td>${fmtBRL(r.ancoragem)}</td></tr>
+    <tr><td>ART e Seguro</td><td>${ci('comp_art_uni', compOverrides.artSeguroUni)}</td><td>1</td><td>${fmtBRL(r.artSeguro)}</td></tr>
     <tr class="comp-total"><td colspan="3">Total Segurança</td><td>${fmtBRL(r.ancoragem + r.artSeguro)}</td></tr>
   `;
 
   // ── VEDAÇÃO ──
-  const telhadoPU = 29.9 * r.inp.puTelhado;
+  const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : r.inp.puTelhado;
   document.getElementById('compVedacao').innerHTML = `
-    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${r.inp.puTelhado}</td><td>${fmtBRL(telhadoPU)}</td></tr>
+    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${ci('comp_ved_qtd', vedQtd, 'style="width:60px"')}</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
     <tr class="comp-total"><td colspan="3">Total Vedação por Torre</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
   `;
 
   // ── INSUMOS ──
   const baseInsumos = r.totalFundo + r.totalTinta + r.totalDesplac;
   document.getElementById('compInsumos').innerHTML = `
-    <tr><td>Insumos (tinta + fundo + desplac.)</td><td>${fmtBRL(baseInsumos)}</td><td>5%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>
+    <tr><td>Insumos (tinta + fundo + desplac.)</td><td>${fmtBRL(baseInsumos)}</td><td>${ci('comp_ins_pct', compOverrides.insumosPercent, 'style="width:50px"')}%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>
   `;
 
   // ── LOCAÇÃO ──
@@ -1266,22 +1316,16 @@ function renderComposicao(r){
   if(r.inp.equip1 && r.inp.equip1Qty > 0){
     const price = EQUIP_PRECO[r.inp.equip1] || 0;
     let val;
-    if(r.inp.equip1 === 'Escada (diaria)'){
-      val = price * r.inp.equip1Qty * r.prazo;
-    } else {
-      val = price * r.inp.equip1Qty * (r.prazo / 30);
-    }
+    if(r.inp.equip1 === 'Escada (diaria)') val = price * r.inp.equip1Qty * r.prazo;
+    else val = price * r.inp.equip1Qty * (r.prazo / 30);
     locacaoHTML += `<tr><td>${r.inp.equip1}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
     locacaoTotal += val;
   }
   if(r.inp.equip2 && r.inp.equip2Qty > 0){
     const price = EQUIP_PRECO[r.inp.equip2] || 0;
     let val;
-    if(r.inp.equip2 === 'Escada (diaria)'){
-      val = price * r.inp.equip2Qty * r.prazo;
-    } else {
-      val = price * r.inp.equip2Qty * (r.prazo / 30);
-    }
+    if(r.inp.equip2 === 'Escada (diaria)') val = price * r.inp.equip2Qty * r.prazo;
+    else val = price * r.inp.equip2Qty * (r.prazo / 30);
     locacaoHTML += `<tr><td>${r.inp.equip2}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
     locacaoTotal += val;
   }
@@ -1291,10 +1335,10 @@ function renderComposicao(r){
 
   // ── DESPESA OPERACIONAL ──
   document.getElementById('compDespesa').innerHTML = `
-    <tr><td>Combustível</td><td>${fmtBRL(5.60)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
-    <tr><td>Hospedagem</td><td>${fmtBRL(3000)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
-    <tr><td>Pedágio</td><td>${fmtBRL(13)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
-    <tr><td>Alimentação</td><td>${fmtBRL(30)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
+    <tr><td>Combustível</td><td>${ci('comp_comb_uni', compOverrides.combustivelUni)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
+    <tr><td>Hospedagem</td><td>${ci('comp_hosp_uni', compOverrides.hospedagemUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
+    <tr><td>Pedágio</td><td>${ci('comp_ped_uni', compOverrides.pedagioUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
+    <tr><td>Alimentação</td><td>${ci('comp_alim_uni', compOverrides.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
     <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>
   `;
 
