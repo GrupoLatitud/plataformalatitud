@@ -860,7 +860,7 @@ let compOverrides = {
   tintaValor: [450, 600, 600], // por wall index
   deplacValor: {}, // por tipo (usa mesmo que fundo por padrão)
   ancoragemUni: 310,
-  artSeguroUni: 3305,
+  artSeguroUni: 3755,
   vedacaoQtd: null, // null = usa puTelhado do form
   insumosPercent: 5,
   combustivelUni: 5.60,
@@ -1075,12 +1075,12 @@ function calcular(){
   const ancUni = compOverrides.ancoragemUni;
   const artUni = compOverrides.artSeguroUni;
   const ancoragem = ancUni * torres;
-  const artSeguro = artUni + 450;
+  const artSeguro = artUni;
 
   // Vedacao PU per tower
   const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : inp.puTelhado;
   const telhadoPU = 29.9 * vedQtd;
-  const vedacaoPerTower = telhadoPU;
+  const vedacaoPerTower = telhadoPU / 2;
 
   // Insumos per tower
   const insPct = compOverrides.insumosPercent / 100;
@@ -1299,9 +1299,10 @@ function renderComposicao(r){
 
   // ── VEDAÇÃO ──
   const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : r.inp.puTelhado;
+  const vedBruto = 29.9 * vedQtd;
   document.getElementById('compVedacao').innerHTML = `
-    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${ci('comp_ved_qtd', vedQtd, 'style="width:60px"')}</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
-    <tr class="comp-total"><td colspan="3">Total Vedação por Torre</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
+    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${ci('comp_ved_qtd', vedQtd, 'style="width:60px"')}</td><td>${fmtBRL(vedBruto)}</td></tr>
+    <tr class="comp-total"><td colspan="3">Total Vedação por Torre (÷2)</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
   `;
 
   // ── INSUMOS ──
