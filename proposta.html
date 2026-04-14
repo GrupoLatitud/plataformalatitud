@@ -147,7 +147,7 @@ body{
 .proposta-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;
 }
-@media(max-width:768px){
+@media(max-width:900px){
   .proposta-grid{grid-template-columns:1fr}
 }
 
@@ -202,6 +202,39 @@ body{
 }
 .wall-block-remove:hover{background:rgba(240,80,80,.1)}
 
+/* TAB BAR */
+.tab-bar{
+  display:flex;gap:4px;margin-bottom:16px;padding-bottom:0;flex-wrap:wrap;
+  border-bottom:2px solid #2e2818;
+}
+.tab-btn{
+  padding:8px 14px;border-radius:6px 6px 0 0;
+  background:var(--bg);border:1px solid #2e2818;border-bottom:none;
+  color:var(--text-dim);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:all .15s;position:relative;margin-bottom:-2px;
+  display:flex;align-items:center;gap:6px;
+}
+.tab-btn.active{
+  background:var(--surface);color:var(--orange);
+  border-color:var(--orange);border-bottom:2px solid var(--surface);
+}
+.tab-btn .tab-remove{
+  font-size:.7rem;color:var(--text-dim);cursor:pointer;
+  padding:0 2px;border-radius:3px;margin-left:2px;
+  transition:color .15s;display:none;
+}
+.tab-btn:hover .tab-remove{display:inline}
+.tab-btn .tab-remove:hover{color:#f07070}
+.tab-btn-add{
+  padding:8px 12px;border-radius:6px 6px 0 0;
+  background:transparent;border:1px dashed #2e2818;border-bottom:none;
+  color:var(--text-dim);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;
+  transition:all .15s;margin-bottom:-2px;
+}
+.tab-btn-add:hover{border-color:var(--orange);color:var(--orange)}
+
 /* BUTTONS */
 .btn{
   background:var(--orange);color:#fff;border:none;
@@ -235,7 +268,6 @@ body{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.8rem;
   color:var(--orange);
 }
-.result-total small{font-size:.85rem;color:var(--text-dim);font-weight:400}
 .result-table{width:100%;border-collapse:collapse;margin-bottom:16px}
 .result-table th{
   text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:600;
@@ -264,6 +296,15 @@ body{
   display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;
 }
 .result-summary .result-card{flex-direction:column;align-items:flex-start;gap:4px}
+
+/* Per-tab summary in results */
+.tab-summary-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 10px;font-size:.85rem;border-bottom:1px solid rgba(46,40,24,.3);
+}
+.tab-summary-row:last-child{border-bottom:none}
+.tab-summary-label{color:var(--text-dim)}
+.tab-summary-val{font-weight:600;font-variant-numeric:tabular-nums}
 
 /* COMPOSIÇÃO TABLES */
 .comp-section{margin-bottom:0}
@@ -327,7 +368,6 @@ body{
 }
 .print-header{display:none;text-align:center;margin-bottom:20px}
 .print-header h2{font-family:'Barlow Condensed',sans-serif;color:#d47b0a}
-.print-header p{color:#666;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -378,14 +418,14 @@ body{
   <p class="page-sub no-print">Gerador de propostas orcamentarias para projetos de pintura predial.</p>
 
   <div class="proposta-grid">
-    <!-- LEFT: FORM -->
+    <!-- LEFT: FORM + COMPOSIÇÃO -->
     <div class="panel panel-form no-print">
       <div class="panel-title">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Dados do Projeto
       </div>
 
-      <!-- Project Info -->
+      <!-- Project-level Info -->
       <div class="panel-section">
         <div class="panel-section-title">Informacoes do Projeto</div>
         <div class="form-row">
@@ -409,173 +449,143 @@ body{
               <option value="Outro">Outro</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Quantas Torres</label>
-            <input type="number" id="torres" value="1" min="1">
-          </div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>M2 por Torre</label>
-            <input type="number" id="m2Total" value="5000" min="1">
-          </div>
-          <div class="form-group">
-            <label>Prazo por Torre (dias uteis)</label>
-            <input type="number" id="prazoTorre" value="30" min="1">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Colaboradores</label>
-            <input type="number" id="colaboradores" value="4" min="1">
-          </div>
-          <div class="form-group">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Grau de Desplacamento (%)</label>
-            <input type="number" id="desplacamento" value="15" min="0" max="100" step="1">
-          </div>
-          <div class="form-group">
-            <label>Execucao</label>
-            <select id="execucao">
-              <option value="Individual">Individual</option>
-              <option value="Simultânea">Simultanea</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Wall Types -->
-      <div class="panel-section">
-        <div class="panel-section-title">Tipos de Parede</div>
-        <div id="wallTypesContainer">
-          <!-- Wall type 1 (default) -->
-          <div class="wall-block" data-wall="0">
-            <div class="wall-block-header">
-              <span class="wall-block-title">Parede 1</span>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Tipo</label>
-                <select class="wallTipo">
-                  <option value="Textura">Textura</option>
-                  <option value="Parede Lisa">Parede Lisa</option>
-                  <option value="Monocapa">Monocapa</option>
-                  <option value="Grafiato">Grafiato</option>
-                  <option value="Projetada Acrílico">Projetada Acrilico</option>
-                </select>
-              </div>
-              <div class="form-group" style="max-width:80px">
-                <label>Demaos</label>
-                <input type="number" class="wallDemaos" value="2" min="1" max="5">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Cor</label>
-                <select class="wallCor">
-                  <option value="Clara">Clara</option>
-                  <option value="Escura">Escura</option>
-                </select>
-              </div>
-              <div class="form-group" style="max-width:100px">
-                <label>% da Area</label>
-                <input type="number" class="wallPercent" value="100" min="0" max="100" step="1">
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="btn-add-wall" id="btnAddWall" onclick="addWallType()">+ Adicionar Tipo de Parede</button>
-      </div>
-
-      <!-- Financial -->
-      <div class="panel-section">
-        <div class="panel-section-title">Parametros Financeiros</div>
-        <div class="form-row">
-          <div class="form-group">
+          <div class="form-group" style="max-width:100px">
             <label>Comissao (%)</label>
-            <input type="number" id="comissao" value="2.2" min="0" max="100" step="0.1">
+            <input type="number" id="comissao" value="2.2" step="0.1" min="0">
           </div>
-          <div class="form-group">
-            <label>Margem Contrib. (%)</label>
-            <input type="number" id="margem" value="10" min="0" max="100" step="0.1">
+          <div class="form-group" style="max-width:100px">
+            <label>Margem (%)</label>
+            <input type="number" id="margem" value="10" step="0.1" min="0">
           </div>
-          <div class="form-group">
-            <label>Lucro Liquido (%)</label>
-            <input type="number" id="lucro" value="10" min="0" max="100" step="0.1">
-          </div>
-        </div>
-      </div>
-
-      <!-- Equipment -->
-      <div class="panel-section">
-        <div class="panel-section-title">Equipamentos Locacao</div>
-        <div class="form-row">
-          <div class="form-group" style="flex:2">
-            <label>Equipamento 1</label>
-            <select id="equip1">
-              <option value="">-- Selecione --</option>
-              <option value="Lavadora WAP">Lavadora WAP</option>
-              <option value="Andaime (túnel)">Andaime (tunel)</option>
-              <option value="Balancim Manual">Balancim Manual</option>
-              <option value="Martelete">Martelete</option>
-              <option value="Escada (diaria)">Escada (diaria)</option>
-              <option value="Lixadeira">Lixadeira</option>
-            </select>
-          </div>
-          <div class="form-group" style="max-width:80px">
-            <label>Qtd</label>
-            <input type="number" id="equip1Qty" value="1" min="0">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group" style="flex:2">
-            <label>Equipamento 2</label>
-            <select id="equip2">
-              <option value="">-- Selecione --</option>
-              <option value="Lavadora WAP">Lavadora WAP</option>
-              <option value="Andaime (túnel)">Andaime (tunel)</option>
-              <option value="Balancim Manual">Balancim Manual</option>
-              <option value="Martelete">Martelete</option>
-              <option value="Escada (diaria)">Escada (diaria)</option>
-              <option value="Lixadeira">Lixadeira</option>
-            </select>
-          </div>
-          <div class="form-group" style="max-width:80px">
-            <label>Qtd</label>
-            <input type="number" id="equip2Qty" value="1" min="0">
+          <div class="form-group" style="max-width:100px">
+            <label>Lucro (%)</label>
+            <input type="number" id="lucro" value="10" step="0.1" min="0">
           </div>
         </div>
       </div>
 
-      <!-- Vedacao PU -->
-      <div class="panel-section">
-        <div class="panel-section-title">Vedacao (PU Hibrido 40)</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Qtd PU Telhado</label>
-            <input type="number" id="puTelhado" value="10" min="0">
-          </div>
-        </div>
-      </div>
+      <!-- TAB BAR -->
+      <div id="tabBarContainer"></div>
+
+      <!-- PER-TAB FORM (dynamic) -->
+      <div id="tabFormContent"></div>
 
       <!-- Actions -->
-      <div class="actions-row">
-        <button class="btn" onclick="calcular()">
+      <div class="actions-row" style="margin-bottom:20px">
+        <button class="btn" onclick="calcularProjeto()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Calcular
         </button>
         <button class="btn btn-success" onclick="salvarProposta()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Salvar Proposta
+          Salvar
         </button>
         <button class="btn btn-secondary" onclick="gerarPDF()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Gerar PDF
+          PDF
         </button>
       </div>
-    </div>
+
+      <!-- Composição toggle -->
+      <div class="panel-section">
+        <button onclick="toggleComposicao()" id="btnComposicao" style="
+          width:100%;padding:12px 16px;border-radius:8px;cursor:pointer;
+          background:var(--surface2);border:1px solid #2e2818;color:var(--text);
+          font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+          display:flex;align-items:center;justify-content:space-between;
+          transition:background .15s;letter-spacing:.3px;
+        ">
+          <span>Ver Composicao de Precificacao</span>
+          <span id="composicaoToggle" style="transition:transform .2s">&#9654;</span>
+        </button>
+      </div>
+
+      <!-- Composição Detalhada (hidden) -->
+      <div id="composicaoSection" style="display:none">
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MAO DE OBRA — EQUIPE</div>
+          <table class="comp-table">
+            <thead><tr><th>Pessoas</th><th>Valor Diaria</th><th>Quant.</th><th>Dias</th><th>Valor Total</th></tr></thead>
+            <tbody id="compMaoObra"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — PREPARO (FUNDO PREPARADOR)</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demao</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compFundo"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — PINTURA</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demao</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compTinta"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — DESPLACAMENTO / TRINCAS E FISSURAS</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>M2 Desplac.</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compDesplac"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — SEGURANCA</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compSeguranca"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — VEDACAO</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compVedacao"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — INSUMOS</div>
+          <table class="comp-table">
+            <thead><tr><th>Item</th><th>Base</th><th>%</th><th>Valor Total</th></tr></thead>
+            <tbody id="compInsumos"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — LOCACAO</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Mensal</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compLocacao"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">DESPESA OPERACIONAL</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
+            <tbody id="compDespesa"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-section comp-section">
+          <div class="comp-title">TOTAL POR TORRE (UNITARIO)</div>
+          <table class="comp-table">
+            <thead><tr><th>Descricao</th><th>Valor</th><th>%</th></tr></thead>
+            <tbody id="compTotalUni"></tbody>
+          </table>
+        </div>
+
+      </div>
     </div>
 
     <!-- RIGHT: RESULTS -->
@@ -598,12 +608,8 @@ body{
             <span class="result-card-value" id="resMunicipio">--</span>
           </div>
           <div class="result-card">
-            <span class="result-card-label">Torres</span>
-            <span class="result-card-value" id="resTorres">--</span>
-          </div>
-          <div class="result-card">
-            <span class="result-card-label">M2 por Torre</span>
-            <span class="result-card-value" id="resM2Torre">--</span>
+            <span class="result-card-label">Abas</span>
+            <span class="result-card-value" id="resAbas">--</span>
           </div>
           <div class="result-card">
             <span class="result-card-label">M2 Total</span>
@@ -613,11 +619,13 @@ body{
             <span class="result-card-label">Prazo Total</span>
             <span class="result-card-value" id="resPrazo">--</span>
           </div>
-          <div class="result-card">
-            <span class="result-card-label">Execucao</span>
-            <span class="result-card-value" id="resExecucao">--</span>
-          </div>
         </div>
+      </div>
+
+      <!-- Per-tab breakdown -->
+      <div class="panel-section" id="resTabBreakdown" style="display:none">
+        <div class="panel-section-title">Detalhamento por Aba</div>
+        <div id="resTabList"></div>
       </div>
 
       <!-- Cost Breakdown -->
@@ -644,125 +652,14 @@ body{
         </table>
       </div>
 
-      <!-- Valor por torre -->
+      <!-- Valor Total -->
       <div class="panel-section">
         <div class="result-header">
           <div>
             <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR TOTAL DO PROJETO</div>
             <div class="result-total" id="resTotalBig">R$ 0,00</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR POR TORRE</div>
-            <div class="result-total" id="resTorreBig">R$ 0,00</div>
-          </div>
         </div>
-      </div>
-
-      <!-- Composição toggle button -->
-      <div class="panel-section">
-        <button onclick="toggleComposicao()" id="btnComposicao" style="
-          width:100%;padding:12px 16px;border-radius:8px;cursor:pointer;
-          background:var(--surface2);border:1px solid #2e2818;color:var(--text);
-          font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
-          display:flex;align-items:center;justify-content:space-between;
-          transition:background .15s;letter-spacing:.3px;
-        ">
-          <span>📋 Ver Composição de Precificação</span>
-          <span id="composicaoToggle" style="transition:transform .2s">▶</span>
-        </button>
-      </div>
-
-      <!-- Composição Detalhada (hidden) -->
-      <div id="composicaoSection" style="display:none">
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MÃO DE OBRA — EQUIPE</div>
-          <table class="comp-table">
-            <thead><tr><th>Pessoas</th><th>Valor Diária</th><th>Quant.</th><th>Dias</th><th>Valor Total</th></tr></thead>
-            <tbody id="compMaoObra"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — PREPARO (FUNDO PREPARADOR)</div>
-          <table class="comp-table">
-            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
-            <tbody id="compFundo"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — PINTURA</div>
-          <table class="comp-table">
-            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
-            <tbody id="compTinta"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — DESPLACAMENTO / TRINCAS E FISSURAS</div>
-          <table class="comp-table">
-            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>M² Desplac.</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
-            <tbody id="compDesplac"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — SEGURANÇA</div>
-          <table class="comp-table">
-            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
-            <tbody id="compSeguranca"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — VEDAÇÃO</div>
-          <table class="comp-table">
-            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
-            <tbody id="compVedacao"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — INSUMOS</div>
-          <table class="comp-table">
-            <thead><tr><th>Item</th><th>Base</th><th>%</th><th>Valor Total</th></tr></thead>
-            <tbody id="compInsumos"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">MATERIAL — LOCAÇÃO</div>
-          <table class="comp-table">
-            <thead><tr><th>Material</th><th>Valor Mensal</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
-            <tbody id="compLocacao"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">DESPESA OPERACIONAL</div>
-          <table class="comp-table">
-            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
-            <tbody id="compDespesa"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">ITEM VARIÁVEL — MATERIAL</div>
-          <table class="comp-table">
-            <thead><tr><th>Item</th><th>Valor Total</th></tr></thead>
-            <tbody id="compVariavel"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">TOTAL PROJETO — POR TORRE (UNITÁRIO)</div>
-          <table class="comp-table">
-            <thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead>
-            <tbody id="compTotalUni"></tbody>
-          </table>
-        </div>
-
       </div>
     </div>
   </div>
@@ -772,14 +669,14 @@ body{
 <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="mobile-menu-panel">
     <button class="mobile-menu-close" onclick="document.getElementById('mobileMenuOverlay').classList.remove('open')">&times;</button>
-    <a href="project-board.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Projetos</a>
-    <a href="overview.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</a>
-    <a href="cronograma.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma</a>
-    <a href="team.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Equipe</a>
-    <a href="rdo.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> RDO</a>
-    <a href="locacao.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Locacao</a>
-    <a href="proposta.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Proposta</a>
-    <a href="config.html" class="mm-link-config"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuracoes</a>
+    <a href="project-board.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Projetos</a>
+    <a href="overview.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</a>
+    <a href="cronograma.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma</a>
+    <a href="team.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Equipe</a>
+    <a href="rdo.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> RDO</a>
+    <a href="locacao.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Locacao</a>
+    <a href="proposta.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Proposta</a>
+    <a href="config.html" class="mm-link-config"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuracoes</a>
   </div>
 </div>
 
@@ -796,9 +693,7 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.role!=='admin'&&u.role!=='gestao'){
-    window.location.href='project-board.html';return;
-  }
+  if(u.role!=='admin'&&u.role!=='gestao'){window.location.href='project-board.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
@@ -829,586 +724,644 @@ const db=firebase.database();
 /* ══════════════════════════════════════════════
    PRICING TABLES
    ══════════════════════════════════════════════ */
-
 const FUNDO_VALOR_DEFAULT = {
-  'Textura': 61.00, 'Parede Lisa': 150.00, 'Monocapa': 100.00,
-  'Grafiato': 80.00, 'Projetada Acrílico': 110.00
+  'Textura':61,'Parede Lisa':150,'Monocapa':100,'Grafiato':80,'Projetada Acrílico':110
 };
 const FUNDO_RENDIMENTO = {
-  'Textura': 200, 'Parede Lisa': 250, 'Monocapa': 200,
-  'Grafiato': 200, 'Projetada Acrílico': 200
+  'Textura':200,'Parede Lisa':250,'Monocapa':200,'Grafiato':200,'Projetada Acrílico':200
 };
-const TINTA_VALOR_DEFAULT = [450.00, 600.00, 600.00];
+const TINTA_VALOR_DEFAULT = [450,600,600];
 const TINTA_RENDIMENTO = {
-  'Textura': 110, 'Parede Lisa': 120, 'Monocapa': 80,
-  'Grafiato': 100, 'Projetada Acrílico': 90
+  'Textura':110,'Parede Lisa':120,'Monocapa':80,'Grafiato':100,'Projetada Acrílico':90
 };
 const DESPLAC_RENDIMENTO = {
-  'Textura': 11, 'Parede Lisa': 100, 'Monocapa': 10,
-  'Grafiato': 10, 'Projetada Acrílico': 11
+  'Textura':11,'Parede Lisa':100,'Monocapa':10,'Grafiato':10,'Projetada Acrílico':11
 };
 const EQUIP_PRECO = {
-  'Lavadora WAP': 545.00, 'Andaime (túnel)': 44.00, 'Balancim Manual': 1200.00,
-  'Martelete': 550.00, 'Escada (diaria)': 90.00, 'Lixadeira': 370.00
+  'Lavadora WAP':545,'Andaime (túnel)':44,'Balancim Manual':1200,
+  'Martelete':550,'Escada (diaria)':90,'Lixadeira':370
 };
 const KM_MUNICIPIO = {
-  'São Paulo': 70, 'Sorocaba': 200, 'Itapetininga': 300, 'São Roque': 120,
-  'Guarujá': 150, 'Santos': 130, 'Itú': 180, 'Campinas': 160, 'Outro': 250
+  'São Paulo':70,'Sorocaba':200,'Itapetininga':300,'São Roque':120,
+  'Guarujá':150,'Santos':130,'Itú':180,'Campinas':160,'Outro':250
 };
-
-// Overrides editáveis na composição
-let compOverrides = {
-  alpinistaDiaria: 180,
-  encarregadoDiaria: 150,
-  encarregadoQtd: 1,
-  fundoValor: {}, // por tipo
-  tintaValor: [450, 600, 600], // por wall index
-  deplacValor: {}, // por tipo (usa mesmo que fundo por padrão)
-  ancoragemUni: 310,
-  artSeguroUni: 3755,
-  vedacaoQtd: null, // null = usa puTelhado do form
-  insumosPercent: 5,
-  combustivelUni: 5.60,
-  hospedagemUni: 3000,
-  pedagioUni: 13,
-  alimentacaoUni: 30
-};
-
-// Funções para obter valores com override
-function getFundoValor(tipo){ return compOverrides.fundoValor[tipo] ?? FUNDO_VALOR_DEFAULT[tipo]; }
-function getTintaValor(i){ return compOverrides.tintaValor[i] ?? TINTA_VALOR_DEFAULT[i] ?? 600; }
-function getDesplacValor(tipo){ return compOverrides.deplacValor[tipo] ?? FUNDO_VALOR_DEFAULT[tipo]; }
-
-// Input HTML helper para composição
-function compInput(id, val, w){
-  w = w || 70;
-  return '<input type="number" step="any" class="comp-input" id="'+id+'" value="'+val+'" style="width:'+w+'px" onchange="onCompChange()">';
-}
-
 const IMPOSTOS_MUNICIPIO = {
-  'São Paulo': 0.09,
-  'Sorocaba': 0.10,
-  'Itapetininga': 0.12,
-  'São Roque': 0.12,
-  'Guarujá': 0.10,
-  'Santos': 0.09,
-  'Itú': 0.10,
-  'Campinas': 0.105,
-  'Outro': 0.12
+  'São Paulo':0.09,'Sorocaba':0.10,'Itapetininga':0.12,'São Roque':0.12,
+  'Guarujá':0.10,'Santos':0.09,'Itú':0.10,'Campinas':0.105,'Outro':0.12
 };
 
 /* ══════════════════════════════════════════════
-   WALL TYPE MANAGEMENT
+   TAB DATA MODEL
    ══════════════════════════════════════════════ */
-let wallCount = 1;
+const MAX_TABS = 6;
+let activeTabIndex = 0;
 
-function addWallType(){
-  if(wallCount >= 3){
-    showToast('Maximo de 3 tipos de parede.');
-    return;
-  }
-  wallCount++;
-  const container = document.getElementById('wallTypesContainer');
-  const div = document.createElement('div');
-  div.className = 'wall-block';
-  div.dataset.wall = wallCount - 1;
-  div.innerHTML = `
-    <div class="wall-block-header">
-      <span class="wall-block-title">Parede ${wallCount}</span>
-      <button class="wall-block-remove" onclick="removeWallType(this)">Remover</button>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Tipo</label>
-        <select class="wallTipo">
-          <option value="Textura">Textura</option>
-          <option value="Parede Lisa">Parede Lisa</option>
-          <option value="Monocapa">Monocapa</option>
-          <option value="Grafiato">Grafiato</option>
-          <option value="Projetada Acrílico">Projetada Acrilico</option>
-        </select>
-      </div>
-      <div class="form-group" style="max-width:80px">
-        <label>Demaos</label>
-        <input type="number" class="wallDemaos" value="2" min="1" max="5">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Cor</label>
-        <select class="wallCor">
-          <option value="Clara">Clara</option>
-          <option value="Escura">Escura</option>
-        </select>
-      </div>
-      <div class="form-group" style="max-width:100px">
-        <label>% da Area</label>
-        <input type="number" class="wallPercent" value="0" min="0" max="100" step="1">
-      </div>
-    </div>
-  `;
-  container.appendChild(div);
-  bindAutoCalc(div);
-  if(wallCount >= 3) document.getElementById('btnAddWall').style.display = 'none';
-  autoCalc();
+function createTab(id, nome){
+  return {
+    id: id,
+    nome: nome || 'Aba ' + id,
+    m2: 5000,
+    torres: 1,
+    prazo: 30,
+    colaboradores: 4,
+    desplacamento: 15,
+    execucao: 'Individual',
+    walls: [{tipo:'Textura',demaos:2,cor:'Clara',percent:100}],
+    equip1:'', equip1Qty:1,
+    equip2:'', equip2Qty:1,
+    puTelhado: 10,
+    comp: {
+      alpinistaDiaria:180, encarregadoDiaria:150, encarregadoQtd:1,
+      fundoValor:{}, tintaValor:[450,600,600], deplacValor:{},
+      ancoragemUni:310, artSeguroUni:3755,
+      vedacaoQtd:null,
+      insumosPercent:5,
+      combustivelUni:5.60, hospedagemUni:3000, pedagioUni:13, alimentacaoUni:30
+    },
+    result: null
+  };
 }
 
-function removeWallType(btn){
-  const block = btn.closest('.wall-block');
-  block.remove();
-  wallCount--;
-  // Renumber
-  document.querySelectorAll('.wall-block').forEach((b, i) => {
-    b.querySelector('.wall-block-title').textContent = 'Parede ' + (i + 1);
-    b.dataset.wall = i;
+let tabs = [createTab('001')];
+
+/* ══════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════ */
+function fmtBRL(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtPct(v){return (v*100).toFixed(1)+'%';}
+function fmtNum(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function getFundoValor(comp,tipo){return comp.fundoValor[tipo]??FUNDO_VALOR_DEFAULT[tipo];}
+function getTintaValor(comp,i){return comp.tintaValor[i]??TINTA_VALOR_DEFAULT[i]??600;}
+function getDesplacValor(comp,tipo){return comp.deplacValor[tipo]??FUNDO_VALOR_DEFAULT[tipo];}
+
+/* ══════════════════════════════════════════════
+   TAB BAR RENDERING
+   ══════════════════════════════════════════════ */
+function renderTabBar(){
+  let h='<div class="tab-bar">';
+  tabs.forEach((tab,i)=>{
+    const act=i===activeTabIndex?' active':'';
+    const rm=tabs.length>1?`<span class="tab-remove" onclick="event.stopPropagation();removeTab(${i})">&times;</span>`:'';
+    h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id} - ${tab.nome}${rm}</button>`;
   });
-  document.getElementById('btnAddWall').style.display = '';
-  autoCalc();
+  if(tabs.length<MAX_TABS) h+=`<button class="tab-btn-add" onclick="addTab()">+</button>`;
+  h+='</div>';
+  document.getElementById('tabBarContainer').innerHTML=h;
 }
 
 /* ══════════════════════════════════════════════
-   FORMATTING HELPERS
+   TAB FORM RENDERING
    ══════════════════════════════════════════════ */
-function fmtBRL(v){
-  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+function wallOptionsHTML(selected){
+  const types=['Textura','Parede Lisa','Monocapa','Grafiato','Projetada Acrílico'];
+  return types.map(t=>`<option value="${t}"${t===selected?' selected':''}>${t.replace('í','i')}</option>`).join('');
 }
-function fmtPct(v){
-  return (v * 100).toFixed(1) + '%';
+
+function equipOptionsHTML(selected){
+  let h='<option value="">-- Nenhum --</option>';
+  Object.keys(EQUIP_PRECO).forEach(e=>{
+    h+=`<option value="${e}"${e===selected?' selected':''}>${e}</option>`;
+  });
+  return h;
 }
-function fmtNum(v){
-  return v.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+function renderTabForm(idx){
+  const tab=tabs[idx];
+  let wallsHTML='';
+  tab.walls.forEach((w,wi)=>{
+    const removeBtn=tab.walls.length>1?`<button class="wall-block-remove" onclick="removeWall(${wi})">Remover</button>`:'';
+    wallsHTML+=`
+    <div class="wall-block">
+      <div class="wall-block-header">
+        <span class="wall-block-title">Parede ${wi+1}</span>
+        ${removeBtn}
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo</label><select class="wallTipo">${wallOptionsHTML(w.tipo)}</select></div>
+        <div class="form-group" style="max-width:80px"><label>Demaos</label><input type="number" class="wallDemaos" value="${w.demaos}" min="1" max="5"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
+        <div class="form-group" style="max-width:100px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1"></div>
+      </div>
+    </div>`;
+  });
+
+  const addWallBtn=tab.walls.length<3?`<button class="btn-add-wall" onclick="addWall()">+ Adicionar Tipo de Parede</button>`:'';
+
+  const html=`
+  <div class="panel-section">
+    <div class="panel-section-title">Dados da Aba: ${tab.id}</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>M2 por Torre</label><input type="number" id="tabM2" value="${tab.m2}" min="1"></div>
+      <div class="form-group" style="max-width:80px"><label>Torres</label><input type="number" id="tabTorres" value="${tab.torres}" min="1"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Prazo por Torre (dias uteis)</label><input type="number" id="tabPrazo" value="${tab.prazo}" min="1"></div>
+      <div class="form-group" style="max-width:80px"><label>Colaboradores</label><input type="number" id="tabColabs" value="${tab.colaboradores}" min="1"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="max-width:100px"><label>Desplacamento (%)</label><input type="number" id="tabDesplac" value="${tab.desplacamento}" min="0" max="100" step="1"></div>
+      <div class="form-group"><label>Execucao</label><select id="tabExecucao"><option value="Individual"${tab.execucao==='Individual'?' selected':''}>Individual</option><option value="Simultânea"${tab.execucao==='Simultânea'?' selected':''}>Simultanea</option></select></div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-section-title">Tipos de Parede</div>
+    <div id="wallTypesContainer">${wallsHTML}</div>
+    ${addWallBtn}
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-section-title">Equipamentos Locacao</div>
+    <div class="form-row">
+      <div class="form-group"><label>Equipamento 1</label><select id="tabEquip1">${equipOptionsHTML(tab.equip1)}</select></div>
+      <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" id="tabEquip1Qty" value="${tab.equip1Qty}" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Equipamento 2</label><select id="tabEquip2">${equipOptionsHTML(tab.equip2)}</select></div>
+      <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" id="tabEquip2Qty" value="${tab.equip2Qty}" min="0"></div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-section-title">Vedacao (PU Hibrido 40)</div>
+    <div class="form-row">
+      <div class="form-group" style="max-width:120px"><label>Qtd PU Telhado</label><input type="number" id="tabPU" value="${tab.puTelhado}" min="0"></div>
+    </div>
+  </div>`;
+
+  document.getElementById('tabFormContent').innerHTML=html;
+  bindAutoCalc(document.getElementById('tabFormContent'));
+}
+
+/* ══════════════════════════════════════════════
+   WALL MANAGEMENT (per active tab)
+   ══════════════════════════════════════════════ */
+function addWall(){
+  saveActiveTab();
+  const tab=tabs[activeTabIndex];
+  if(tab.walls.length>=3){showToast('Maximo 3 tipos de parede.');return;}
+  tab.walls.push({tipo:'Textura',demaos:2,cor:'Clara',percent:0});
+  renderTabForm(activeTabIndex);
+}
+
+function removeWall(wi){
+  saveActiveTab();
+  const tab=tabs[activeTabIndex];
+  if(tab.walls.length<=1)return;
+  tab.walls.splice(wi,1);
+  renderTabForm(activeTabIndex);
+}
+
+/* ══════════════════════════════════════════════
+   TAB MANAGEMENT
+   ══════════════════════════════════════════════ */
+function addTab(){
+  saveActiveTab();
+  if(tabs.length>=MAX_TABS){showToast('Maximo '+MAX_TABS+' abas.');return;}
+  const num=String(tabs.length+1).padStart(3,'0');
+  tabs.push(createTab(num));
+  activeTabIndex=tabs.length-1;
+  renderTabBar();
+  renderTabForm(activeTabIndex);
+  autoCalc();
+}
+
+function removeTab(idx){
+  if(tabs.length<=1)return;
+  tabs.splice(idx,1);
+  // Renumber
+  tabs.forEach((t,i)=>t.id=String(i+1).padStart(3,'0'));
+  if(activeTabIndex>=tabs.length) activeTabIndex=tabs.length-1;
+  renderTabBar();
+  renderTabForm(activeTabIndex);
+  autoCalc();
+}
+
+function switchTab(idx){
+  saveActiveTab();
+  activeTabIndex=idx;
+  renderTabBar();
+  renderTabForm(idx);
+  if(tabs[idx].result) renderComposicao(tabs[idx].result, tabs[idx].comp);
+}
+
+/* ══════════════════════════════════════════════
+   SAVE TAB STATE FROM DOM
+   ══════════════════════════════════════════════ */
+function saveActiveTab(){
+  const tab=tabs[activeTabIndex];
+  const v=id=>{const el=document.getElementById(id);return el?el.value:null;};
+  const vn=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
+  const vi=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
+
+  if(v('tabNome')!==null) tab.nome=v('tabNome')||tab.nome;
+  tab.m2=vn('tabM2');
+  tab.torres=vi('tabTorres')||1;
+  tab.prazo=vi('tabPrazo')||1;
+  tab.colaboradores=vi('tabColabs')||1;
+  tab.desplacamento=vn('tabDesplac');
+  if(v('tabExecucao')!==null) tab.execucao=v('tabExecucao');
+  if(v('tabEquip1')!==null) tab.equip1=v('tabEquip1');
+  tab.equip1Qty=vi('tabEquip1Qty');
+  if(v('tabEquip2')!==null) tab.equip2=v('tabEquip2');
+  tab.equip2Qty=vi('tabEquip2Qty');
+  tab.puTelhado=vi('tabPU');
+
+  // Save walls from DOM
+  const wallBlocks=document.querySelectorAll('#wallTypesContainer .wall-block');
+  if(wallBlocks.length>0){
+    tab.walls=[];
+    wallBlocks.forEach(b=>{
+      tab.walls.push({
+        tipo:b.querySelector('.wallTipo').value,
+        demaos:parseFloat(b.querySelector('.wallDemaos').value)||1,
+        cor:b.querySelector('.wallCor').value,
+        percent:parseFloat(b.querySelector('.wallPercent').value)||0
+      });
+    });
+  }
+
+  // Update tab bar label
+  renderTabBar();
 }
 
 /* ══════════════════════════════════════════════
    CALCULATION ENGINE
    ══════════════════════════════════════════════ */
-let lastResult = null;
+function calcularTab(tab, municipio){
+  const comp=tab.comp;
+  const torres=tab.torres;
+  const m2PerTower=tab.m2;
+  const prazo=tab.prazo;
+  const desplacamento=tab.desplacamento/100;
+  const simultanea=tab.execucao==='Simultânea';
 
-function getInputs(){
-  const walls = [];
-  document.querySelectorAll('.wall-block').forEach((b, i) => {
-    walls.push({
-      tipo: b.querySelector('.wallTipo').value,
-      demaos: parseFloat(b.querySelector('.wallDemaos').value) || 1,
-      cor: b.querySelector('.wallCor').value,
-      percent: (parseFloat(b.querySelector('.wallPercent').value) || 0) / 100
-    });
+  let totalFundo=0, totalTinta=0, totalDesplac=0;
+  const wallDetails=[];
+
+  tab.walls.forEach((w,i)=>{
+    const pct=w.percent/100;
+    const m2=m2PerTower*pct;
+    const tipo=w.tipo;
+
+    const quantFundo=m2/FUNDO_RENDIMENTO[tipo];
+    const valorFundo=getFundoValor(comp,tipo)*quantFundo;
+
+    const valorLataTinta=getTintaValor(comp,i);
+    const quantTinta=(m2/TINTA_RENDIMENTO[tipo])*w.demaos;
+    const valorTinta=valorLataTinta*quantTinta;
+
+    const m2Desplac=m2*desplacamento;
+    const quantDesplac=m2Desplac/DESPLAC_RENDIMENTO[tipo];
+    const valorDesplac=getDesplacValor(comp,tipo)*quantDesplac;
+
+    totalFundo+=valorFundo;
+    totalTinta+=valorTinta;
+    totalDesplac+=valorDesplac;
+
+    wallDetails.push({tipo,m2,demaos:w.demaos,cor:w.cor,percent:pct,
+      quantFundo,valorFundo,quantTinta,valorTinta,m2Desplac,quantDesplac,valorDesplac});
   });
 
-  return {
-    nome: document.getElementById('nomeProjeto').value || 'Sem nome',
-    municipio: document.getElementById('municipio').value,
-    torres: parseInt(document.getElementById('torres').value) || 1,
-    m2Total: parseFloat(document.getElementById('m2Total').value) || 0,
-    prazo: parseInt(document.getElementById('prazoTorre').value) || 1,
-    colaboradores: parseInt(document.getElementById('colaboradores').value) || 4,
-    desplacamento: (parseFloat(document.getElementById('desplacamento').value) || 0) / 100,
-    execucao: document.getElementById('execucao').value,
-    walls: walls,
-    comissao: (parseFloat(document.getElementById('comissao').value) || 0) / 100,
-    margem: (parseFloat(document.getElementById('margem').value) || 0) / 100,
-    lucro: (parseFloat(document.getElementById('lucro').value) || 0) / 100,
-    equip1: document.getElementById('equip1').value,
-    equip1Qty: parseInt(document.getElementById('equip1Qty').value) || 0,
-    equip2: document.getElementById('equip2').value,
-    equip2Qty: parseInt(document.getElementById('equip2Qty').value) || 0,
-    puTelhado: parseInt(document.getElementById('puTelhado').value) || 0
-  };
-}
+  // Mao de Obra
+  const alpDiaria=comp.alpinistaDiaria;
+  const encDiaria=comp.encarregadoDiaria;
+  const encQtd=comp.encarregadoQtd;
+  const alpinistasValor=alpDiaria*prazo*tab.colaboradores;
+  const encarregadoValor=encDiaria*prazo*encQtd;
+  const maoDeObraPerTower=alpinistasValor+encarregadoValor;
 
-function calcular(){
-  const inp = getInputs();
-  const torres = inp.torres;
-  const m2PerTower = inp.m2Total; // input já é M2 por torre (igual N23 na planilha)
-  const prazo = inp.prazo;
-  const totalDias = prazo; // per tower
-  const simultanea = inp.execucao === 'Simultânea';
+  // Deslocamento
+  const km=KM_MUNICIPIO[municipio]||250;
+  const combustivel=(km/10*comp.combustivelUni)*prazo;
+  const hospedagem=(prazo/30)*comp.hospedagemUni;
+  const pedagio=comp.pedagioUni*prazo;
+  const alimentacao=(tab.colaboradores+0.5)*comp.alimentacaoUni*prazo;
+  const deslocamentoPerTower=combustivel+hospedagem+pedagio+alimentacao;
 
-  // ── PER TOWER calculations ──
-  let totalFundo = 0, totalTinta = 0, totalDesplac = 0;
-  const wallDetails = [];
+  // Seguranca
+  const ancoragem=comp.ancoragemUni*torres;
+  const artSeguro=comp.artSeguroUni;
 
-  inp.walls.forEach((w, i) => {
-    const m2 = m2PerTower * w.percent;
-    const tipo = w.tipo;
+  // Vedacao
+  const vedQtd=comp.vedacaoQtd!==null?comp.vedacaoQtd:tab.puTelhado;
+  const vedacaoPerTower=(29.9*vedQtd)/2;
 
-    // Fundo Preparador
-    const quantFundo = m2 / FUNDO_RENDIMENTO[tipo];
-    const valorFundo = getFundoValor(tipo) * quantFundo;
+  // Insumos
+  const insumosPerTower=(totalTinta+totalFundo+totalDesplac)*(comp.insumosPercent/100);
 
-    // Tinta
-    const valorLataTinta = getTintaValor(i);
-    const quantTinta = (m2 / TINTA_RENDIMENTO[tipo]) * w.demaos;
-    const valorTinta = valorLataTinta * quantTinta;
+  // Locacao
+  let locacaoPerTower=0;
+  if(tab.equip1&&tab.equip1Qty>0) locacaoPerTower+=(EQUIP_PRECO[tab.equip1]||0)*tab.equip1Qty;
+  if(tab.equip2&&tab.equip2Qty>0) locacaoPerTower+=(EQUIP_PRECO[tab.equip2]||0)*tab.equip2Qty;
 
-    // Desplacamento
-    const m2Desplac = m2 * inp.desplacamento;
-    const quantDesplac = m2Desplac / DESPLAC_RENDIMENTO[tipo];
-    const valorDesplac = getDesplacValor(tipo) * quantDesplac;
+  const materialPerTower=totalFundo+totalTinta+totalDesplac+vedacaoPerTower+insumosPerTower+locacaoPerTower;
 
-    totalFundo += valorFundo;
-    totalTinta += valorTinta;
-    totalDesplac += valorDesplac;
-
-    wallDetails.push({
-      tipo, m2, demaos: w.demaos, cor: w.cor, percent: w.percent,
-      quantFundo, valorFundo, quantTinta, valorTinta,
-      m2Desplac, quantDesplac, valorDesplac
-    });
-  });
-
-  // Mao de Obra per tower
-  const alpDiaria = compOverrides.alpinistaDiaria;
-  const encDiaria = compOverrides.encarregadoDiaria;
-  const encQtd = compOverrides.encarregadoQtd;
-  const alpinistasValor = alpDiaria * prazo * inp.colaboradores;
-  const encarregadoValor = encDiaria * prazo * encQtd;
-  const maoDeObraPerTower = alpinistasValor + encarregadoValor;
-
-  // Deslocamento per tower
-  const km = KM_MUNICIPIO[inp.municipio] || 250;
-  const combUni = compOverrides.combustivelUni;
-  const hospUni = compOverrides.hospedagemUni;
-  const pedUni = compOverrides.pedagioUni;
-  const alimUni = compOverrides.alimentacaoUni;
-  const combustivel = (km / 10 * combUni) * totalDias;
-  const hospedagem = (totalDias / 30) * hospUni;
-  const pedagio = pedUni * totalDias;
-  const alimentacao = (inp.colaboradores + 0.5) * alimUni * totalDias;
-  const deslocamentoPerTower = combustivel + hospedagem + pedagio + alimentacao;
-
-  // Seguranca (total, not per tower)
-  const ancUni = compOverrides.ancoragemUni;
-  const artUni = compOverrides.artSeguroUni;
-  const ancoragem = ancUni * torres;
-  const artSeguro = artUni;
-
-  // Vedacao PU per tower
-  const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : inp.puTelhado;
-  const telhadoPU = 29.9 * vedQtd;
-  const vedacaoPerTower = telhadoPU / 2;
-
-  // Insumos per tower
-  const insPct = compOverrides.insumosPercent / 100;
-  const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * insPct;
-
-  // Locacao per tower (planilha: E39 = B39 * C39, sem multiplicar por prazo)
-  let locacaoPerTower = 0;
-  if(inp.equip1 && inp.equip1Qty > 0){
-    const price = EQUIP_PRECO[inp.equip1] || 0;
-    locacaoPerTower += price * inp.equip1Qty;
-  }
-  if(inp.equip2 && inp.equip2Qty > 0){
-    const price = EQUIP_PRECO[inp.equip2] || 0;
-    locacaoPerTower += price * inp.equip2Qty;
-  }
-
-  // Material per tower
-  const materialPerTower = totalFundo + totalTinta + totalDesplac + vedacaoPerTower + insumosPerTower + locacaoPerTower;
-
-  // ── TOTALS across all towers ──
+  // Totals across towers
   let totalMaoObra, totalDeslocamento, totalMaterial;
-
   if(simultanea){
-    // Simultanea: M.O = (alpinistas * torres) + (encarregado * torres / 2)
-    totalMaoObra = (alpinistasValor * torres) + (encarregadoValor * Math.ceil(torres / 2));
-    // Deslocamento = deslocamento * torres / 2
-    totalDeslocamento = deslocamentoPerTower * Math.ceil(torres / 2);
-    // Material: per tower * torres but locacao / 2
-    const materialSemLocacao = (totalFundo + totalTinta + totalDesplac + vedacaoPerTower + insumosPerTower) * torres;
-    const locacaoTotal = locacaoPerTower * Math.ceil(torres / 2);
-    totalMaterial = materialSemLocacao + locacaoTotal + ancoragem + artSeguro;
+    totalMaoObra=(alpinistasValor*torres)+(encarregadoValor*Math.ceil(torres/2));
+    totalDeslocamento=deslocamentoPerTower*Math.ceil(torres/2);
+    const matSemLoc=(totalFundo+totalTinta+totalDesplac+vedacaoPerTower+insumosPerTower)*torres;
+    const locTotal=locacaoPerTower*Math.ceil(torres/2);
+    totalMaterial=matSemLoc+locTotal+ancoragem+artSeguro;
   } else {
-    totalMaoObra = maoDeObraPerTower * torres;
-    totalDeslocamento = deslocamentoPerTower * torres;
-    totalMaterial = materialPerTower * torres + ancoragem + artSeguro;
+    totalMaoObra=maoDeObraPerTower*torres;
+    totalDeslocamento=deslocamentoPerTower*torres;
+    totalMaterial=materialPerTower*torres+ancoragem+artSeguro;
   }
 
-  const custoDireto = totalMaoObra + totalDeslocamento + totalMaterial;
+  const prazoTotal=simultanea?prazo:prazo*torres;
 
-  // Impostos
-  const impostos = IMPOSTOS_MUNICIPIO[inp.municipio] || 0.12;
-  const percentualIndireto = inp.comissao + impostos + inp.margem + inp.lucro;
-
-  const valorProjeto = custoDireto / (1 - percentualIndireto);
-  const comissaoValor = valorProjeto * inp.comissao;
-  const impostosValor = valorProjeto * impostos;
-  const margemValor = valorProjeto * inp.margem;
-  const lucroValor = valorProjeto * inp.lucro;
-  const valorPorTorre = valorProjeto / torres;
-
-  // Prazo total
-  const prazoTotal = simultanea ? prazo : prazo * torres;
-
-  // Store result
-  lastResult = {
-    inp, torres, m2PerTower, prazo, totalDias, simultanea,
-    wallDetails,
+  const result={
+    tab, torres, m2PerTower, prazo, wallDetails,
     alpinistasValor, encarregadoValor, maoDeObraPerTower,
     km, combustivel, hospedagem, pedagio, alimentacao, deslocamentoPerTower,
     ancoragem, artSeguro, vedacaoPerTower, insumosPerTower, locacaoPerTower,
-    materialPerTower,
-    totalMaoObra, totalDeslocamento, totalMaterial,
-    custoDireto, impostos, percentualIndireto,
-    valorProjeto, comissaoValor, impostosValor, margemValor, lucroValor,
-    valorPorTorre, prazoTotal,
-    totalFundo, totalTinta, totalDesplac
+    materialPerTower, totalFundo, totalTinta, totalDesplac,
+    totalMaoObra, totalDeslocamento, totalMaterial, prazoTotal
+  };
+  tab.result=result;
+  return result;
+}
+
+function calcularProjeto(){
+  saveActiveTab();
+
+  const municipio=document.getElementById('municipio').value;
+  const comissao=(parseFloat(document.getElementById('comissao').value)||0)/100;
+  const margem=(parseFloat(document.getElementById('margem').value)||0)/100;
+  const lucro=(parseFloat(document.getElementById('lucro').value)||0)/100;
+  const nome=document.getElementById('nomeProjeto').value||'Sem nome';
+  const impostos=IMPOSTOS_MUNICIPIO[municipio]||0.12;
+
+  let aggMO=0, aggDesl=0, aggMat=0, aggM2=0, aggPrazo=0;
+
+  tabs.forEach(tab=>{
+    const r=calcularTab(tab, municipio);
+    aggMO+=r.totalMaoObra;
+    aggDesl+=r.totalDeslocamento;
+    aggMat+=r.totalMaterial;
+    aggM2+=r.m2PerTower*r.torres;
+    aggPrazo+=r.prazoTotal;
+  });
+
+  const custoDireto=aggMO+aggDesl+aggMat;
+  const percentualIndireto=comissao+impostos+margem+lucro;
+  const valorProjeto=custoDireto/(1-percentualIndireto);
+  const comissaoValor=valorProjeto*comissao;
+  const impostosValor=valorProjeto*impostos;
+  const margemValor=valorProjeto*margem;
+  const lucroValor=valorProjeto*lucro;
+
+  const agg={
+    nome, municipio, comissao, margem, lucro, impostos,
+    aggMO, aggDesl, aggMat, aggM2, aggPrazo,
+    custoDireto, percentualIndireto, valorProjeto,
+    comissaoValor, impostosValor, margemValor, lucroValor
   };
 
-  renderResults(lastResult);
+  renderResults(agg);
+  // Render composicao for active tab
+  const activeTab=tabs[activeTabIndex];
+  if(activeTab.result) renderComposicao(activeTab.result, activeTab.comp);
 }
 
-function renderResults(r){
-  // Summary
-  document.getElementById('resNome').textContent = r.inp.nome;
-  document.getElementById('resMunicipio').textContent = r.inp.municipio;
-  document.getElementById('resTorres').textContent = r.torres;
-  document.getElementById('resM2Torre').textContent = fmtNum(r.m2PerTower) + ' m2';
-  document.getElementById('resM2').textContent = fmtNum(r.m2PerTower * r.torres) + ' m2';
-  document.getElementById('resPrazo').textContent = r.prazoTotal + ' dias uteis';
-  document.getElementById('resExecucao').textContent = r.inp.execucao;
+/* ══════════════════════════════════════════════
+   RENDER RESULTS (aggregated)
+   ══════════════════════════════════════════════ */
+function renderResults(a){
+  document.getElementById('resNome').textContent=a.nome;
+  document.getElementById('resMunicipio').textContent=a.municipio;
+  document.getElementById('resAbas').textContent=tabs.length;
+  document.getElementById('resM2').textContent=fmtNum(a.aggM2)+' m2';
+  document.getElementById('resPrazo').textContent=a.aggPrazo+' dias uteis';
 
-  // Cost table
-  const vp = r.valorProjeto;
-  document.getElementById('resMO').textContent = fmtBRL(r.totalMaoObra);
-  document.getElementById('resMOp').textContent = fmtPct(r.totalMaoObra / vp);
+  const vp=a.valorProjeto;
+  document.getElementById('resMO').textContent=fmtBRL(a.aggMO);
+  document.getElementById('resMOp').textContent=fmtPct(a.aggMO/vp);
+  document.getElementById('resDesl').textContent=fmtBRL(a.aggDesl);
+  document.getElementById('resDeslp').textContent=fmtPct(a.aggDesl/vp);
+  document.getElementById('resMat').textContent=fmtBRL(a.aggMat);
+  document.getElementById('resMatp').textContent=fmtPct(a.aggMat/vp);
+  document.getElementById('resCom').textContent=fmtBRL(a.comissaoValor);
+  document.getElementById('resComp').textContent=fmtPct(a.comissao);
+  document.getElementById('resImp').textContent=fmtBRL(a.impostosValor);
+  document.getElementById('resImpp').textContent=fmtPct(a.impostos);
+  document.getElementById('resMarg').textContent=fmtBRL(a.margemValor);
+  document.getElementById('resMargp').textContent=fmtPct(a.margem);
+  document.getElementById('resLuc').textContent=fmtBRL(a.lucroValor);
+  document.getElementById('resLucp').textContent=fmtPct(a.lucro);
+  document.getElementById('resTotal').textContent=fmtBRL(vp);
+  document.getElementById('resTotalBig').textContent=fmtBRL(vp);
 
-  document.getElementById('resDesl').textContent = fmtBRL(r.totalDeslocamento);
-  document.getElementById('resDeslp').textContent = fmtPct(r.totalDeslocamento / vp);
-
-  document.getElementById('resMat').textContent = fmtBRL(r.totalMaterial);
-  document.getElementById('resMatp').textContent = fmtPct(r.totalMaterial / vp);
-
-  document.getElementById('resCom').textContent = fmtBRL(r.comissaoValor);
-  document.getElementById('resComp').textContent = fmtPct(r.inp.comissao);
-
-  document.getElementById('resImp').textContent = fmtBRL(r.impostosValor);
-  document.getElementById('resImpp').textContent = fmtPct(r.impostos);
-
-  document.getElementById('resMarg').textContent = fmtBRL(r.margemValor);
-  document.getElementById('resMargp').textContent = fmtPct(r.inp.margem);
-
-  document.getElementById('resLuc').textContent = fmtBRL(r.lucroValor);
-  document.getElementById('resLucp').textContent = fmtPct(r.inp.lucro);
-
-  document.getElementById('resTotal').textContent = fmtBRL(vp);
-
-  document.getElementById('resTotalBig').textContent = fmtBRL(vp);
-  document.getElementById('resTorreBig').textContent = fmtBRL(r.valorPorTorre);
-
-  // Render composição
-  renderComposicao(r);
-}
-
-function toggleComposicao(){
-  const sec = document.getElementById('composicaoSection');
-  const tog = document.getElementById('composicaoToggle');
-  if(sec.style.display === 'none'){
-    sec.style.display = 'block';
-    tog.style.transform = 'rotate(90deg)';
-    document.getElementById('btnComposicao').querySelector('span').textContent = '📋 Ocultar Composição de Precificação';
+  // Per-tab breakdown
+  if(tabs.length>1){
+    document.getElementById('resTabBreakdown').style.display='';
+    let html='';
+    tabs.forEach(tab=>{
+      if(!tab.result)return;
+      const r=tab.result;
+      const total=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
+      html+=`<div class="tab-summary-row">
+        <span class="tab-summary-label">${tab.id} - ${tab.nome}</span>
+        <span class="tab-summary-val">${fmtBRL(total)}</span>
+      </div>`;
+    });
+    document.getElementById('resTabList').innerHTML=html;
   } else {
-    sec.style.display = 'none';
-    tog.style.transform = 'rotate(0deg)';
-    document.getElementById('btnComposicao').querySelector('span').textContent = '📋 Ver Composição de Precificação';
+    document.getElementById('resTabBreakdown').style.display='none';
   }
 }
 
-function onCompChange(){
-  // Read all comp inputs and update overrides
-  const v = id => { const el=document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
-  compOverrides.alpinistaDiaria = v('comp_alp_diaria');
-  compOverrides.encarregadoDiaria = v('comp_enc_diaria');
-  compOverrides.encarregadoQtd = v('comp_enc_qtd');
+/* ══════════════════════════════════════════════
+   RENDER COMPOSIÇÃO (per active tab)
+   ══════════════════════════════════════════════ */
+function renderComposicao(r, comp){
+  const ci=(id,val,extra)=>`<input type="number" step="any" class="comp-input" id="${id}" value="${val}" ${extra||''} onchange="onCompChange()">`;
+  const ciData=(attr,key,val)=>`<input type="number" step="any" class="comp-input" data-comp-${attr}="${key}" value="${val}" onchange="onCompChange()">`;
 
-  // Fundo por tipo
-  document.querySelectorAll('[data-comp-fundo]').forEach(el => {
-    compOverrides.fundoValor[el.dataset.compFundo] = parseFloat(el.value) || 0;
+  // Mao de Obra
+  document.getElementById('compMaoObra').innerHTML=`
+    <tr><td>Alpinistas</td><td>${ci('comp_alp_diaria',comp.alpinistaDiaria)}</td><td>${r.tab.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
+    <tr><td>Encarregado</td><td>${ci('comp_enc_diaria',comp.encarregadoDiaria)}</td><td>${ci('comp_enc_qtd',comp.encarregadoQtd,'style="width:50px"')}</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
+    <tr class="comp-total"><td colspan="4">Total M.O. por Torre</td><td>${fmtBRL(r.maoDeObraPerTower)}</td></tr>`;
+
+  // Fundo
+  let fH='',fT=0;
+  r.wallDetails.forEach((w,i)=>{
+    const vl=getFundoValor(comp,w.tipo);
+    fH+=`<tr><td>${w.tipo}</td><td>${ciData('fundo',w.tipo,vl)}</td><td>1</td><td>${w.quantFundo.toFixed(1)}</td><td>${fmtBRL(w.valorFundo)}</td></tr>`;
+    fT+=w.valorFundo;
   });
-  // Tinta por index
-  document.querySelectorAll('[data-comp-tinta]').forEach(el => {
-    compOverrides.tintaValor[parseInt(el.dataset.compTinta)] = parseFloat(el.value) || 0;
+  fH+=`<tr class="comp-total"><td colspan="4">Total Fundo</td><td>${fmtBRL(fT)}</td></tr>`;
+  document.getElementById('compFundo').innerHTML=fH;
+
+  // Tinta
+  let tH='',tT=0;
+  r.wallDetails.forEach((w,i)=>{
+    const vl=getTintaValor(comp,i);
+    tH+=`<tr><td>${w.tipo}</td><td>${ciData('tinta',i,vl)}</td><td>${w.demaos}</td><td>${w.quantTinta.toFixed(1)}</td><td>${fmtBRL(w.valorTinta)}</td></tr>`;
+    tT+=w.valorTinta;
   });
-  // Desplac por tipo
-  document.querySelectorAll('[data-comp-desplac]').forEach(el => {
-    compOverrides.deplacValor[el.dataset.compDesplac] = parseFloat(el.value) || 0;
+  tH+=`<tr class="comp-total"><td colspan="4">Total Tinta</td><td>${fmtBRL(tT)}</td></tr>`;
+  document.getElementById('compTinta').innerHTML=tH;
+
+  // Desplacamento
+  let dH='',dT=0;
+  r.wallDetails.forEach((w,i)=>{
+    const vl=getDesplacValor(comp,w.tipo);
+    dH+=`<tr><td>${w.tipo}</td><td>${ciData('desplac',w.tipo,vl)}</td><td>${fmtNum(w.m2Desplac)}</td><td>${w.quantDesplac.toFixed(1)}</td><td>${fmtBRL(w.valorDesplac)}</td></tr>`;
+    dT+=w.valorDesplac;
   });
+  dH+=`<tr class="comp-total"><td colspan="4">Total Desplacamento</td><td>${fmtBRL(dT)}</td></tr>`;
+  document.getElementById('compDesplac').innerHTML=dH;
 
-  compOverrides.ancoragemUni = v('comp_anc_uni');
-  compOverrides.artSeguroUni = v('comp_art_uni');
-  compOverrides.vedacaoQtd = v('comp_ved_qtd');
-  compOverrides.insumosPercent = v('comp_ins_pct');
-  compOverrides.combustivelUni = v('comp_comb_uni');
-  compOverrides.hospedagemUni = v('comp_hosp_uni');
-  compOverrides.pedagioUni = v('comp_ped_uni');
-  compOverrides.alimentacaoUni = v('comp_alim_uni');
+  // Seguranca
+  document.getElementById('compSeguranca').innerHTML=`
+    <tr><td>Ancoragem</td><td>${ci('comp_anc_uni',comp.ancoragemUni)}</td><td>${r.torres}</td><td>${fmtBRL(r.ancoragem)}</td></tr>
+    <tr><td>ART e Seguro</td><td>${ci('comp_art_uni',comp.artSeguroUni)}</td><td>1</td><td>${fmtBRL(r.artSeguro)}</td></tr>
+    <tr class="comp-total"><td colspan="3">Total Seguranca</td><td>${fmtBRL(r.ancoragem+r.artSeguro)}</td></tr>`;
 
-  calcular();
-}
+  // Vedacao
+  const vedQtd=comp.vedacaoQtd!==null?comp.vedacaoQtd:r.tab.puTelhado;
+  document.getElementById('compVedacao').innerHTML=`
+    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${ci('comp_ved_qtd',vedQtd,'style="width:60px"')}</td><td>${fmtBRL(29.9*vedQtd)}</td></tr>
+    <tr class="comp-total"><td colspan="3">Total Vedacao por Torre (÷2)</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>`;
 
-function renderComposicao(r){
-  const ci = (id, val, extra) => `<input type="number" step="any" class="comp-input" id="${id}" value="${val}" ${extra||''} onchange="onCompChange()">`;
-  const ciData = (attr, key, val) => `<input type="number" step="any" class="comp-input" data-comp-${attr}="${key}" value="${val}" onchange="onCompChange()">`;
+  // Insumos
+  const baseIns=r.totalFundo+r.totalTinta+r.totalDesplac;
+  document.getElementById('compInsumos').innerHTML=`
+    <tr><td>Insumos (tinta+fundo+desplac.)</td><td>${fmtBRL(baseIns)}</td><td>${ci('comp_ins_pct',comp.insumosPercent,'style="width:50px"')}%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>`;
 
-  // ── MÃO DE OBRA ──
-  document.getElementById('compMaoObra').innerHTML = `
-    <tr><td>Alpinistas</td><td>${ci('comp_alp_diaria', compOverrides.alpinistaDiaria)}</td><td>${r.inp.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
-    <tr><td>Encarregado</td><td>${ci('comp_enc_diaria', compOverrides.encarregadoDiaria)}</td><td>${ci('comp_enc_qtd', compOverrides.encarregadoQtd, 'style="width:50px"')}</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
-    <tr class="comp-total"><td colspan="4">Total M.O. por Torre</td><td>${fmtBRL(r.maoDeObraPerTower)}</td></tr>
-  `;
-
-  // ── FUNDO PREPARADOR ──
-  let fundoHTML = '';
-  let fundoTotal = 0;
-  r.wallDetails.forEach((w, i) => {
-    const vl = getFundoValor(w.tipo);
-    fundoHTML += `<tr><td>${w.tipo}</td><td>${ciData('fundo', w.tipo, vl)}</td><td>1</td><td>${w.quantFundo.toFixed(1)}</td><td>${fmtBRL(w.valorFundo)}</td></tr>`;
-    fundoTotal += w.valorFundo;
-  });
-  fundoHTML += `<tr class="comp-total"><td colspan="4">Total Fundo</td><td>${fmtBRL(fundoTotal)}</td></tr>`;
-  document.getElementById('compFundo').innerHTML = fundoHTML;
-
-  // ── TINTA ──
-  let tintaHTML = '';
-  let tintaTotal = 0;
-  r.wallDetails.forEach((w, i) => {
-    const vl = getTintaValor(i);
-    tintaHTML += `<tr><td>${w.tipo}</td><td>${ciData('tinta', i, vl)}</td><td>${w.demaos}</td><td>${w.quantTinta.toFixed(1)}</td><td>${fmtBRL(w.valorTinta)}</td></tr>`;
-    tintaTotal += w.valorTinta;
-  });
-  tintaHTML += `<tr class="comp-total"><td colspan="4">Total Tinta</td><td>${fmtBRL(tintaTotal)}</td></tr>`;
-  document.getElementById('compTinta').innerHTML = tintaHTML;
-
-  // ── DESPLACAMENTO ──
-  let desplacHTML = '';
-  let desplacTotal = 0;
-  r.wallDetails.forEach((w, i) => {
-    const vl = getDesplacValor(w.tipo);
-    desplacHTML += `<tr><td>${w.tipo}</td><td>${ciData('desplac', w.tipo, vl)}</td><td>${fmtNum(w.m2Desplac)}</td><td>${w.quantDesplac.toFixed(1)}</td><td>${fmtBRL(w.valorDesplac)}</td></tr>`;
-    desplacTotal += w.valorDesplac;
-  });
-  desplacHTML += `<tr class="comp-total"><td colspan="4">Total Desplacamento</td><td>${fmtBRL(desplacTotal)}</td></tr>`;
-  document.getElementById('compDesplac').innerHTML = desplacHTML;
-
-  // ── SEGURANÇA ──
-  document.getElementById('compSeguranca').innerHTML = `
-    <tr><td>Ancoragem</td><td>${ci('comp_anc_uni', compOverrides.ancoragemUni)}</td><td>${r.torres}</td><td>${fmtBRL(r.ancoragem)}</td></tr>
-    <tr><td>ART e Seguro</td><td>${ci('comp_art_uni', compOverrides.artSeguroUni)}</td><td>1</td><td>${fmtBRL(r.artSeguro)}</td></tr>
-    <tr class="comp-total"><td colspan="3">Total Segurança</td><td>${fmtBRL(r.ancoragem + r.artSeguro)}</td></tr>
-  `;
-
-  // ── VEDAÇÃO ──
-  const vedQtd = compOverrides.vedacaoQtd !== null ? compOverrides.vedacaoQtd : r.inp.puTelhado;
-  const vedBruto = 29.9 * vedQtd;
-  document.getElementById('compVedacao').innerHTML = `
-    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${ci('comp_ved_qtd', vedQtd, 'style="width:60px"')}</td><td>${fmtBRL(vedBruto)}</td></tr>
-    <tr class="comp-total"><td colspan="3">Total Vedação por Torre (÷2)</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
-  `;
-
-  // ── INSUMOS ──
-  const baseInsumos = r.totalFundo + r.totalTinta + r.totalDesplac;
-  document.getElementById('compInsumos').innerHTML = `
-    <tr><td>Insumos (tinta + fundo + desplac.)</td><td>${fmtBRL(baseInsumos)}</td><td>${ci('comp_ins_pct', compOverrides.insumosPercent, 'style="width:50px"')}%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>
-  `;
-
-  // ── LOCAÇÃO (planilha: Valor Total = Valor Mensal × Quantidade) ──
-  let locacaoHTML = '';
-  let locacaoTotal = 0;
-  if(r.inp.equip1 && r.inp.equip1Qty > 0){
-    const price = EQUIP_PRECO[r.inp.equip1] || 0;
-    const val = price * r.inp.equip1Qty;
-    locacaoHTML += `<tr><td>${r.inp.equip1}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
-    locacaoTotal += val;
+  // Locacao
+  let lH='',lT=0;
+  if(r.tab.equip1&&r.tab.equip1Qty>0){
+    const p=EQUIP_PRECO[r.tab.equip1]||0;const val=p*r.tab.equip1Qty;
+    lH+=`<tr><td>${r.tab.equip1}</td><td>${fmtBRL(p)}</td><td>${r.tab.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
+    lT+=val;
   }
-  if(r.inp.equip2 && r.inp.equip2Qty > 0){
-    const price = EQUIP_PRECO[r.inp.equip2] || 0;
-    const val = price * r.inp.equip2Qty;
-    locacaoHTML += `<tr><td>${r.inp.equip2}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
-    locacaoTotal += val;
+  if(r.tab.equip2&&r.tab.equip2Qty>0){
+    const p=EQUIP_PRECO[r.tab.equip2]||0;const val=p*r.tab.equip2Qty;
+    lH+=`<tr><td>${r.tab.equip2}</td><td>${fmtBRL(p)}</td><td>${r.tab.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
+    lT+=val;
   }
-  if(!locacaoHTML) locacaoHTML = '<tr><td colspan="4" style="color:var(--text-dim)">Nenhum equipamento selecionado</td></tr>';
-  else locacaoHTML += `<tr class="comp-total"><td colspan="3">Total Locação por Torre</td><td>${fmtBRL(locacaoTotal)}</td></tr>`;
-  document.getElementById('compLocacao').innerHTML = locacaoHTML;
+  if(!lH) lH='<tr><td colspan="4" style="color:var(--text-dim)">Nenhum equipamento selecionado</td></tr>';
+  else lH+=`<tr class="comp-total"><td colspan="3">Total Locacao</td><td>${fmtBRL(lT)}</td></tr>`;
+  document.getElementById('compLocacao').innerHTML=lH;
 
-  // ── DESPESA OPERACIONAL ──
-  document.getElementById('compDespesa').innerHTML = `
-    <tr><td>Combustível</td><td>${ci('comp_comb_uni', compOverrides.combustivelUni)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
-    <tr><td>Hospedagem</td><td>${ci('comp_hosp_uni', compOverrides.hospedagemUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
-    <tr><td>Pedágio</td><td>${ci('comp_ped_uni', compOverrides.pedagioUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
-    <tr><td>Alimentação</td><td>${ci('comp_alim_uni', compOverrides.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
-    <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>
-  `;
+  // Despesa Operacional
+  document.getElementById('compDespesa').innerHTML=`
+    <tr><td>Combustivel</td><td>${ci('comp_comb_uni',comp.combustivelUni)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
+    <tr><td>Hospedagem</td><td>${ci('comp_hosp_uni',comp.hospedagemUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
+    <tr><td>Pedagio</td><td>${ci('comp_ped_uni',comp.pedagioUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
+    <tr><td>Alimentacao</td><td>${ci('comp_alim_uni',comp.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
+    <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>`;
 
-  // ── ITEM VARIÁVEL ──
-  document.getElementById('compVariavel').innerHTML = `
-    <tr><td style="color:var(--text-dim)">Nenhum item variável</td><td>—</td></tr>
-  `;
-
-  // ── TOTAL PROJETO UNITÁRIO ──
-  const totalPerTower = r.maoDeObraPerTower + r.deslocamentoPerTower + r.materialPerTower;
-  const moP = totalPerTower > 0 ? (r.maoDeObraPerTower / totalPerTower * 100).toFixed(1) : 0;
-  const deslP = totalPerTower > 0 ? (r.deslocamentoPerTower / totalPerTower * 100).toFixed(1) : 0;
-  const matP = totalPerTower > 0 ? (r.materialPerTower / totalPerTower * 100).toFixed(1) : 0;
-  document.getElementById('compTotalUni').innerHTML = `
-    <tr><td>Mão de Obra</td><td>${fmtBRL(r.maoDeObraPerTower)}</td><td>${moP}%</td></tr>
+  // Total unitario
+  const totalPerTower=r.maoDeObraPerTower+r.deslocamentoPerTower+r.materialPerTower;
+  const moP=totalPerTower>0?(r.maoDeObraPerTower/totalPerTower*100).toFixed(1):0;
+  const deslP=totalPerTower>0?(r.deslocamentoPerTower/totalPerTower*100).toFixed(1):0;
+  const matP=totalPerTower>0?(r.materialPerTower/totalPerTower*100).toFixed(1):0;
+  document.getElementById('compTotalUni').innerHTML=`
+    <tr><td>Mao de Obra</td><td>${fmtBRL(r.maoDeObraPerTower)}</td><td>${moP}%</td></tr>
     <tr><td>Deslocamento</td><td>${fmtBRL(r.deslocamentoPerTower)}</td><td>${deslP}%</td></tr>
     <tr><td>Material</td><td>${fmtBRL(r.materialPerTower)}</td><td>${matP}%</td></tr>
-    <tr class="comp-total"><td>Custo Direto por Torre</td><td>${fmtBRL(totalPerTower)}</td><td>100%</td></tr>
-    <tr><td colspan="3" style="padding-top:12px;font-weight:600;color:var(--orange);font-size:.95rem">Valor Final por Torre: ${fmtBRL(r.valorPorTorre)}</td></tr>
-  `;
+    <tr class="comp-total"><td>Custo Direto por Torre</td><td>${fmtBRL(totalPerTower)}</td><td>100%</td></tr>`;
+}
+
+/* ══════════════════════════════════════════════
+   COMP CHANGE HANDLER
+   ══════════════════════════════════════════════ */
+function onCompChange(){
+  const comp=tabs[activeTabIndex].comp;
+  const v=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
+
+  comp.alpinistaDiaria=v('comp_alp_diaria');
+  comp.encarregadoDiaria=v('comp_enc_diaria');
+  comp.encarregadoQtd=v('comp_enc_qtd');
+
+  document.querySelectorAll('[data-comp-fundo]').forEach(el=>{
+    comp.fundoValor[el.dataset.compFundo]=parseFloat(el.value)||0;
+  });
+  document.querySelectorAll('[data-comp-tinta]').forEach(el=>{
+    comp.tintaValor[parseInt(el.dataset.compTinta)]=parseFloat(el.value)||0;
+  });
+  document.querySelectorAll('[data-comp-desplac]').forEach(el=>{
+    comp.deplacValor[el.dataset.compDesplac]=parseFloat(el.value)||0;
+  });
+
+  comp.ancoragemUni=v('comp_anc_uni');
+  comp.artSeguroUni=v('comp_art_uni');
+  comp.vedacaoQtd=v('comp_ved_qtd');
+  comp.insumosPercent=v('comp_ins_pct');
+  comp.combustivelUni=v('comp_comb_uni');
+  comp.hospedagemUni=v('comp_hosp_uni');
+  comp.pedagioUni=v('comp_ped_uni');
+  comp.alimentacaoUni=v('comp_alim_uni');
+
+  calcularProjeto();
+}
+
+/* ══════════════════════════════════════════════
+   TOGGLE COMPOSIÇÃO
+   ══════════════════════════════════════════════ */
+function toggleComposicao(){
+  const sec=document.getElementById('composicaoSection');
+  const tog=document.getElementById('composicaoToggle');
+  if(sec.style.display==='none'){
+    sec.style.display='';tog.textContent='▼';
+  } else {
+    sec.style.display='none';tog.textContent='▶';
+  }
 }
 
 /* ══════════════════════════════════════════════
    SAVE TO FIREBASE
    ══════════════════════════════════════════════ */
 function salvarProposta(){
-  if(!lastResult){
-    showToast('Calcule a proposta primeiro.');
-    return;
-  }
-  const r = lastResult;
-  const data = {
-    nome: r.inp.nome,
-    municipio: r.inp.municipio,
-    torres: r.torres,
-    m2PorTorre: r.m2PerTower,
-    m2Total: r.m2PerTower * r.torres,
-    prazoTorre: r.prazo,
-    prazoTotal: r.prazoTotal,
-    colaboradores: r.inp.colaboradores,
-    desplacamento: r.inp.desplacamento,
-    execucao: r.inp.execucao,
-    walls: r.inp.walls,
-    comissao: r.inp.comissao,
-    margem: r.inp.margem,
-    lucro: r.inp.lucro,
-    equip1: r.inp.equip1,
-    equip1Qty: r.inp.equip1Qty,
-    equip2: r.inp.equip2,
-    equip2Qty: r.inp.equip2Qty,
-    puTelhado: r.inp.puTelhado,
-    // Results
-    totalMaoObra: r.totalMaoObra,
-    totalDeslocamento: r.totalDeslocamento,
-    totalMaterial: r.totalMaterial,
-    custoDireto: r.custoDireto,
-    impostos: r.impostos,
-    valorProjeto: r.valorProjeto,
-    comissaoValor: r.comissaoValor,
-    impostosValor: r.impostosValor,
-    margemValor: r.margemValor,
-    lucroValor: r.lucroValor,
-    valorPorTorre: r.valorPorTorre,
-    // Meta
-    criadoPor: window.currentUser ? window.currentUser.name : 'desconhecido',
+  calcularProjeto();
+  const nome=document.getElementById('nomeProjeto').value||'Sem nome';
+  const municipio=document.getElementById('municipio').value;
+
+  const data={
+    nome: nome,
+    municipio: municipio,
+    comissao: (parseFloat(document.getElementById('comissao').value)||0)/100,
+    margem: (parseFloat(document.getElementById('margem').value)||0)/100,
+    lucro: (parseFloat(document.getElementById('lucro').value)||0)/100,
+    tabs: tabs.map(t=>({
+      id:t.id, nome:t.nome, m2:t.m2, torres:t.torres, prazo:t.prazo,
+      colaboradores:t.colaboradores, desplacamento:t.desplacamento,
+      execucao:t.execucao, walls:t.walls,
+      equip1:t.equip1, equip1Qty:t.equip1Qty,
+      equip2:t.equip2, equip2Qty:t.equip2Qty,
+      puTelhado:t.puTelhado,
+      result: t.result ? {
+        totalMaoObra:t.result.totalMaoObra,
+        totalDeslocamento:t.result.totalDeslocamento,
+        totalMaterial:t.result.totalMaterial
+      } : null
+    })),
+    criadoPor: window.currentUser?window.currentUser.name:'desconhecido',
     criadoEm: new Date().toISOString()
   };
 
-  const newRef = db.ref('propostas').push();
-  newRef.set(data).then(() => {
+  db.ref('propostas').push().set(data).then(()=>{
     showToast('Proposta salva com sucesso!');
-  }).catch(err => {
-    showToast('Erro ao salvar: ' + err.message);
+  }).catch(err=>{
+    showToast('Erro ao salvar: '+err.message);
   });
 }
 
@@ -1416,46 +1369,41 @@ function salvarProposta(){
    GENERATE PDF
    ══════════════════════════════════════════════ */
 function gerarPDF(){
-  if(!lastResult){
-    showToast('Calcule a proposta primeiro.');
-    return;
-  }
-  const pd = document.getElementById('printDate');
-  if(pd) pd.textContent = 'Gerado em: ' + new Date().toLocaleDateString('pt-BR') + ' por ' + (window.currentUser ? window.currentUser.name : '');
+  calcularProjeto();
+  const pd=document.getElementById('printDate');
+  if(pd) pd.textContent='Gerado em: '+new Date().toLocaleDateString('pt-BR')+' por '+(window.currentUser?window.currentUser.name:'');
   window.print();
-}
-
-/* ══════════════════════════════════════════════
-   TOAST
-   ══════════════════════════════════════════════ */
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 /* ══════════════════════════════════════════════
    AUTO-CALCULATE ON INPUT CHANGE
    ══════════════════════════════════════════════ */
-let autoCalcTimer = null;
+let autoCalcTimer=null;
 function autoCalc(){
   clearTimeout(autoCalcTimer);
-  autoCalcTimer = setTimeout(calcular, 300);
+  autoCalcTimer=setTimeout(calcularProjeto,400);
 }
 
 function bindAutoCalc(container){
-  container.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('input', autoCalc);
-    el.addEventListener('change', autoCalc);
+  if(!container)return;
+  container.querySelectorAll('input, select').forEach(el=>{
+    el.addEventListener('input',autoCalc);
+    el.addEventListener('change',autoCalc);
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Bind all initial inputs
-  bindAutoCalc(document.querySelector('.panel-form'));
-  // Initial calculation
-  calcular();
+/* ══════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  // Bind project-level inputs
+  document.querySelectorAll('#nomeProjeto,#municipio,#comissao,#margem,#lucro').forEach(el=>{
+    el.addEventListener('input',autoCalc);
+    el.addEventListener('change',autoCalc);
+  });
+  renderTabBar();
+  renderTabForm(0);
+  calcularProjeto();
 });
 </script>
 </body>
