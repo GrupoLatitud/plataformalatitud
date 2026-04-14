@@ -1092,23 +1092,15 @@ function calcular(){
   const insPct = compOverrides.insumosPercent / 100;
   const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * insPct;
 
-  // Locacao per tower
+  // Locacao per tower (planilha: E39 = B39 * C39, sem multiplicar por prazo)
   let locacaoPerTower = 0;
   if(inp.equip1 && inp.equip1Qty > 0){
     const price = EQUIP_PRECO[inp.equip1] || 0;
-    if(inp.equip1 === 'Escada (diaria)'){
-      locacaoPerTower += price * inp.equip1Qty * totalDias;
-    } else {
-      locacaoPerTower += price * inp.equip1Qty * (totalDias / 30);
-    }
+    locacaoPerTower += price * inp.equip1Qty;
   }
   if(inp.equip2 && inp.equip2Qty > 0){
     const price = EQUIP_PRECO[inp.equip2] || 0;
-    if(inp.equip2 === 'Escada (diaria)'){
-      locacaoPerTower += price * inp.equip2Qty * totalDias;
-    } else {
-      locacaoPerTower += price * inp.equip2Qty * (totalDias / 30);
-    }
+    locacaoPerTower += price * inp.equip2Qty;
   }
 
   // Material per tower
@@ -1319,22 +1311,18 @@ function renderComposicao(r){
     <tr><td>Insumos (tinta + fundo + desplac.)</td><td>${fmtBRL(baseInsumos)}</td><td>${ci('comp_ins_pct', compOverrides.insumosPercent, 'style="width:50px"')}%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>
   `;
 
-  // ── LOCAÇÃO ──
+  // ── LOCAÇÃO (planilha: Valor Total = Valor Mensal × Quantidade) ──
   let locacaoHTML = '';
   let locacaoTotal = 0;
   if(r.inp.equip1 && r.inp.equip1Qty > 0){
     const price = EQUIP_PRECO[r.inp.equip1] || 0;
-    let val;
-    if(r.inp.equip1 === 'Escada (diaria)') val = price * r.inp.equip1Qty * r.prazo;
-    else val = price * r.inp.equip1Qty * (r.prazo / 30);
+    const val = price * r.inp.equip1Qty;
     locacaoHTML += `<tr><td>${r.inp.equip1}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
     locacaoTotal += val;
   }
   if(r.inp.equip2 && r.inp.equip2Qty > 0){
     const price = EQUIP_PRECO[r.inp.equip2] || 0;
-    let val;
-    if(r.inp.equip2 === 'Escada (diaria)') val = price * r.inp.equip2Qty * r.prazo;
-    else val = price * r.inp.equip2Qty * (r.prazo / 30);
+    const val = price * r.inp.equip2Qty;
     locacaoHTML += `<tr><td>${r.inp.equip2}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
     locacaoTotal += val;
   }
