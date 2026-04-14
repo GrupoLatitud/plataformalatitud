@@ -767,8 +767,7 @@ function createTab(id, nome){
     desplacamento: 15,
     execucao: 'Individual',
     walls: [{tipo:'Textura',demaos:2,cor:'Clara',percent:100}],
-    equip1:'', equip1Qty:1,
-    equip2:'', equip2Qty:1,
+    equipamentos:[{nome:'Lavadora WAP',qty:1}],
     puTelhado: 10,
     comp: {
       alpinistaDiaria:200, encarregadoDiaria:200, encarregadoQtd:1,
@@ -883,14 +882,14 @@ function renderTabForm(idx){
 
   <div class="panel-section">
     <div class="panel-section-title">Equipamentos Locacao</div>
-    <div class="form-row">
-      <div class="form-group"><label>Equipamento 1</label><select id="tabEquip1">${equipOptionsHTML(tab.equip1)}</select></div>
-      <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" id="tabEquip1Qty" value="${tab.equip1Qty}" min="0"></div>
+    <div id="equipContainer">${tab.equipamentos.map((eq,i)=>`
+      <div class="form-row equip-row" data-equip-idx="${i}">
+        <div class="form-group"><label>Equipamento</label><select class="eqNome">${equipOptionsHTML(eq.nome)}</select></div>
+        <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" class="eqQty" value="${eq.qty}" min="0"></div>
+        <button type="button" class="btn-remove-equip" onclick="removeEquip(${i})" style="align-self:flex-end;background:none;border:none;color:var(--orange);cursor:pointer;font-size:18px;padding:4px 8px" title="Remover">✕</button>
+      </div>`).join('')}
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Equipamento 2</label><select id="tabEquip2">${equipOptionsHTML(tab.equip2)}</select></div>
-      <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" id="tabEquip2Qty" value="${tab.equip2Qty}" min="0"></div>
-    </div>
+    <button type="button" onclick="addEquip()" style="background:var(--surface2);color:var(--orange);border:1px solid var(--orange);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:4px">+ Adicionar Equipamento</button>
   </div>
 
   <div class="panel-section">
@@ -920,6 +919,23 @@ function removeWall(wi){
   const tab=tabs[activeTabIndex];
   if(tab.walls.length<=1)return;
   tab.walls.splice(wi,1);
+  renderTabForm(activeTabIndex);
+}
+
+/* ══════════════════════════════════════════════
+   EQUIP MANAGEMENT (per active tab)
+   ══════════════════════════════════════════════ */
+function addEquip(){
+  saveActiveTab();
+  const tab=tabs[activeTabIndex];
+  tab.equipamentos.push({nome:'',qty:1});
+  renderTabForm(activeTabIndex);
+}
+
+function removeEquip(ei){
+  saveActiveTab();
+  const tab=tabs[activeTabIndex];
+  tab.equipamentos.splice(ei,1);
   renderTabForm(activeTabIndex);
 }
 
@@ -972,10 +988,17 @@ function saveActiveTab(){
   tab.colaboradores=vi('tabColabs')||1;
   tab.desplacamento=vn('tabDesplac');
   if(v('tabExecucao')!==null) tab.execucao=v('tabExecucao');
-  if(v('tabEquip1')!==null) tab.equip1=v('tabEquip1');
-  tab.equip1Qty=vi('tabEquip1Qty');
-  if(v('tabEquip2')!==null) tab.equip2=v('tabEquip2');
-  tab.equip2Qty=vi('tabEquip2Qty');
+  // Save equipamentos from DOM
+  const equipRows=document.querySelectorAll('#equipContainer .equip-row');
+  if(equipRows.length>0){
+    tab.equipamentos=[];
+    equipRows.forEach(r=>{
+      tab.equipamentos.push({
+        nome:r.querySelector('.eqNome').value,
+        qty:parseInt(r.querySelector('.eqQty').value)||0
+      });
+    });
+  }
   tab.puTelhado=vi('tabPU');
   tab.comp.vedacaoQtd=null; // sync: form PU always drives vedação qty
 
@@ -1064,8 +1087,9 @@ function calcularTab(tab, municipio){
 
   // Locacao
   let locacaoPerTower=0;
-  if(tab.equip1&&tab.equip1Qty>0) locacaoPerTower+=(EQUIP_PRECO[tab.equip1]||0)*tab.equip1Qty;
-  if(tab.equip2&&tab.equip2Qty>0) locacaoPerTower+=(EQUIP_PRECO[tab.equip2]||0)*tab.equip2Qty;
+  (tab.equipamentos||[]).forEach(eq=>{
+    if(eq.nome&&eq.qty>0) locacaoPerTower+=(EQUIP_PRECO[eq.nome]||0)*eq.qty;
+  });
 
   const materialPerTower=totalFundo+totalTinta+totalDesplac+vedacaoPerTower+insumosPerTower+locacaoPerTower;
 
@@ -1248,16 +1272,13 @@ function renderComposicao(r, comp){
 
   // Locacao
   let lH='',lT=0;
-  if(r.tab.equip1&&r.tab.equip1Qty>0){
-    const p=EQUIP_PRECO[r.tab.equip1]||0;const val=p*r.tab.equip1Qty;
-    lH+=`<tr><td>${r.tab.equip1}</td><td>${fmtBRL(p)}</td><td>${r.tab.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
-    lT+=val;
-  }
-  if(r.tab.equip2&&r.tab.equip2Qty>0){
-    const p=EQUIP_PRECO[r.tab.equip2]||0;const val=p*r.tab.equip2Qty;
-    lH+=`<tr><td>${r.tab.equip2}</td><td>${fmtBRL(p)}</td><td>${r.tab.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
-    lT+=val;
-  }
+  (r.tab.equipamentos||[]).forEach(eq=>{
+    if(eq.nome&&eq.qty>0){
+      const p=EQUIP_PRECO[eq.nome]||0;const val=p*eq.qty;
+      lH+=`<tr><td>${eq.nome}</td><td>${fmtBRL(p)}</td><td>${eq.qty}</td><td>${fmtBRL(val)}</td></tr>`;
+      lT+=val;
+    }
+  });
   if(!lH) lH='<tr><td colspan="4" style="color:var(--text-dim)">Nenhum equipamento selecionado</td></tr>';
   else lH+=`<tr class="comp-total"><td colspan="3">Total Locacao</td><td>${fmtBRL(lT)}</td></tr>`;
   document.getElementById('compLocacao').innerHTML=lH;
@@ -1350,8 +1371,7 @@ function salvarProposta(){
       id:t.id, nome:t.nome, m2:t.m2, torres:t.torres, prazo:t.prazo,
       colaboradores:t.colaboradores, desplacamento:t.desplacamento,
       execucao:t.execucao, walls:t.walls,
-      equip1:t.equip1, equip1Qty:t.equip1Qty,
-      equip2:t.equip2, equip2Qty:t.equip2Qty,
+      equipamentos:t.equipamentos,
       puTelhado:t.puTelhado,
       result: t.result ? {
         totalMaoObra:t.result.totalMaoObra,
