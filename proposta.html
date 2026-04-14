@@ -771,7 +771,7 @@ function createTab(id, nome){
     equip2:'', equip2Qty:1,
     puTelhado: 10,
     comp: {
-      alpinistaDiaria:180, encarregadoDiaria:150, encarregadoQtd:1,
+      alpinistaDiaria:200, encarregadoDiaria:150, encarregadoQtd:1,
       fundoValor:{}, tintaValor:[450,600,600], deplacValor:{},
       ancoragemUni:310, artSeguroUni:3755,
       vedacaoQtd:null,
@@ -977,6 +977,7 @@ function saveActiveTab(){
   if(v('tabEquip2')!==null) tab.equip2=v('tabEquip2');
   tab.equip2Qty=vi('tabEquip2Qty');
   tab.puTelhado=vi('tabPU');
+  tab.comp.vedacaoQtd=null; // sync: form PU always drives vedação qty
 
   // Save walls from DOM
   const wallBlocks=document.querySelectorAll('#wallTypesContainer .wall-block');
@@ -1304,7 +1305,11 @@ function onCompChange(){
 
   comp.ancoragemUni=v('comp_anc_uni');
   comp.artSeguroUni=v('comp_art_uni');
-  comp.vedacaoQtd=v('comp_ved_qtd');
+  const vedVal=v('comp_ved_qtd');
+  comp.vedacaoQtd=null; // always use puTelhado as source of truth
+  tabs[activeTabIndex].puTelhado=vedVal;
+  const puEl=document.getElementById('tabPU');
+  if(puEl) puEl.value=vedVal;
   comp.insumosPercent=v('comp_ins_pct');
   comp.combustivelUni=v('comp_comb_uni');
   comp.hospedagemUni=v('comp_hosp_uni');
