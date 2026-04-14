@@ -265,6 +265,33 @@ body{
 }
 .result-summary .result-card{flex-direction:column;align-items:flex-start;gap:4px}
 
+/* COMPOSIÇÃO TABLES */
+.comp-section{margin-bottom:0}
+.comp-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;
+  color:var(--orange);letter-spacing:.5px;text-transform:uppercase;
+  padding:10px 0 8px;border-bottom:2px solid rgba(245,132,31,.3);margin-bottom:0;
+}
+.comp-table{width:100%;border-collapse:collapse}
+.comp-table th{
+  text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:.78rem;color:var(--text-dim);padding:6px 8px;
+  border-bottom:1px solid #2e2818;letter-spacing:.3px;text-transform:uppercase;
+}
+.comp-table td{
+  padding:6px 8px;font-size:.82rem;border-bottom:1px solid rgba(46,40,24,.3);
+  font-variant-numeric:tabular-nums;
+}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .comp-total td{
+  font-weight:700;color:var(--orange);border-top:1px solid var(--orange);
+  padding-top:8px;
+}
+#composicaoSection .panel-section{
+  background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:10px;
+}
+
 .toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;
   background:var(--surface);border:1px solid var(--orange);border-radius:8px;
@@ -396,9 +423,6 @@ body{
             <input type="number" id="colaboradores" value="4" min="1">
           </div>
           <div class="form-group">
-            <label>Janelas por Torre</label>
-            <input type="number" id="janelas" value="50" min="0">
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -622,12 +646,122 @@ body{
         </div>
       </div>
 
-      <!-- Detail breakdown -->
+      <!-- Composição toggle button -->
       <div class="panel-section">
-        <div class="panel-section-title">Detalhamento por Torre</div>
-        <div id="detailBreakdown" style="font-size:.85rem;color:var(--text-dim)">
-          Preencha os dados e clique em Calcular.
+        <button onclick="toggleComposicao()" id="btnComposicao" style="
+          width:100%;padding:12px 16px;border-radius:8px;cursor:pointer;
+          background:var(--surface2);border:1px solid #2e2818;color:var(--text);
+          font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+          display:flex;align-items:center;justify-content:space-between;
+          transition:background .15s;letter-spacing:.3px;
+        ">
+          <span>📋 Ver Composição de Precificação</span>
+          <span id="composicaoToggle" style="transition:transform .2s">▶</span>
+        </button>
+      </div>
+
+      <!-- Composição Detalhada (hidden) -->
+      <div id="composicaoSection" style="display:none">
+
+        <!-- MÃO DE OBRA - EQUIPE -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MÃO DE OBRA — EQUIPE</div>
+          <table class="comp-table">
+            <thead><tr><th>Pessoas</th><th>Valor Diária</th><th>Quant.</th><th>Dias</th><th>Valor Total</th></tr></thead>
+            <tbody id="compMaoObra"></tbody>
+          </table>
         </div>
+
+        <!-- MATERIAL - FUNDO PREPARADOR -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — PREPARO (FUNDO PREPARADOR)</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compFundo"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - PINTURA -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — PINTURA</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compTinta"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - DESPLACAMENTO -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — DESPLACAMENTO / TRINCAS E FISSURAS</div>
+          <table class="comp-table">
+            <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>M² Desplac.</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
+            <tbody id="compDesplac"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - SEGURANÇA -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — SEGURANÇA</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compSeguranca"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - VEDAÇÃO -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — VEDAÇÃO</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compVedacao"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - INSUMOS -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — INSUMOS</div>
+          <table class="comp-table">
+            <thead><tr><th>Item</th><th>Base</th><th>%</th><th>Valor Total</th></tr></thead>
+            <tbody id="compInsumos"></tbody>
+          </table>
+        </div>
+
+        <!-- MATERIAL - LOCAÇÃO -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">MATERIAL — LOCAÇÃO</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Mensal</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
+            <tbody id="compLocacao"></tbody>
+          </table>
+        </div>
+
+        <!-- DESPESA OPERACIONAL -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">DESPESA OPERACIONAL</div>
+          <table class="comp-table">
+            <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
+            <tbody id="compDespesa"></tbody>
+          </table>
+        </div>
+
+        <!-- ITEM VARIÁVEL -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">ITEM VARIÁVEL — MATERIAL</div>
+          <table class="comp-table">
+            <thead><tr><th>Item</th><th>Valor Total</th></tr></thead>
+            <tbody id="compVariavel"></tbody>
+          </table>
+        </div>
+
+        <!-- TOTAL PROJETO (UNI.) -->
+        <div class="panel-section comp-section">
+          <div class="comp-title">TOTAL PROJETO — POR TORRE (UNITÁRIO)</div>
+          <table class="comp-table">
+            <thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead>
+            <tbody id="compTotalUni"></tbody>
+          </table>
+        </div>
+
       </div>
     </div>
   </div>
@@ -867,7 +1001,6 @@ function getInputs(){
     m2Total: parseFloat(document.getElementById('m2Total').value) || 0,
     prazo: parseInt(document.getElementById('prazoTorre').value) || 1,
     colaboradores: parseInt(document.getElementById('colaboradores').value) || 4,
-    janelas: parseInt(document.getElementById('janelas').value) || 0,
     desplacamento: (parseFloat(document.getElementById('desplacamento').value) || 0) / 100,
     execucao: document.getElementById('execucao').value,
     walls: walls,
@@ -942,8 +1075,7 @@ function calcular(){
 
   // Vedacao PU per tower
   const telhadoPU = 29.9 * inp.puTelhado;
-  const janelasPU = (29.9 * inp.janelas) / 3;
-  const vedacaoPerTower = telhadoPU + janelasPU;
+  const vedacaoPerTower = telhadoPU;
 
   // Insumos per tower
   const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * 0.05;
@@ -1059,47 +1191,140 @@ function renderResults(r){
   document.getElementById('resTotalBig').textContent = fmtBRL(vp);
   document.getElementById('resTorreBig').textContent = fmtBRL(r.valorPorTorre);
 
-  // Detail breakdown
-  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  // Render composição
+  renderComposicao(r);
+}
 
-  // Wall details
+function toggleComposicao(){
+  const sec = document.getElementById('composicaoSection');
+  const tog = document.getElementById('composicaoToggle');
+  if(sec.style.display === 'none'){
+    sec.style.display = 'block';
+    tog.style.transform = 'rotate(90deg)';
+    document.getElementById('btnComposicao').querySelector('span').textContent = '📋 Ocultar Composição de Precificação';
+  } else {
+    sec.style.display = 'none';
+    tog.style.transform = 'rotate(0deg)';
+    document.getElementById('btnComposicao').querySelector('span').textContent = '📋 Ver Composição de Precificação';
+  }
+}
+
+function renderComposicao(r){
+  const TINTA_VALOR_WALL = [450, 600, 600];
+
+  // ── MÃO DE OBRA ──
+  document.getElementById('compMaoObra').innerHTML = `
+    <tr><td>Alpinistas</td><td>${fmtBRL(180)}</td><td>${r.inp.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
+    <tr><td>Encarregado</td><td>${fmtBRL(150)}</td><td>0,5</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
+    <tr class="comp-total"><td colspan="4">Total M.O. por Torre</td><td>${fmtBRL(r.maoDeObraPerTower)}</td></tr>
+  `;
+
+  // ── FUNDO PREPARADOR ──
+  let fundoHTML = '';
+  let fundoTotal = 0;
   r.wallDetails.forEach((w, i) => {
-    html += `<div style="background:var(--bg);border:1px solid #2e2818;border-radius:6px;padding:10px">
-      <div style="font-weight:600;color:var(--orange);margin-bottom:6px;font-size:.9rem">Parede ${i+1}: ${w.tipo} (${(w.percent*100).toFixed(0)}%)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.82rem">
-        <span>M2: ${fmtNum(w.m2)}</span>
-        <span>Demaos: ${w.demaos}</span>
-        <span>Fundo: ${fmtBRL(w.valorFundo)}</span>
-        <span>Latas fundo: ${w.quantFundo.toFixed(1)}</span>
-        <span>Tinta: ${fmtBRL(w.valorTinta)}</span>
-        <span>Latas tinta: ${w.quantTinta.toFixed(1)}</span>
-        <span>Desplac.: ${fmtBRL(w.valorDesplac)}</span>
-        <span>M2 desplac.: ${fmtNum(w.m2Desplac)}</span>
-      </div>
-    </div>`;
+    fundoHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(FUNDO_VALOR[w.tipo])}</td><td>1</td><td>${w.quantFundo.toFixed(1)}</td><td>${fmtBRL(w.valorFundo)}</td></tr>`;
+    fundoTotal += w.valorFundo;
   });
+  fundoHTML += `<tr class="comp-total"><td colspan="4">Total Fundo</td><td>${fmtBRL(fundoTotal)}</td></tr>`;
+  document.getElementById('compFundo').innerHTML = fundoHTML;
 
-  // Per tower summary
-  html += `<div style="background:var(--bg);border:1px solid #2e2818;border-radius:6px;padding:10px">
-    <div style="font-weight:600;color:var(--orange);margin-bottom:6px;font-size:.9rem">Resumo por Torre</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.82rem">
-      <span>M.O. Alpinistas: ${fmtBRL(r.alpinistasValor)}</span>
-      <span>M.O. Encarregado: ${fmtBRL(r.encarregadoValor)}</span>
-      <span>Combustivel: ${fmtBRL(r.combustivel)}</span>
-      <span>Hospedagem: ${fmtBRL(r.hospedagem)}</span>
-      <span>Pedagio: ${fmtBRL(r.pedagio)}</span>
-      <span>Alimentacao: ${fmtBRL(r.alimentacao)}</span>
-      <span>Vedacao PU: ${fmtBRL(r.vedacaoPerTower)}</span>
-      <span>Insumos: ${fmtBRL(r.insumosPerTower)}</span>
-      <span>Locacao Equip.: ${fmtBRL(r.locacaoPerTower)}</span>
-      <span>Ancoragem (total): ${fmtBRL(r.ancoragem)}</span>
-      <span>ART+Seguro (total): ${fmtBRL(r.artSeguro)}</span>
-      <span>KM (${r.inp.municipio}): ${r.km} km</span>
-    </div>
-  </div>`;
+  // ── TINTA ──
+  let tintaHTML = '';
+  let tintaTotal = 0;
+  r.wallDetails.forEach((w, i) => {
+    const valorLata = TINTA_VALOR_WALL[i] || 600;
+    tintaHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(valorLata)}</td><td>${w.demaos}</td><td>${w.quantTinta.toFixed(1)}</td><td>${fmtBRL(w.valorTinta)}</td></tr>`;
+    tintaTotal += w.valorTinta;
+  });
+  tintaHTML += `<tr class="comp-total"><td colspan="4">Total Tinta</td><td>${fmtBRL(tintaTotal)}</td></tr>`;
+  document.getElementById('compTinta').innerHTML = tintaHTML;
 
-  html += '</div>';
-  document.getElementById('detailBreakdown').innerHTML = html;
+  // ── DESPLACAMENTO ──
+  let desplacHTML = '';
+  let desplacTotal = 0;
+  r.wallDetails.forEach((w, i) => {
+    desplacHTML += `<tr><td>${w.tipo}</td><td>${fmtBRL(FUNDO_VALOR[w.tipo])}</td><td>${fmtNum(w.m2Desplac)}</td><td>${w.quantDesplac.toFixed(1)}</td><td>${fmtBRL(w.valorDesplac)}</td></tr>`;
+    desplacTotal += w.valorDesplac;
+  });
+  desplacHTML += `<tr class="comp-total"><td colspan="4">Total Desplacamento</td><td>${fmtBRL(desplacTotal)}</td></tr>`;
+  document.getElementById('compDesplac').innerHTML = desplacHTML;
+
+  // ── SEGURANÇA ──
+  document.getElementById('compSeguranca').innerHTML = `
+    <tr><td>Ancoragem</td><td>${fmtBRL(310)}</td><td>${r.torres}</td><td>${fmtBRL(r.ancoragem)}</td></tr>
+    <tr><td>ART e Seguro</td><td>${fmtBRL(3305)}</td><td>1</td><td>${fmtBRL(r.artSeguro)}</td></tr>
+    <tr class="comp-total"><td colspan="3">Total Segurança</td><td>${fmtBRL(r.ancoragem + r.artSeguro)}</td></tr>
+  `;
+
+  // ── VEDAÇÃO ──
+  const telhadoPU = 29.9 * r.inp.puTelhado;
+  document.getElementById('compVedacao').innerHTML = `
+    <tr><td>Telhado (PU40)</td><td>${fmtBRL(29.90)}</td><td>${r.inp.puTelhado}</td><td>${fmtBRL(telhadoPU)}</td></tr>
+    <tr class="comp-total"><td colspan="3">Total Vedação por Torre</td><td>${fmtBRL(r.vedacaoPerTower)}</td></tr>
+  `;
+
+  // ── INSUMOS ──
+  const baseInsumos = r.totalFundo + r.totalTinta + r.totalDesplac;
+  document.getElementById('compInsumos').innerHTML = `
+    <tr><td>Insumos (tinta + fundo + desplac.)</td><td>${fmtBRL(baseInsumos)}</td><td>5%</td><td>${fmtBRL(r.insumosPerTower)}</td></tr>
+  `;
+
+  // ── LOCAÇÃO ──
+  let locacaoHTML = '';
+  let locacaoTotal = 0;
+  if(r.inp.equip1 && r.inp.equip1Qty > 0){
+    const price = EQUIP_PRECO[r.inp.equip1] || 0;
+    let val;
+    if(r.inp.equip1 === 'Escada (diaria)'){
+      val = price * r.inp.equip1Qty * r.prazo;
+    } else {
+      val = price * r.inp.equip1Qty * (r.prazo / 30);
+    }
+    locacaoHTML += `<tr><td>${r.inp.equip1}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip1Qty}</td><td>${fmtBRL(val)}</td></tr>`;
+    locacaoTotal += val;
+  }
+  if(r.inp.equip2 && r.inp.equip2Qty > 0){
+    const price = EQUIP_PRECO[r.inp.equip2] || 0;
+    let val;
+    if(r.inp.equip2 === 'Escada (diaria)'){
+      val = price * r.inp.equip2Qty * r.prazo;
+    } else {
+      val = price * r.inp.equip2Qty * (r.prazo / 30);
+    }
+    locacaoHTML += `<tr><td>${r.inp.equip2}</td><td>${fmtBRL(price)}</td><td>${r.inp.equip2Qty}</td><td>${fmtBRL(val)}</td></tr>`;
+    locacaoTotal += val;
+  }
+  if(!locacaoHTML) locacaoHTML = '<tr><td colspan="4" style="color:var(--text-dim)">Nenhum equipamento selecionado</td></tr>';
+  else locacaoHTML += `<tr class="comp-total"><td colspan="3">Total Locação por Torre</td><td>${fmtBRL(locacaoTotal)}</td></tr>`;
+  document.getElementById('compLocacao').innerHTML = locacaoHTML;
+
+  // ── DESPESA OPERACIONAL ──
+  document.getElementById('compDespesa').innerHTML = `
+    <tr><td>Combustível</td><td>${fmtBRL(5.60)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
+    <tr><td>Hospedagem</td><td>${fmtBRL(3000)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
+    <tr><td>Pedágio</td><td>${fmtBRL(13)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
+    <tr><td>Alimentação</td><td>${fmtBRL(30)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
+    <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>
+  `;
+
+  // ── ITEM VARIÁVEL ──
+  document.getElementById('compVariavel').innerHTML = `
+    <tr><td style="color:var(--text-dim)">Nenhum item variável</td><td>—</td></tr>
+  `;
+
+  // ── TOTAL PROJETO UNITÁRIO ──
+  const totalPerTower = r.maoDeObraPerTower + r.deslocamentoPerTower + r.materialPerTower;
+  const moP = totalPerTower > 0 ? (r.maoDeObraPerTower / totalPerTower * 100).toFixed(1) : 0;
+  const deslP = totalPerTower > 0 ? (r.deslocamentoPerTower / totalPerTower * 100).toFixed(1) : 0;
+  const matP = totalPerTower > 0 ? (r.materialPerTower / totalPerTower * 100).toFixed(1) : 0;
+  document.getElementById('compTotalUni').innerHTML = `
+    <tr><td>Mão de Obra</td><td>${fmtBRL(r.maoDeObraPerTower)}</td><td>${moP}%</td></tr>
+    <tr><td>Deslocamento</td><td>${fmtBRL(r.deslocamentoPerTower)}</td><td>${deslP}%</td></tr>
+    <tr><td>Material</td><td>${fmtBRL(r.materialPerTower)}</td><td>${matP}%</td></tr>
+    <tr class="comp-total"><td>Custo Direto por Torre</td><td>${fmtBRL(totalPerTower)}</td><td>100%</td></tr>
+    <tr><td colspan="3" style="padding-top:12px;font-weight:600;color:var(--orange);font-size:.95rem">Valor Final por Torre: ${fmtBRL(r.valorPorTorre)}</td></tr>
+  `;
 }
 
 /* ══════════════════════════════════════════════
@@ -1119,7 +1344,6 @@ function salvarProposta(){
     prazoTorre: r.prazo,
     prazoTotal: r.prazoTotal,
     colaboradores: r.inp.colaboradores,
-    janelas: r.inp.janelas,
     desplacamento: r.inp.desplacamento,
     execucao: r.inp.execucao,
     walls: r.inp.walls,
