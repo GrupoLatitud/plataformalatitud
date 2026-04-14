@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Plataforma Latitud — Proposta Pintura Predial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0d09;--surface:#1e1a12;--surface2:#252016;
+  --orange:#F5841F;--blue:#6bafd4;--green:#8fcf6a;
+  --text:#e8e0d0;--text-dim:#9a9080;--radius:10px;
+}
+html{font-size:14px}
+body{
+  font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;z-index:200;
+  width:60px;background:var(--surface);border-right:1px solid #2e2818;
+  display:flex;flex-direction:column;padding:12px 0;
+  transition:width .2s ease;overflow:hidden;
+}
+.sidebar:hover{width:220px}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;
+  text-decoration:none;white-space:nowrap;
+}
+.sidebar-logo svg{height:32px;width:32px;flex-shrink:0}
+.sidebar-logo-text{
+  font-family:'Barlow',sans-serif;font-weight:300;font-size:1.3rem;
+  color:#fff;letter-spacing:2px;opacity:0;transition:opacity .2s;
+  white-space:nowrap;
+}
+.sidebar:hover .sidebar-logo-text{opacity:1}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;flex:1;padding:0 8px}
+.sidebar-link{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:8px;
+  color:var(--text-dim);text-decoration:none;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.sidebar-link:hover{color:#ffffff;background:rgba(255,255,255,.08)}
+.sidebar-link.active{color:#F5841F;background:rgba(245,132,31,.2)}
+.sidebar-link svg{flex-shrink:0}
+.sidebar-link-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.92rem;
+  letter-spacing:.3px;opacity:0;transition:opacity .2s;
+}
+.sidebar:hover .sidebar-link-label{opacity:1}
+.sidebar-bottom{
+  padding:8px;border-top:1px solid #2e2818;margin-top:auto;
+}
+.sidebar-user{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  white-space:nowrap;overflow:hidden;
+}
+.sidebar-user-name{
+  font-size:.78rem;color:var(--text-dim);opacity:0;transition:opacity .2s;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.sidebar:hover .sidebar-user-name{opacity:1}
+.sidebar-user-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid #3a3020;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.btn-logout-sidebar{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:none;border:none;color:var(--text-dim);
+  padding:8px 12px;border-radius:8px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.btn-logout-sidebar:hover{color:#f07070;background:rgba(240,80,80,.08)}
+.btn-logout-sidebar svg{flex-shrink:0}
+.btn-logout-sidebar span{opacity:0;transition:opacity .2s}
+.sidebar:hover .btn-logout-sidebar span{opacity:1}
+
+/* TOPBAR (mobile) */
+.topbar{
+  display:none;position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid #2e2818;
+  align-items:center;padding:0 14px;height:52px;
+  backdrop-filter:blur(8px);
+}
+.topbar-logo svg{height:28px;width:auto}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-hamburger{
+  background:none;border:none;color:var(--text-dim);
+  cursor:pointer;padding:6px;border-radius:6px;
+}
+
+/* MAIN CONTENT */
+.main-content{margin-left:60px;transition:margin-left .2s}
+
+/* MOBILE MENU */
+.mobile-menu-overlay{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+}
+.mobile-menu-overlay.open{display:flex}
+.mobile-menu-panel{
+  position:absolute;top:0;right:0;width:260px;height:100%;
+  background:var(--surface);border-left:1px solid #2e2818;
+  padding:20px;display:flex;flex-direction:column;gap:4px;
+  animation:mmSlide .2s ease;
+}
+@keyframes mmSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.mobile-menu-close{
+  align-self:flex-end;background:none;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:1.4rem;padding:4px 8px;margin-bottom:12px;
+}
+.mobile-menu-panel a{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+  color:var(--text-dim);text-decoration:none;padding:12px 16px;border-radius:8px;
+  transition:color .15s,background .15s;display:flex;align-items:center;gap:12px;
+}
+.mobile-menu-panel a:hover{color:var(--text);background:var(--surface2)}
+.mobile-menu-panel a.active{color:var(--orange);background:rgba(245,132,31,.12)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .topbar{display:flex}
+  .main-content{margin-left:0}
+}
+
+/* PAGE */
+.page-body{padding:28px}
+.page-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;
+  margin-bottom:6px;
+}
+.page-sub{color:var(--text-dim);font-size:.88rem;margin-bottom:24px}
+
+/* LAYOUT */
+.proposta-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+}
+@media(max-width:1100px){
+  .proposta-grid{grid-template-columns:1fr}
+}
+
+/* PANELS */
+.panel{
+  background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);
+  padding:20px;
+}
+.panel-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;
+  color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.panel-section{
+  margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #2e2818;
+}
+.panel-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.panel-section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  color:var(--text-dim);margin-bottom:12px;letter-spacing:.5px;text-transform:uppercase;
+}
+
+/* FORM */
+.form-row{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+.form-group label{
+  font-size:.78rem;color:var(--text-dim);font-weight:500;
+  font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px;
+}
+.form-group input,.form-group select{
+  background:var(--bg);border:1px solid #2e2818;border-radius:6px;
+  color:var(--text);padding:8px 10px;font-size:.88rem;
+  font-family:'Barlow',sans-serif;outline:none;
+  transition:border-color .15s;
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--orange)}
+.form-group select{cursor:pointer}
+.form-group select option{background:var(--surface);color:var(--text)}
+
+/* WALL TYPE BLOCK */
+.wall-block{
+  background:var(--bg);border:1px solid #2e2818;border-radius:8px;
+  padding:12px;margin-bottom:10px;
+}
+.wall-block-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+}
+.wall-block-title{font-size:.85rem;font-weight:600;color:var(--orange)}
+.wall-block-remove{
+  background:none;border:none;color:#f07070;cursor:pointer;font-size:.8rem;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  padding:2px 8px;border-radius:4px;transition:background .15s;
+}
+.wall-block-remove:hover{background:rgba(240,80,80,.1)}
+
+/* BUTTONS */
+.btn{
+  background:var(--orange);color:#fff;border:none;
+  padding:10px 20px;border-radius:var(--radius);cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
+  white-space:nowrap;transition:background .2s,transform .1s;
+}
+.btn:hover{background:#e07010}
+.btn:active{transform:scale(.97)}
+.btn-secondary{
+  background:transparent;border:1px solid #2e2818;color:var(--text-dim);
+}
+.btn-secondary:hover{background:var(--surface2);color:var(--text);border-color:#4a3e28}
+.btn-success{background:#2d6a2e}
+.btn-success:hover{background:#3a8a3b}
+.btn-add-wall{
+  background:transparent;border:1px dashed #2e2818;color:var(--text-dim);
+  width:100%;padding:8px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;
+  transition:all .15s;
+}
+.btn-add-wall:hover{border-color:var(--orange);color:var(--orange)}
+.actions-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+/* RESULTS */
+.result-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:12px;
+}
+.result-total{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.8rem;
+  color:var(--orange);
+}
+.result-total small{font-size:.85rem;color:var(--text-dim);font-weight:400}
+.result-table{width:100%;border-collapse:collapse;margin-bottom:16px}
+.result-table th{
+  text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:.82rem;color:var(--text-dim);padding:8px 10px;
+  border-bottom:1px solid #2e2818;letter-spacing:.3px;text-transform:uppercase;
+}
+.result-table td{
+  padding:8px 10px;font-size:.88rem;border-bottom:1px solid rgba(46,40,24,.4);
+}
+.result-table tr:last-child td{border-bottom:none}
+.result-table .row-total td{
+  font-weight:700;color:var(--orange);border-top:2px solid var(--orange);
+  font-size:1rem;padding-top:12px;
+}
+.result-table .col-val{text-align:right;font-variant-numeric:tabular-nums}
+.result-table .col-pct{text-align:right;color:var(--text-dim);font-size:.82rem}
+
+.result-card{
+  background:var(--bg);border:1px solid #2e2818;border-radius:8px;
+  padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;
+}
+.result-card-label{font-size:.85rem;color:var(--text-dim)}
+.result-card-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem}
+
+.result-summary{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;
+}
+.result-summary .result-card{flex-direction:column;align-items:flex-start;gap:4px}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--surface);border:1px solid var(--orange);border-radius:8px;
+  padding:14px 20px;color:var(--text);font-size:.9rem;
+  transform:translateY(100px);opacity:0;transition:all .3s;
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* PRINT */
+@media print{
+  .sidebar,.topbar,.mobile-menu-overlay,.no-print{display:none!important}
+  .main-content{margin-left:0!important}
+  .proposta-grid{grid-template-columns:1fr!important}
+  .panel-form{display:none!important}
+  body{background:#fff!important;color:#111!important}
+  .panel{background:#fff!important;border:1px solid #ccc!important}
+  .panel-title{color:#d47b0a!important}
+  .result-table th{color:#666!important}
+  .result-table .row-total td{color:#d47b0a!important;border-top-color:#d47b0a!important}
+  .result-total{color:#d47b0a!important}
+  .result-card{background:#f5f5f5!important;border-color:#ddd!important}
+  .result-card-label{color:#666!important}
+  .page-title{color:#111!important}
+  .page-sub{color:#666!important}
+  .print-header{display:block!important}
+}
+.print-header{display:none;text-align:center;margin-bottom:20px}
+.print-header h2{font-family:'Barlow Condensed',sans-serif;color:#d47b0a}
+.print-header p{color:#666;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a href="project-board.html" class="sidebar-logo">
+    <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg>
+    <span class="sidebar-logo-text">LATITUD</span>
+  </a>
+  <nav class="sidebar-nav">
+    <a href="project-board.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="sidebar-link-label">Projetos</span></a>
+    <a href="overview.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="sidebar-link-label">Overview</span></a>
+    <a href="cronograma.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="sidebar-link-label">Cronograma</span></a>
+    <a href="team.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span class="sidebar-link-label">Equipe</span></a>
+    <a href="rdo.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="sidebar-link-label">RDO</span></a>
+    <a href="locacao.html" class="sidebar-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span class="sidebar-link-label">Locacao</span></a>
+    <a href="proposta.html" class="sidebar-link active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span class="sidebar-link-label">Proposta</span></a>
+    <a href="config.html" class="sidebar-link sidebar-link-config" id="configLink"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="sidebar-link-label">Configuracoes</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-user-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <span class="sidebar-user-name" id="userBadge"></span>
+    </div>
+    <button class="btn-logout-sidebar" onclick="doLogout()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sair</span></button>
+  </div>
+</aside>
+
+<div class="main-content">
+  <!-- TOPBAR (mobile) -->
+  <div class="topbar">
+    <a href="project-board.html" class="topbar-logo"><svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" style="height:28px;width:auto"><path fill="#f18819" d="M125.43,48.9c-2.35,4.85-4.58,9.44-6.8,14.03-9.21,19.02-18.43,38.04-27.6,57.07-.47,.98-1.02,1.28-2.07,1.26-3.61-.07-7.21-.03-10.82-.03q-1.32,0-.76-1.16c5.63-11.64,11.25-23.27,16.88-34.91,6.91-14.29,13.83-28.59,20.74-42.88,.6-1.25,1.28-2.44,2.12-3.55,3.93-5.26,13.31-5.23,17.12,.59,1.29,1.97,2.21,4.12,3.23,6.22,14.21,29.34,28.39,58.7,42.59,88.04,1.36,2.82,2.35,5.7,1.8,8.87-.81,4.65-4.54,7.96-9.46,8.53-1.14,.13-2.29,.2-3.44,.2-24.06,0-48.12,0-72.18,.03-1.06,0-1.44-.18-1.41-1.35,.09-3.19,.09-6.38,0-9.57-.03-1.17,.35-1.34,1.41-1.34,23.02,.03,46.05,.02,69.07,.01,3.13,0,3.18-.08,1.81-2.93-13.83-28.59-27.67-57.17-41.5-85.76-.18-.37-.38-.74-.71-1.39Z"/></svg></a>
+    <div class="topbar-right">
+      <button class="topbar-hamburger" onclick="document.getElementById('mobileMenuOverlay').classList.add('open')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </div>
+
+<main class="page-body">
+  <div class="print-header">
+    <h2>LATITUD - Proposta de Pintura Predial</h2>
+    <p id="printDate"></p>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap" class="no-print">
+    <h1 class="page-title" style="margin-bottom:0">Proposta - Pintura Predial</h1>
+  </div>
+  <p class="page-sub no-print">Gerador de propostas orcamentarias para projetos de pintura predial.</p>
+
+  <div class="proposta-grid">
+    <!-- LEFT: FORM -->
+    <div class="panel panel-form no-print">
+      <div class="panel-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Dados do Projeto
+      </div>
+
+      <!-- Project Info -->
+      <div class="panel-section">
+        <div class="panel-section-title">Informacoes do Projeto</div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Nome do Projeto</label>
+            <input type="text" id="nomeProjeto" placeholder="Ex: Residencial Aurora">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Municipio</label>
+            <select id="municipio">
+              <option value="São Paulo">Sao Paulo</option>
+              <option value="Sorocaba">Sorocaba</option>
+              <option value="Itapetininga">Itapetininga</option>
+              <option value="São Roque">Sao Roque</option>
+              <option value="Guarujá">Guaruja</option>
+              <option value="Santos">Santos</option>
+              <option value="Itú">Itu</option>
+              <option value="Campinas">Campinas</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantas Torres</label>
+            <input type="number" id="torres" value="1" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>M2 Total</label>
+            <input type="number" id="m2Total" value="5000" min="1">
+          </div>
+          <div class="form-group">
+            <label>Prazo por Torre (dias uteis)</label>
+            <input type="number" id="prazoTorre" value="30" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Colaboradores</label>
+            <input type="number" id="colaboradores" value="4" min="1">
+          </div>
+          <div class="form-group">
+            <label>Janelas por Torre</label>
+            <input type="number" id="janelas" value="50" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Grau de Desplacamento (%)</label>
+            <input type="number" id="desplacamento" value="15" min="0" max="100" step="1">
+          </div>
+          <div class="form-group">
+            <label>Execucao</label>
+            <select id="execucao">
+              <option value="Individual">Individual</option>
+              <option value="Simultânea">Simultanea</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wall Types -->
+      <div class="panel-section">
+        <div class="panel-section-title">Tipos de Parede</div>
+        <div id="wallTypesContainer">
+          <!-- Wall type 1 (default) -->
+          <div class="wall-block" data-wall="0">
+            <div class="wall-block-header">
+              <span class="wall-block-title">Parede 1</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo</label>
+                <select class="wallTipo">
+                  <option value="Textura">Textura</option>
+                  <option value="Parede Lisa">Parede Lisa</option>
+                  <option value="Monocapa">Monocapa</option>
+                  <option value="Grafiato">Grafiato</option>
+                  <option value="Projetada Acrílico">Projetada Acrilico</option>
+                </select>
+              </div>
+              <div class="form-group" style="max-width:80px">
+                <label>Demaos</label>
+                <input type="number" class="wallDemaos" value="2" min="1" max="5">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cor</label>
+                <select class="wallCor">
+                  <option value="Clara">Clara</option>
+                  <option value="Escura">Escura</option>
+                </select>
+              </div>
+              <div class="form-group" style="max-width:100px">
+                <label>% da Area</label>
+                <input type="number" class="wallPercent" value="100" min="0" max="100" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-add-wall" id="btnAddWall" onclick="addWallType()">+ Adicionar Tipo de Parede</button>
+      </div>
+
+      <!-- Financial -->
+      <div class="panel-section">
+        <div class="panel-section-title">Parametros Financeiros</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Comissao (%)</label>
+            <input type="number" id="comissao" value="2.2" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Margem Contrib. (%)</label>
+            <input type="number" id="margem" value="10" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Lucro Liquido (%)</label>
+            <input type="number" id="lucro" value="10" min="0" max="100" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipment -->
+      <div class="panel-section">
+        <div class="panel-section-title">Equipamentos Locacao</div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Equipamento 1</label>
+            <select id="equip1">
+              <option value="">-- Selecione --</option>
+              <option value="Lavadora WAP">Lavadora WAP</option>
+              <option value="Andaime (túnel)">Andaime (tunel)</option>
+              <option value="Balancim Manual">Balancim Manual</option>
+              <option value="Martelete">Martelete</option>
+              <option value="Escada (diaria)">Escada (diaria)</option>
+              <option value="Lixadeira">Lixadeira</option>
+            </select>
+          </div>
+          <div class="form-group" style="max-width:80px">
+            <label>Qtd</label>
+            <input type="number" id="equip1Qty" value="1" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Equipamento 2</label>
+            <select id="equip2">
+              <option value="">-- Selecione --</option>
+              <option value="Lavadora WAP">Lavadora WAP</option>
+              <option value="Andaime (túnel)">Andaime (tunel)</option>
+              <option value="Balancim Manual">Balancim Manual</option>
+              <option value="Martelete">Martelete</option>
+              <option value="Escada (diaria)">Escada (diaria)</option>
+              <option value="Lixadeira">Lixadeira</option>
+            </select>
+          </div>
+          <div class="form-group" style="max-width:80px">
+            <label>Qtd</label>
+            <input type="number" id="equip2Qty" value="1" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Vedacao PU -->
+      <div class="panel-section">
+        <div class="panel-section-title">Vedacao (PU Hibrido 40)</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Qtd PU Telhado</label>
+            <input type="number" id="puTelhado" value="10" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-row">
+        <button class="btn" onclick="calcular()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Calcular
+        </button>
+        <button class="btn btn-success" onclick="salvarProposta()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar Proposta
+        </button>
+        <button class="btn btn-secondary" onclick="gerarPDF()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Gerar PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="panel" id="resultsPanel">
+      <div class="panel-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Resultado da Proposta
+      </div>
+
+      <!-- Summary -->
+      <div class="panel-section">
+        <div class="panel-section-title">Resumo do Projeto</div>
+        <div class="result-summary">
+          <div class="result-card">
+            <span class="result-card-label">Projeto</span>
+            <span class="result-card-value" id="resNome">--</span>
+          </div>
+          <div class="result-card">
+            <span class="result-card-label">Municipio</span>
+            <span class="result-card-value" id="resMunicipio">--</span>
+          </div>
+          <div class="result-card">
+            <span class="result-card-label">Torres</span>
+            <span class="result-card-value" id="resTorres">--</span>
+          </div>
+          <div class="result-card">
+            <span class="result-card-label">M2 Total</span>
+            <span class="result-card-value" id="resM2">--</span>
+          </div>
+          <div class="result-card">
+            <span class="result-card-label">Prazo Total</span>
+            <span class="result-card-value" id="resPrazo">--</span>
+          </div>
+          <div class="result-card">
+            <span class="result-card-label">Execucao</span>
+            <span class="result-card-value" id="resExecucao">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost Breakdown -->
+      <div class="panel-section">
+        <div class="panel-section-title">Composicao de Custos</div>
+        <table class="result-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th class="col-val">Valor (R$)</th>
+              <th class="col-pct">%</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody">
+            <tr><td>Mao de Obra</td><td class="col-val" id="resMO">--</td><td class="col-pct" id="resMOp">--</td></tr>
+            <tr><td>Deslocamento</td><td class="col-val" id="resDesl">--</td><td class="col-pct" id="resDeslp">--</td></tr>
+            <tr><td>Material</td><td class="col-val" id="resMat">--</td><td class="col-pct" id="resMatp">--</td></tr>
+            <tr><td>Comissao</td><td class="col-val" id="resCom">--</td><td class="col-pct" id="resComp">--</td></tr>
+            <tr><td>Impostos</td><td class="col-val" id="resImp">--</td><td class="col-pct" id="resImpp">--</td></tr>
+            <tr><td>Margem Contribuicao</td><td class="col-val" id="resMarg">--</td><td class="col-pct" id="resMargp">--</td></tr>
+            <tr><td>Lucro Liquido</td><td class="col-val" id="resLuc">--</td><td class="col-pct" id="resLucp">--</td></tr>
+            <tr class="row-total"><td>TOTAL</td><td class="col-val" id="resTotal">--</td><td class="col-pct">100%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Valor por torre -->
+      <div class="panel-section">
+        <div class="result-header">
+          <div>
+            <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR TOTAL DO PROJETO</div>
+            <div class="result-total" id="resTotalBig">R$ 0,00</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR POR TORRE</div>
+            <div class="result-total" id="resTorreBig">R$ 0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail breakdown -->
+      <div class="panel-section">
+        <div class="panel-section-title">Detalhamento por Torre</div>
+        <div id="detailBreakdown" style="font-size:.85rem;color:var(--text-dim)">
+          Preencha os dados e clique em Calcular.
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mobile-menu-panel">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobileMenuOverlay').classList.remove('open')">&times;</button>
+    <a href="project-board.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Projetos</a>
+    <a href="overview.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</a>
+    <a href="cronograma.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma</a>
+    <a href="team.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Equipe</a>
+    <a href="rdo.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> RDO</a>
+    <a href="locacao.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> Locacao</a>
+    <a href="proposta.html" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Proposta</a>
+    <a href="config.html" class="mm-link-config"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuracoes</a>
+  </div>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ── AUTH GUARD ─────────────────────────────── */
+(function(){
+  const s=localStorage.getItem('loggedUser');
+  if(!s){window.location.href='login.html';return;}
+  const u=JSON.parse(s);
+  if(u.role!=='admin'&&u.role!=='gestao'){
+    window.location.href='project-board.html';return;
+  }
+  window.currentUser=u;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const cl=document.getElementById('configLink');
+    if(cl&&u.role!=='admin') cl.style.display='none';
+    document.querySelectorAll('.mm-link-config').forEach(el=>{if(u.role!=='admin')el.style.display='none';});
+    const ub=document.getElementById('userBadge');
+    if(ub) ub.textContent=u.name;
+  });
+})();
+function doLogout(){localStorage.removeItem('loggedUser');window.location.href='login.html';}
+
+/* ── FIREBASE ─────────────────────────────────── */
+const firebaseConfig={
+  apiKey:"AIzaSyAfy995MLF9_WW9NqikltIUQbKyocn-dzQ",
+  authDomain:"plataforma-obras-913a8.firebaseapp.com",
+  databaseURL:"https://plataforma-obras-913a8-default-rtdb.firebaseio.com",
+  projectId:"plataforma-obras-913a8",
+  storageBucket:"plataforma-obras-913a8.firebasestorage.app",
+  messagingSenderId:"239756061683",
+  appId:"1:239756061683:web:4246404a3315254ca88086"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+/* ── SYNC SESSION ─────────────────────────────── */
+(function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
+
+/* ══════════════════════════════════════════════
+   PRICING TABLES
+   ══════════════════════════════════════════════ */
+
+const FUNDO_VALOR = {
+  'Textura': 61.00,
+  'Parede Lisa': 150.00,
+  'Monocapa': 100.00,
+  'Grafiato': 80.00,
+  'Projetada Acrílico': 110.00
+};
+
+const FUNDO_RENDIMENTO = {
+  'Textura': 200,
+  'Parede Lisa': 250,
+  'Monocapa': 200,
+  'Grafiato': 200,
+  'Projetada Acrílico': 200
+};
+
+const TINTA_VALOR_POR_WALL = [450.00, 600.00, 600.00];
+
+const TINTA_RENDIMENTO = {
+  'Textura': 110,
+  'Parede Lisa': 120,
+  'Monocapa': 80,
+  'Grafiato': 100,
+  'Projetada Acrílico': 90
+};
+
+const DESPLAC_RENDIMENTO = {
+  'Textura': 11,
+  'Parede Lisa': 100,
+  'Monocapa': 10,
+  'Grafiato': 10,
+  'Projetada Acrílico': 11
+};
+
+const EQUIP_PRECO = {
+  'Lavadora WAP': 545.00,
+  'Andaime (túnel)': 44.00,
+  'Balancim Manual': 1200.00,
+  'Martelete': 550.00,
+  'Escada (diaria)': 90.00,
+  'Lixadeira': 370.00
+};
+
+const KM_MUNICIPIO = {
+  'São Paulo': 70,
+  'Sorocaba': 200,
+  'Itapetininga': 300,
+  'São Roque': 120,
+  'Guarujá': 150,
+  'Santos': 130,
+  'Itú': 180,
+  'Campinas': 160,
+  'Outro': 250
+};
+
+const IMPOSTOS_MUNICIPIO = {
+  'São Paulo': 0.09,
+  'Sorocaba': 0.10,
+  'Itapetininga': 0.12,
+  'São Roque': 0.12,
+  'Guarujá': 0.10,
+  'Santos': 0.09,
+  'Itú': 0.10,
+  'Campinas': 0.105,
+  'Outro': 0.12
+};
+
+/* ══════════════════════════════════════════════
+   WALL TYPE MANAGEMENT
+   ══════════════════════════════════════════════ */
+let wallCount = 1;
+
+function addWallType(){
+  if(wallCount >= 3){
+    showToast('Maximo de 3 tipos de parede.');
+    return;
+  }
+  wallCount++;
+  const container = document.getElementById('wallTypesContainer');
+  const div = document.createElement('div');
+  div.className = 'wall-block';
+  div.dataset.wall = wallCount - 1;
+  div.innerHTML = `
+    <div class="wall-block-header">
+      <span class="wall-block-title">Parede ${wallCount}</span>
+      <button class="wall-block-remove" onclick="removeWallType(this)">Remover</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select class="wallTipo">
+          <option value="Textura">Textura</option>
+          <option value="Parede Lisa">Parede Lisa</option>
+          <option value="Monocapa">Monocapa</option>
+          <option value="Grafiato">Grafiato</option>
+          <option value="Projetada Acrílico">Projetada Acrilico</option>
+        </select>
+      </div>
+      <div class="form-group" style="max-width:80px">
+        <label>Demaos</label>
+        <input type="number" class="wallDemaos" value="2" min="1" max="5">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cor</label>
+        <select class="wallCor">
+          <option value="Clara">Clara</option>
+          <option value="Escura">Escura</option>
+        </select>
+      </div>
+      <div class="form-group" style="max-width:100px">
+        <label>% da Area</label>
+        <input type="number" class="wallPercent" value="0" min="0" max="100" step="1">
+      </div>
+    </div>
+  `;
+  container.appendChild(div);
+  bindAutoCalc(div);
+  if(wallCount >= 3) document.getElementById('btnAddWall').style.display = 'none';
+  autoCalc();
+}
+
+function removeWallType(btn){
+  const block = btn.closest('.wall-block');
+  block.remove();
+  wallCount--;
+  // Renumber
+  document.querySelectorAll('.wall-block').forEach((b, i) => {
+    b.querySelector('.wall-block-title').textContent = 'Parede ' + (i + 1);
+    b.dataset.wall = i;
+  });
+  document.getElementById('btnAddWall').style.display = '';
+  autoCalc();
+}
+
+/* ══════════════════════════════════════════════
+   FORMATTING HELPERS
+   ══════════════════════════════════════════════ */
+function fmtBRL(v){
+  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function fmtPct(v){
+  return (v * 100).toFixed(1) + '%';
+}
+function fmtNum(v){
+  return v.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+/* ══════════════════════════════════════════════
+   CALCULATION ENGINE
+   ══════════════════════════════════════════════ */
+let lastResult = null;
+
+function getInputs(){
+  const walls = [];
+  document.querySelectorAll('.wall-block').forEach((b, i) => {
+    walls.push({
+      tipo: b.querySelector('.wallTipo').value,
+      demaos: parseFloat(b.querySelector('.wallDemaos').value) || 1,
+      cor: b.querySelector('.wallCor').value,
+      percent: (parseFloat(b.querySelector('.wallPercent').value) || 0) / 100
+    });
+  });
+
+  return {
+    nome: document.getElementById('nomeProjeto').value || 'Sem nome',
+    municipio: document.getElementById('municipio').value,
+    torres: parseInt(document.getElementById('torres').value) || 1,
+    m2Total: parseFloat(document.getElementById('m2Total').value) || 0,
+    prazo: parseInt(document.getElementById('prazoTorre').value) || 1,
+    colaboradores: parseInt(document.getElementById('colaboradores').value) || 4,
+    janelas: parseInt(document.getElementById('janelas').value) || 0,
+    desplacamento: (parseFloat(document.getElementById('desplacamento').value) || 0) / 100,
+    execucao: document.getElementById('execucao').value,
+    walls: walls,
+    comissao: (parseFloat(document.getElementById('comissao').value) || 0) / 100,
+    margem: (parseFloat(document.getElementById('margem').value) || 0) / 100,
+    lucro: (parseFloat(document.getElementById('lucro').value) || 0) / 100,
+    equip1: document.getElementById('equip1').value,
+    equip1Qty: parseInt(document.getElementById('equip1Qty').value) || 0,
+    equip2: document.getElementById('equip2').value,
+    equip2Qty: parseInt(document.getElementById('equip2Qty').value) || 0,
+    puTelhado: parseInt(document.getElementById('puTelhado').value) || 0
+  };
+}
+
+function calcular(){
+  const inp = getInputs();
+  const torres = inp.torres;
+  const m2PerTower = inp.m2Total / torres;
+  const prazo = inp.prazo;
+  const totalDias = prazo; // per tower
+  const simultanea = inp.execucao === 'Simultânea';
+
+  // ── PER TOWER calculations ──
+  let totalFundo = 0, totalTinta = 0, totalDesplac = 0;
+  const wallDetails = [];
+
+  inp.walls.forEach((w, i) => {
+    const m2 = m2PerTower * w.percent;
+    const tipo = w.tipo;
+
+    // Fundo Preparador
+    const quantFundo = m2 / FUNDO_RENDIMENTO[tipo];
+    const valorFundo = FUNDO_VALOR[tipo] * quantFundo;
+
+    // Tinta
+    const valorLataTinta = TINTA_VALOR_POR_WALL[i] || 600;
+    const quantTinta = (m2 / TINTA_RENDIMENTO[tipo]) * w.demaos;
+    const valorTinta = valorLataTinta * quantTinta;
+
+    // Desplacamento
+    const m2Desplac = m2 * inp.desplacamento;
+    const quantDesplac = m2Desplac / DESPLAC_RENDIMENTO[tipo];
+    const valorDesplac = FUNDO_VALOR[tipo] * quantDesplac;
+
+    totalFundo += valorFundo;
+    totalTinta += valorTinta;
+    totalDesplac += valorDesplac;
+
+    wallDetails.push({
+      tipo, m2, demaos: w.demaos, cor: w.cor, percent: w.percent,
+      quantFundo, valorFundo, quantTinta, valorTinta,
+      m2Desplac, quantDesplac, valorDesplac
+    });
+  });
+
+  // Mao de Obra per tower
+  const alpinistasValor = 180 * prazo * inp.colaboradores;
+  const encarregadoValor = 150 * prazo * 0.5;
+  const maoDeObraPerTower = alpinistasValor + encarregadoValor;
+
+  // Deslocamento per tower
+  const km = KM_MUNICIPIO[inp.municipio] || 250;
+  const combustivel = (km / 10 * 5.6) * totalDias;
+  const hospedagem = (totalDias / 30) * 3000;
+  const pedagio = 13 * totalDias;
+  const alimentacao = (inp.colaboradores + 0.5) * 30 * totalDias;
+  const deslocamentoPerTower = combustivel + hospedagem + pedagio + alimentacao;
+
+  // Seguranca (total, not per tower)
+  const ancoragem = 310 * torres;
+  const artSeguro = (1855 + 1450) * 1 + 450; // 3755
+
+  // Vedacao PU per tower
+  const telhadoPU = 29.9 * inp.puTelhado;
+  const janelasPU = (29.9 * inp.janelas) / 3;
+  const vedacaoPerTower = telhadoPU + janelasPU;
+
+  // Insumos per tower
+  const insumosPerTower = (totalTinta + totalFundo + totalDesplac) * 0.05;
+
+  // Locacao per tower
+  let locacaoPerTower = 0;
+  if(inp.equip1 && inp.equip1Qty > 0){
+    const price = EQUIP_PRECO[inp.equip1] || 0;
+    if(inp.equip1 === 'Escada (diaria)'){
+      locacaoPerTower += price * inp.equip1Qty * totalDias;
+    } else {
+      locacaoPerTower += price * inp.equip1Qty * (totalDias / 30);
+    }
+  }
+  if(inp.equip2 && inp.equip2Qty > 0){
+    const price = EQUIP_PRECO[inp.equip2] || 0;
+    if(inp.equip2 === 'Escada (diaria)'){
+      locacaoPerTower += price * inp.equip2Qty * totalDias;
+    } else {
+      locacaoPerTower += price * inp.equip2Qty * (totalDias / 30);
+    }
+  }
+
+  // Material per tower
+  const materialPerTower = totalFundo + totalTinta + totalDesplac + vedacaoPerTower + insumosPerTower + locacaoPerTower;
+
+  // ── TOTALS across all towers ──
+  let totalMaoObra, totalDeslocamento, totalMaterial;
+
+  if(simultanea){
+    // Simultanea: M.O = (alpinistas * torres) + (encarregado * torres / 2)
+    totalMaoObra = (alpinistasValor * torres) + (encarregadoValor * Math.ceil(torres / 2));
+    // Deslocamento = deslocamento * torres / 2
+    totalDeslocamento = deslocamentoPerTower * Math.ceil(torres / 2);
+    // Material: per tower * torres but locacao / 2
+    const materialSemLocacao = (totalFundo + totalTinta + totalDesplac + vedacaoPerTower + insumosPerTower) * torres;
+    const locacaoTotal = locacaoPerTower * Math.ceil(torres / 2);
+    totalMaterial = materialSemLocacao + locacaoTotal + ancoragem + artSeguro;
+  } else {
+    totalMaoObra = maoDeObraPerTower * torres;
+    totalDeslocamento = deslocamentoPerTower * torres;
+    totalMaterial = materialPerTower * torres + ancoragem + artSeguro;
+  }
+
+  const custoDireto = totalMaoObra + totalDeslocamento + totalMaterial;
+
+  // Impostos
+  const impostos = IMPOSTOS_MUNICIPIO[inp.municipio] || 0.12;
+  const percentualIndireto = inp.comissao + impostos + inp.margem + inp.lucro;
+
+  const valorProjeto = custoDireto / (1 - percentualIndireto);
+  const comissaoValor = valorProjeto * inp.comissao;
+  const impostosValor = valorProjeto * impostos;
+  const margemValor = valorProjeto * inp.margem;
+  const lucroValor = valorProjeto * inp.lucro;
+  const valorPorTorre = valorProjeto / torres;
+
+  // Prazo total
+  const prazoTotal = simultanea ? prazo : prazo * torres;
+
+  // Store result
+  lastResult = {
+    inp, torres, m2PerTower, prazo, totalDias, simultanea,
+    wallDetails,
+    alpinistasValor, encarregadoValor, maoDeObraPerTower,
+    km, combustivel, hospedagem, pedagio, alimentacao, deslocamentoPerTower,
+    ancoragem, artSeguro, vedacaoPerTower, insumosPerTower, locacaoPerTower,
+    materialPerTower,
+    totalMaoObra, totalDeslocamento, totalMaterial,
+    custoDireto, impostos, percentualIndireto,
+    valorProjeto, comissaoValor, impostosValor, margemValor, lucroValor,
+    valorPorTorre, prazoTotal,
+    totalFundo, totalTinta, totalDesplac
+  };
+
+  renderResults(lastResult);
+}
+
+function renderResults(r){
+  // Summary
+  document.getElementById('resNome').textContent = r.inp.nome;
+  document.getElementById('resMunicipio').textContent = r.inp.municipio;
+  document.getElementById('resTorres').textContent = r.torres;
+  document.getElementById('resM2').textContent = fmtNum(r.inp.m2Total) + ' m2';
+  document.getElementById('resPrazo').textContent = r.prazoTotal + ' dias uteis';
+  document.getElementById('resExecucao').textContent = r.inp.execucao;
+
+  // Cost table
+  const vp = r.valorProjeto;
+  document.getElementById('resMO').textContent = fmtBRL(r.totalMaoObra);
+  document.getElementById('resMOp').textContent = fmtPct(r.totalMaoObra / vp);
+
+  document.getElementById('resDesl').textContent = fmtBRL(r.totalDeslocamento);
+  document.getElementById('resDeslp').textContent = fmtPct(r.totalDeslocamento / vp);
+
+  document.getElementById('resMat').textContent = fmtBRL(r.totalMaterial);
+  document.getElementById('resMatp').textContent = fmtPct(r.totalMaterial / vp);
+
+  document.getElementById('resCom').textContent = fmtBRL(r.comissaoValor);
+  document.getElementById('resComp').textContent = fmtPct(r.inp.comissao);
+
+  document.getElementById('resImp').textContent = fmtBRL(r.impostosValor);
+  document.getElementById('resImpp').textContent = fmtPct(r.impostos);
+
+  document.getElementById('resMarg').textContent = fmtBRL(r.margemValor);
+  document.getElementById('resMargp').textContent = fmtPct(r.inp.margem);
+
+  document.getElementById('resLuc').textContent = fmtBRL(r.lucroValor);
+  document.getElementById('resLucp').textContent = fmtPct(r.inp.lucro);
+
+  document.getElementById('resTotal').textContent = fmtBRL(vp);
+
+  document.getElementById('resTotalBig').textContent = fmtBRL(vp);
+  document.getElementById('resTorreBig').textContent = fmtBRL(r.valorPorTorre);
+
+  // Detail breakdown
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+
+  // Wall details
+  r.wallDetails.forEach((w, i) => {
+    html += `<div style="background:var(--bg);border:1px solid #2e2818;border-radius:6px;padding:10px">
+      <div style="font-weight:600;color:var(--orange);margin-bottom:6px;font-size:.9rem">Parede ${i+1}: ${w.tipo} (${(w.percent*100).toFixed(0)}%)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.82rem">
+        <span>M2: ${fmtNum(w.m2)}</span>
+        <span>Demaos: ${w.demaos}</span>
+        <span>Fundo: ${fmtBRL(w.valorFundo)}</span>
+        <span>Latas fundo: ${w.quantFundo.toFixed(1)}</span>
+        <span>Tinta: ${fmtBRL(w.valorTinta)}</span>
+        <span>Latas tinta: ${w.quantTinta.toFixed(1)}</span>
+        <span>Desplac.: ${fmtBRL(w.valorDesplac)}</span>
+        <span>M2 desplac.: ${fmtNum(w.m2Desplac)}</span>
+      </div>
+    </div>`;
+  });
+
+  // Per tower summary
+  html += `<div style="background:var(--bg);border:1px solid #2e2818;border-radius:6px;padding:10px">
+    <div style="font-weight:600;color:var(--orange);margin-bottom:6px;font-size:.9rem">Resumo por Torre</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.82rem">
+      <span>M.O. Alpinistas: ${fmtBRL(r.alpinistasValor)}</span>
+      <span>M.O. Encarregado: ${fmtBRL(r.encarregadoValor)}</span>
+      <span>Combustivel: ${fmtBRL(r.combustivel)}</span>
+      <span>Hospedagem: ${fmtBRL(r.hospedagem)}</span>
+      <span>Pedagio: ${fmtBRL(r.pedagio)}</span>
+      <span>Alimentacao: ${fmtBRL(r.alimentacao)}</span>
+      <span>Vedacao PU: ${fmtBRL(r.vedacaoPerTower)}</span>
+      <span>Insumos: ${fmtBRL(r.insumosPerTower)}</span>
+      <span>Locacao Equip.: ${fmtBRL(r.locacaoPerTower)}</span>
+      <span>Ancoragem (total): ${fmtBRL(r.ancoragem)}</span>
+      <span>ART+Seguro (total): ${fmtBRL(r.artSeguro)}</span>
+      <span>KM (${r.inp.municipio}): ${r.km} km</span>
+    </div>
+  </div>`;
+
+  html += '</div>';
+  document.getElementById('detailBreakdown').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════
+   SAVE TO FIREBASE
+   ══════════════════════════════════════════════ */
+function salvarProposta(){
+  if(!lastResult){
+    showToast('Calcule a proposta primeiro.');
+    return;
+  }
+  const r = lastResult;
+  const data = {
+    nome: r.inp.nome,
+    municipio: r.inp.municipio,
+    torres: r.torres,
+    m2Total: r.inp.m2Total,
+    prazoTorre: r.prazo,
+    prazoTotal: r.prazoTotal,
+    colaboradores: r.inp.colaboradores,
+    janelas: r.inp.janelas,
+    desplacamento: r.inp.desplacamento,
+    execucao: r.inp.execucao,
+    walls: r.inp.walls,
+    comissao: r.inp.comissao,
+    margem: r.inp.margem,
+    lucro: r.inp.lucro,
+    equip1: r.inp.equip1,
+    equip1Qty: r.inp.equip1Qty,
+    equip2: r.inp.equip2,
+    equip2Qty: r.inp.equip2Qty,
+    puTelhado: r.inp.puTelhado,
+    // Results
+    totalMaoObra: r.totalMaoObra,
+    totalDeslocamento: r.totalDeslocamento,
+    totalMaterial: r.totalMaterial,
+    custoDireto: r.custoDireto,
+    impostos: r.impostos,
+    valorProjeto: r.valorProjeto,
+    comissaoValor: r.comissaoValor,
+    impostosValor: r.impostosValor,
+    margemValor: r.margemValor,
+    lucroValor: r.lucroValor,
+    valorPorTorre: r.valorPorTorre,
+    // Meta
+    criadoPor: window.currentUser ? window.currentUser.name : 'desconhecido',
+    criadoEm: new Date().toISOString()
+  };
+
+  const newRef = db.ref('propostas').push();
+  newRef.set(data).then(() => {
+    showToast('Proposta salva com sucesso!');
+  }).catch(err => {
+    showToast('Erro ao salvar: ' + err.message);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   GENERATE PDF
+   ══════════════════════════════════════════════ */
+function gerarPDF(){
+  if(!lastResult){
+    showToast('Calcule a proposta primeiro.');
+    return;
+  }
+  const pd = document.getElementById('printDate');
+  if(pd) pd.textContent = 'Gerado em: ' + new Date().toLocaleDateString('pt-BR') + ' por ' + (window.currentUser ? window.currentUser.name : '');
+  window.print();
+}
+
+/* ══════════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════════ */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ══════════════════════════════════════════════
+   AUTO-CALCULATE ON INPUT CHANGE
+   ══════════════════════════════════════════════ */
+let autoCalcTimer = null;
+function autoCalc(){
+  clearTimeout(autoCalcTimer);
+  autoCalcTimer = setTimeout(calcular, 300);
+}
+
+function bindAutoCalc(container){
+  container.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', autoCalc);
+    el.addEventListener('change', autoCalc);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Bind all initial inputs
+  bindAutoCalc(document.querySelector('.panel-form'));
+  // Initial calculation
+  calcular();
+});
+</script>
+</body>
+</html>
