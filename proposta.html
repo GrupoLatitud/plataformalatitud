@@ -646,25 +646,31 @@ body{
         </div>
       </div>
 
-      <!-- Composição toggle button -->
-      <div class="panel-section">
-        <button onclick="toggleComposicao()" id="btnComposicao" style="
-          width:100%;padding:12px 16px;border-radius:8px;cursor:pointer;
-          background:var(--surface2);border:1px solid #2e2818;color:var(--text);
-          font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.95rem;
-          display:flex;align-items:center;justify-content:space-between;
-          transition:background .15s;letter-spacing:.3px;
-        ">
-          <span>📋 Ver Composição de Precificação</span>
-          <span id="composicaoToggle" style="transition:transform .2s">▶</span>
-        </button>
-      </div>
+    </div>
+  </div>
 
-      <!-- Composição Detalhada (hidden) -->
-      <div id="composicaoSection" style="display:none">
+  <!-- Composição toggle button (FORA do grid) -->
+  <div style="margin-top:16px" class="no-print">
+    <button onclick="toggleComposicao()" id="btnComposicao" style="
+      width:100%;padding:14px 20px;border-radius:8px;cursor:pointer;
+      background:var(--surface);border:1px solid #2e2818;color:var(--text);
+      font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;
+      display:flex;align-items:center;justify-content:space-between;
+      transition:background .15s;letter-spacing:.3px;
+    ">
+      <span>📋 Ver Composição de Precificação</span>
+      <span id="composicaoToggle" style="transition:transform .2s">▶</span>
+    </button>
+  </div>
 
+  <!-- Composição Detalhada (hidden, full width) -->
+  <div id="composicaoSection" style="display:none;margin-top:16px">
+    <div class="proposta-grid">
+
+      <!-- COL 1 -->
+      <div style="display:flex;flex-direction:column;gap:12px">
         <!-- MÃO DE OBRA - EQUIPE -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MÃO DE OBRA — EQUIPE</div>
           <table class="comp-table">
             <thead><tr><th>Pessoas</th><th>Valor Diária</th><th>Quant.</th><th>Dias</th><th>Valor Total</th></tr></thead>
@@ -673,7 +679,7 @@ body{
         </div>
 
         <!-- MATERIAL - FUNDO PREPARADOR -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — PREPARO (FUNDO PREPARADOR)</div>
           <table class="comp-table">
             <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
@@ -682,7 +688,7 @@ body{
         </div>
 
         <!-- MATERIAL - PINTURA -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — PINTURA</div>
           <table class="comp-table">
             <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>Demão</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
@@ -691,7 +697,7 @@ body{
         </div>
 
         <!-- MATERIAL - DESPLACAMENTO -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — DESPLACAMENTO / TRINCAS E FISSURAS</div>
           <table class="comp-table">
             <thead><tr><th>Tipo Parede</th><th>Valor Lata</th><th>M² Desplac.</th><th>Quant. Latas</th><th>Valor Total</th></tr></thead>
@@ -700,16 +706,19 @@ body{
         </div>
 
         <!-- MATERIAL - SEGURANÇA -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — SEGURANÇA</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
             <tbody id="compSeguranca"></tbody>
           </table>
         </div>
+      </div>
 
+      <!-- COL 2 -->
+      <div style="display:flex;flex-direction:column;gap:12px">
         <!-- MATERIAL - VEDAÇÃO -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — VEDAÇÃO</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
@@ -718,7 +727,7 @@ body{
         </div>
 
         <!-- MATERIAL - INSUMOS -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — INSUMOS</div>
           <table class="comp-table">
             <thead><tr><th>Item</th><th>Base</th><th>%</th><th>Valor Total</th></tr></thead>
@@ -727,7 +736,7 @@ body{
         </div>
 
         <!-- MATERIAL - LOCAÇÃO -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">MATERIAL — LOCAÇÃO</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Mensal</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
@@ -736,7 +745,7 @@ body{
         </div>
 
         <!-- DESPESA OPERACIONAL -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">DESPESA OPERACIONAL</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
@@ -745,7 +754,7 @@ body{
         </div>
 
         <!-- ITEM VARIÁVEL -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">ITEM VARIÁVEL — MATERIAL</div>
           <table class="comp-table">
             <thead><tr><th>Item</th><th>Valor Total</th></tr></thead>
@@ -754,17 +763,18 @@ body{
         </div>
 
         <!-- TOTAL PROJETO (UNI.) -->
-        <div class="panel-section comp-section">
+        <div class="panel comp-section">
           <div class="comp-title">TOTAL PROJETO — POR TORRE (UNITÁRIO)</div>
           <table class="comp-table">
             <thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead>
             <tbody id="compTotalUni"></tbody>
           </table>
         </div>
-
       </div>
+
     </div>
   </div>
+
 </main>
 
 <!-- MOBILE MENU -->
