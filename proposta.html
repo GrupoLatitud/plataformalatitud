@@ -471,6 +471,16 @@ body{
             <input type="number" id="lucro" value="10" step="0.1" min="0">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group" style="max-width:130px">
+            <label style="color:var(--orange);font-size:.75rem">Margem (Sugestao)</label>
+            <input type="text" id="margemSugestao" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default">
+          </div>
+          <div class="form-group" style="max-width:130px">
+            <label style="color:var(--orange);font-size:.75rem">Lucro (Sugestao)</label>
+            <input type="text" id="lucroSugestao" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default">
+          </div>
+        </div>
       </div>
 
       <!-- TAB BAR -->
@@ -1140,6 +1150,15 @@ function calcularProjeto(){
     custoDireto, percentualIndireto, valorProjeto,
     comissaoValor, impostosValor, margemValor, lucroValor
   };
+
+  // Sugestao margem/lucro baseada no valor do projeto
+  let sugMargem, sugLucro;
+  if(valorProjeto<=1000000){sugMargem=15;sugLucro=14;}
+  else if(valorProjeto<=1500000){sugMargem=13;sugLucro=12;}
+  else if(valorProjeto<=2000000){sugMargem=11;sugLucro=10;}
+  else{sugMargem=9;sugLucro=8;}
+  document.getElementById('margemSugestao').value=sugMargem+'%';
+  document.getElementById('lucroSugestao').value=sugLucro+'%';
 
   renderResults(agg);
   // Render composicao for active tab
