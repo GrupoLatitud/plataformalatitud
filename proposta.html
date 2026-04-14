@@ -1120,8 +1120,6 @@ function calcularProjeto(){
 
   const municipio=document.getElementById('municipio').value;
   const comissao=(parseFloat(document.getElementById('comissao').value)||0)/100;
-  const margem=(parseFloat(document.getElementById('margem').value)||0)/100;
-  const lucro=(parseFloat(document.getElementById('lucro').value)||0)/100;
   const nome=document.getElementById('nomeProjeto').value||'Sem nome';
   const impostos=IMPOSTOS_MUNICIPIO[municipio]||0.12;
 
@@ -1137,6 +1135,26 @@ function calcularProjeto(){
   });
 
   const custoDireto=aggMO+aggDesl+aggMat;
+
+  // Calculo preliminar para determinar faixa de sugestao
+  const margemAtual=(parseFloat(document.getElementById('margem').value)||0)/100;
+  const lucroAtual=(parseFloat(document.getElementById('lucro').value)||0)/100;
+  const vpPreliminar=custoDireto/(1-(comissao+impostos+margemAtual+lucroAtual));
+
+  let sugMargem, sugLucro;
+  if(vpPreliminar<=1000000){sugMargem=15;sugLucro=14;}
+  else if(vpPreliminar<=1500000){sugMargem=13;sugLucro=12;}
+  else if(vpPreliminar<=2000000){sugMargem=11;sugLucro=10;}
+  else{sugMargem=9;sugLucro=8;}
+
+  // Atualizar inputs e sugestoes
+  document.getElementById('margem').value=sugMargem;
+  document.getElementById('lucro').value=sugLucro;
+  document.getElementById('margemSugestao').value=sugMargem+'%';
+  document.getElementById('lucroSugestao').value=sugLucro+'%';
+
+  const margem=sugMargem/100;
+  const lucro=sugLucro/100;
   const percentualIndireto=comissao+impostos+margem+lucro;
   const valorProjeto=custoDireto/(1-percentualIndireto);
   const comissaoValor=valorProjeto*comissao;
@@ -1150,15 +1168,6 @@ function calcularProjeto(){
     custoDireto, percentualIndireto, valorProjeto,
     comissaoValor, impostosValor, margemValor, lucroValor
   };
-
-  // Sugestao margem/lucro baseada no valor do projeto
-  let sugMargem, sugLucro;
-  if(valorProjeto<=1000000){sugMargem=15;sugLucro=14;}
-  else if(valorProjeto<=1500000){sugMargem=13;sugLucro=12;}
-  else if(valorProjeto<=2000000){sugMargem=11;sugLucro=10;}
-  else{sugMargem=9;sugLucro=8;}
-  document.getElementById('margemSugestao').value=sugMargem+'%';
-  document.getElementById('lucroSugestao').value=sugLucro+'%';
 
   renderResults(agg);
   // Render composicao for active tab
