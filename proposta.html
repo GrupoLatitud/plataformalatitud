@@ -145,16 +145,16 @@ body{
 
 /* LAYOUT */
 .proposta-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;
 }
-@media(max-width:1100px){
+@media(max-width:768px){
   .proposta-grid{grid-template-columns:1fr}
 }
 
 /* PANELS */
 .panel{
   background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);
-  padding:20px;
+  padding:20px;min-width:0;overflow:hidden;
 }
 .panel-title{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;
