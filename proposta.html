@@ -749,6 +749,7 @@ const IMPOSTOS_MUNICIPIO = {
    ══════════════════════════════════════════════ */
 const MAX_TABS = 6;
 let activeTabIndex = 0;
+let lastSugMargem = null, lastSugLucro = null;
 
 function createTab(id, nome){
   return {
@@ -1147,14 +1148,18 @@ function calcularProjeto(){
   else if(vpPreliminar<=2000000){sugMargem=11;sugLucro=10;}
   else{sugMargem=9;sugLucro=8;}
 
-  // Atualizar inputs e sugestoes
-  document.getElementById('margem').value=sugMargem;
-  document.getElementById('lucro').value=sugLucro;
+  // Atualizar inputs apenas se sugestao mudou de faixa
   document.getElementById('margemSugestao').value=sugMargem+'%';
   document.getElementById('lucroSugestao').value=sugLucro+'%';
+  if(lastSugMargem!==sugMargem||lastSugLucro!==sugLucro){
+    document.getElementById('margem').value=sugMargem;
+    document.getElementById('lucro').value=sugLucro;
+    lastSugMargem=sugMargem;
+    lastSugLucro=sugLucro;
+  }
 
-  const margem=sugMargem/100;
-  const lucro=sugLucro/100;
+  const margem=(parseFloat(document.getElementById('margem').value)||0)/100;
+  const lucro=(parseFloat(document.getElementById('lucro').value)||0)/100;
   const percentualIndireto=comissao+impostos+margem+lucro;
   const valorProjeto=custoDireto/(1-percentualIndireto);
   const comissaoValor=valorProjeto*comissao;
