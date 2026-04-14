@@ -420,9 +420,16 @@ body{
   <div class="proposta-grid">
     <!-- LEFT: FORM + COMPOSIÇÃO -->
     <div class="panel panel-form no-print">
-      <div class="panel-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Dados do Projeto
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Dados do Projeto
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="calcularProjeto()" style="padding:6px 12px;font-size:.8rem">Calcular</button>
+          <button class="btn btn-success" onclick="salvarProposta()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+          <button class="btn btn-secondary" onclick="gerarPDF()" style="padding:6px 12px;font-size:.8rem">PDF</button>
+        </div>
       </div>
 
       <!-- Project-level Info -->
@@ -472,21 +479,6 @@ body{
       <!-- PER-TAB FORM (dynamic) -->
       <div id="tabFormContent"></div>
 
-      <!-- Actions -->
-      <div class="actions-row" style="margin-bottom:20px">
-        <button class="btn" onclick="calcularProjeto()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Calcular
-        </button>
-        <button class="btn btn-success" onclick="salvarProposta()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Salvar
-        </button>
-        <button class="btn btn-secondary" onclick="gerarPDF()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          PDF
-        </button>
-      </div>
 
       <!-- Composição toggle -->
       <div class="panel-section">
@@ -574,14 +566,6 @@ body{
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
             <tbody id="compDespesa"></tbody>
-          </table>
-        </div>
-
-        <div class="panel-section comp-section">
-          <div class="comp-title">TOTAL POR TORRE (UNITARIO)</div>
-          <table class="comp-table">
-            <thead><tr><th>Descricao</th><th>Valor</th><th>%</th></tr></thead>
-            <tbody id="compTotalUni"></tbody>
           </table>
         </div>
 
@@ -1291,16 +1275,6 @@ function renderComposicao(r, comp){
     <tr><td>Alimentacao</td><td>${ci('comp_alim_uni',comp.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
     <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>`;
 
-  // Total unitario
-  const totalPerTower=r.maoDeObraPerTower+r.deslocamentoPerTower+r.materialPerTower;
-  const moP=totalPerTower>0?(r.maoDeObraPerTower/totalPerTower*100).toFixed(1):0;
-  const deslP=totalPerTower>0?(r.deslocamentoPerTower/totalPerTower*100).toFixed(1):0;
-  const matP=totalPerTower>0?(r.materialPerTower/totalPerTower*100).toFixed(1):0;
-  document.getElementById('compTotalUni').innerHTML=`
-    <tr><td>Mao de Obra</td><td>${fmtBRL(r.maoDeObraPerTower)}</td><td>${moP}%</td></tr>
-    <tr><td>Deslocamento</td><td>${fmtBRL(r.deslocamentoPerTower)}</td><td>${deslP}%</td></tr>
-    <tr><td>Material</td><td>${fmtBRL(r.materialPerTower)}</td><td>${matP}%</td></tr>
-    <tr class="comp-total"><td>Custo Direto por Torre</td><td>${fmtBRL(totalPerTower)}</td><td>100%</td></tr>`;
 }
 
 /* ══════════════════════════════════════════════
