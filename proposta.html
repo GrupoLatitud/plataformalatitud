@@ -856,6 +856,7 @@ const KM_MUNICIPIO = {
 let compOverrides = {
   alpinistaDiaria: 180,
   encarregadoDiaria: 150,
+  encarregadoQtd: 1,
   fundoValor: {}, // por tipo
   tintaValor: [450, 600, 600], // por wall index
   deplacValor: {}, // por tipo (usa mesmo que fundo por padrão)
@@ -1055,8 +1056,9 @@ function calcular(){
   // Mao de Obra per tower
   const alpDiaria = compOverrides.alpinistaDiaria;
   const encDiaria = compOverrides.encarregadoDiaria;
+  const encQtd = compOverrides.encarregadoQtd;
   const alpinistasValor = alpDiaria * prazo * inp.colaboradores;
-  const encarregadoValor = encDiaria * prazo * 0.5;
+  const encarregadoValor = encDiaria * prazo * encQtd;
   const maoDeObraPerTower = alpinistasValor + encarregadoValor;
 
   // Deslocamento per tower
@@ -1220,6 +1222,7 @@ function onCompChange(){
   const v = id => { const el=document.getElementById(id); return el ? parseFloat(el.value)||0 : 0; };
   compOverrides.alpinistaDiaria = v('comp_alp_diaria');
   compOverrides.encarregadoDiaria = v('comp_enc_diaria');
+  compOverrides.encarregadoQtd = v('comp_enc_qtd');
 
   // Fundo por tipo
   document.querySelectorAll('[data-comp-fundo]').forEach(el => {
@@ -1253,7 +1256,7 @@ function renderComposicao(r){
   // ── MÃO DE OBRA ──
   document.getElementById('compMaoObra').innerHTML = `
     <tr><td>Alpinistas</td><td>${ci('comp_alp_diaria', compOverrides.alpinistaDiaria)}</td><td>${r.inp.colaboradores}</td><td>${r.prazo}</td><td>${fmtBRL(r.alpinistasValor)}</td></tr>
-    <tr><td>Encarregado</td><td>${ci('comp_enc_diaria', compOverrides.encarregadoDiaria)}</td><td>0,5</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
+    <tr><td>Encarregado</td><td>${ci('comp_enc_diaria', compOverrides.encarregadoDiaria)}</td><td>${ci('comp_enc_qtd', compOverrides.encarregadoQtd, 'style="width:50px"')}</td><td>${r.prazo}</td><td>${fmtBRL(r.encarregadoValor)}</td></tr>
     <tr class="comp-total"><td colspan="4">Total M.O. por Torre</td><td>${fmtBRL(r.maoDeObraPerTower)}</td></tr>
   `;
 
