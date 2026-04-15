@@ -562,7 +562,7 @@ body{
     <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
     <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
     <div class="novaos-row">
-      <div class="novaos-field"><label>Vendedor *</label><input type="text" id="osVendedor" placeholder="Nome do vendedor"></div>
+      <div class="novaos-field"><label>Vendedor</label><input type="text" id="osVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
       <div class="novaos-field"><label>Municipio *</label>
         <select id="osMunicipio">
           <option value="">Selecione...</option>
@@ -1892,7 +1892,7 @@ let propostaTipo='Pintura Predial';
 /* ══════════════════════════════════════════════
    NOVA OS - Simplified form
    ══════════════════════════════════════════════ */
-let osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+let osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
 let osActiveTab=0;
 
 function wallOptionsHTMLos(sel){
@@ -1937,6 +1937,7 @@ function renderOsTabContent(){
 
   let html=`
     <div class="novaos-section">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--text-dim);font-weight:400">(${tab.categoria})</span></div>
+    <div class="novaos-field"><label>Nome da Aba</label><input type="text" id="osTabNome" value="${tab.nome||''}" placeholder="Ex: 4 Torres"></div>
     <div class="novaos-row">
       <div class="novaos-field"><label>M2 por Torre *</label><input type="number" id="osM2" value="${tab.m2}" min="0" oninput="atualizarOsWallM2()"></div>
       <div class="novaos-field" style="max-width:100px"><label>Torres *</label><input type="number" id="osTorres" value="${tab.torres}" min="1"></div>
@@ -1955,6 +1956,8 @@ function renderOsTabContent(){
 
 function saveOsActiveTab(){
   const tab=osTabs[osActiveTab];
+  const nomeEl=document.getElementById('osTabNome');
+  if(nomeEl) tab.nome=nomeEl.value||'';
   const m2El=document.getElementById('osM2');
   if(m2El) tab.m2=parseFloat(m2El.value)||0;
   const torresEl=document.getElementById('osTorres');
@@ -1999,7 +2002,7 @@ function addOsTab(){
       wrap.remove();
       saveOsActiveTab();
       const num=String(osTabs.length+1).padStart(3,'0');
-      osTabs.push({id:num,categoria:cat,m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]});
+      osTabs.push({id:num,nome:'',categoria:cat,m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]});
       osActiveTab=osTabs.length-1;
       renderOsTabBar();
       renderOsTabContent();
@@ -2073,11 +2076,11 @@ function abrirNovaProposta(tipo){
   document.getElementById('novaPropostaMenu').style.display='none';
   propostaTipo=tipo||'Pintura Predial';
   // Reset Nova OS form
-  osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+  osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
   osActiveTab=0;
   document.getElementById('osNome').value='';
   document.getElementById('osEndereco').value='';
-  document.getElementById('osVendedor').value='';
+  document.getElementById('osVendedor').value=window.currentUser?.name||'';
   document.getElementById('osMunicipio').selectedIndex=0;
   // Clear error styling
   document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
@@ -2099,7 +2102,7 @@ function salvarNovaOs(){
   const vendedor=document.getElementById('osVendedor');
   const municipio=document.getElementById('osMunicipio');
 
-  [nome,endereco,vendedor,municipio].forEach(el=>{
+  [nome,endereco,municipio].forEach(el=>{
     el.classList.remove('field-error');
     if(!el.value||el.value.trim()===''){el.classList.add('field-error');valid=false;}
   });
@@ -2128,7 +2131,7 @@ function salvarNovaOs(){
     updatedAt:new Date().toISOString(),
     updatedBy:window.currentUser?.name||'—',
     tabs:osTabs.map(t=>({
-      id:t.id,categoria:t.categoria,m2:t.m2,torres:t.torres,
+      id:t.id,nome:t.nome||'',categoria:t.categoria,m2:t.m2,torres:t.torres,
       puTelhado:t.puTelhado,walls:t.walls
     }))
   };
@@ -2161,11 +2164,11 @@ function abrirPropostaExistente(id){
     document.getElementById('osMunicipio').value=p.municipio||'';
     if(p.tabs&&p.tabs.length){
       osTabs=p.tabs.map(t=>({
-        id:t.id,categoria:t.categoria||'Torre',m2:t.m2||0,torres:t.torres||1,
+        id:t.id,nome:t.nome||'',categoria:t.categoria||'Torre',m2:t.m2||0,torres:t.torres||1,
         puTelhado:t.puTelhado||0,walls:t.walls||[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]
       }));
     } else {
-      osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+      osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
     }
     osActiveTab=0;
     document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
