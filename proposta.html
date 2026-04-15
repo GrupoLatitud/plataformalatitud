@@ -447,6 +447,32 @@ body{
   display:flex;align-items:center;gap:6px;transition:all .15s;
 }
 .btn-voltar:hover{color:var(--text);border-color:var(--orange)}
+
+/* NOVA OS OVERLAY */
+.novaos-overlay{
+  position:fixed;inset:0;z-index:500;background:var(--bg);
+  overflow-y:auto;display:none;
+}
+.novaos-overlay.open{display:block}
+.novaos-content{max-width:700px;margin:0 auto;padding:28px}
+.novaos-field{margin-bottom:14px}
+.novaos-field label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.novaos-field input,.novaos-field select{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.92rem}
+.novaos-field input:focus,.novaos-field select:focus{outline:none;border-color:var(--orange)}
+.novaos-field input.field-error,.novaos-field select.field-error{border-color:#e74c3c!important}
+.novaos-row{display:flex;gap:12px}
+.novaos-row>.novaos-field{flex:1}
+.novaos-section{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #2e2818}
+.novaos-wall{background:var(--surface);border:1px solid #2e2818;border-radius:8px;padding:12px;margin-bottom:8px}
+.novaos-wall-title{font-family:'Barlow Condensed',sans-serif;font-weight:600;color:var(--orange);font-size:.85rem;margin-bottom:8px}
+.novaos-tabs{display:flex;gap:6px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.novaos-tab{padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.85rem;background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);transition:all .15s}
+.novaos-tab.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.novaos-tab-add{padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;background:none;border:1px dashed var(--orange);color:var(--orange);transition:all .15s}
+.novaos-tab-add:hover{background:rgba(245,132,31,.1)}
+.novaos-tab-remove{margin-left:6px;cursor:pointer;color:var(--text-dim);font-size:.75rem}
+.novaos-tab-remove:hover{color:#e74c3c}
+.novaos-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end}
 </style>
 </head>
 <body>
@@ -521,6 +547,50 @@ body{
     </div>
   </div>
 </main>
+
+<!-- NOVA OS OVERLAY (simplified) -->
+<div class="novaos-overlay" id="novaOsOverlay">
+  <div class="proposta-overlay-header">
+    <button class="btn-voltar" onclick="fecharNovaOs()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar
+    </button>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Nova Ordem de Servico — Pintura Predial</h2>
+  </div>
+  <div class="novaos-content">
+    <div class="novaos-section">Informacoes do Projeto</div>
+    <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
+    <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
+    <div class="novaos-row">
+      <div class="novaos-field"><label>Vendedor *</label><input type="text" id="osVendedor" placeholder="Nome do vendedor"></div>
+      <div class="novaos-field"><label>Municipio *</label>
+        <select id="osMunicipio">
+          <option value="">Selecione...</option>
+          <option value="São Paulo">Sao Paulo</option>
+          <option value="Sorocaba">Sorocaba</option>
+          <option value="Itapetininga">Itapetininga</option>
+          <option value="São Roque">Sao Roque</option>
+          <option value="Guarujá">Guaruja</option>
+          <option value="Santos">Santos</option>
+          <option value="Itú">Itu</option>
+          <option value="Campinas">Campinas</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="novaos-section" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Abas</span>
+    </div>
+    <div class="novaos-tabs" id="osTabBar"></div>
+    <div id="osTabContent"></div>
+
+    <div class="novaos-actions">
+      <button class="btn btn-secondary" onclick="fecharNovaOs()" style="padding:10px 24px">Cancelar</button>
+      <button class="btn" onclick="salvarNovaOs()" style="padding:10px 24px">Criar Ordem de Servico</button>
+    </div>
+  </div>
+</div>
 
 <!-- PROPOSTA OVERLAY (calculator) -->
 <div class="proposta-overlay" id="propostaOverlay">
@@ -1791,36 +1861,324 @@ function renderKanban(){
 function mudarStatusProposta(sel){
   const id=sel.dataset.id;
   const novoStatus=sel.value;
+  const p=propostas.find(x=>x.id===id);
+
+  // Validate when moving from nova_os to elaboracao
+  if(p&&p.status==='nova_os'&&novoStatus==='elaboracao'){
+    if(!p.nome||!p.endereco||!p.vendedor||!p.municipio){
+      showToast('Preencha todos os campos obrigatorios antes de mover para Elaboracao.');
+      sel.value=p.status;
+      return;
+    }
+    // Check tabs have M2 and Torres
+    const tabsValid=p.tabs&&p.tabs.every(t=>t.m2>0&&t.torres>=1);
+    if(!tabsValid){
+      showToast('Preencha M2 e Torres em todas as abas.');
+      sel.value=p.status;
+      return;
+    }
+  }
+
   propostasRef.child(id).update({status:novoStatus});
+
+  // If moved to elaboracao, open full calculator
+  if(novoStatus==='elaboracao'){
+    setTimeout(()=>abrirPropostaExistente(id),300);
+  }
 }
 
 let propostaTipo='Pintura Predial';
+
+/* ══════════════════════════════════════════════
+   NOVA OS - Simplified form
+   ══════════════════════════════════════════════ */
+let osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+let osActiveTab=0;
+
+function wallOptionsHTMLos(sel){
+  const opts=['Textura','Textura Projetada','Grafiato','Selador','Massa Corrida','Cimento Queimado'];
+  return opts.map(o=>`<option value="${o}"${o===sel?' selected':''}>${o}</option>`).join('');
+}
+
+function renderOsTabBar(){
+  const bar=document.getElementById('osTabBar');
+  let html='';
+  osTabs.forEach((t,i)=>{
+    const active=i===osActiveTab?'active':'';
+    const rm=osTabs.length>1?`<span class="novaos-tab-remove" onclick="event.stopPropagation();removeOsTab(${i})">✕</span>`:'';
+    html+=`<button class="novaos-tab ${active}" onclick="switchOsTab(${i})">${t.id} ${rm}</button>`;
+  });
+  if(osTabs.length<6){
+    html+=`<button class="novaos-tab-add" onclick="addOsTab()">+</button>`;
+  }
+  bar.innerHTML=html;
+}
+
+function renderOsTabContent(){
+  const tab=osTabs[osActiveTab];
+  const isTorre=tab.categoria!=='Item Adicional';
+  let wallsHTML='';
+  tab.walls.forEach((w,wi)=>{
+    const rm=tab.walls.length>1?`<button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.8rem" onclick="removeOsWall(${wi})">Remover</button>`:'';
+    wallsHTML+=`<div class="novaos-wall">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="novaos-wall-title">Parede ${wi+1}</span>${rm}</div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Tipo</label><select class="osWallTipo">${wallOptionsHTMLos(w.tipo)}</select></div>
+        <div class="novaos-field" style="max-width:80px"><label>Demaos</label><input type="number" class="osWallDemaos" value="${w.demaos}" min="1" max="5"></div>
+      </div>
+      <div class="novaos-row">
+        <div class="novaos-field" style="flex:1"><label>Cor</label><select class="osWallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
+        <div class="novaos-field" style="flex:1"><label>% da Area</label><input type="number" class="osWallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarOsPercents(this)"></div>
+        <div class="novaos-field" style="flex:1"><label>M2</label><input type="text" class="osWallM2" value="${Math.round(w.percent/100*tab.m2).toLocaleString('pt-BR')}" readonly style="background:var(--surface);opacity:.7;cursor:default"></div>
+      </div>
+    </div>`;
+  });
+  const addWallBtn=tab.walls.length<3?`<button class="btn-add-wall" onclick="addOsWall()">+ Adicionar Tipo de Parede</button>`:'';
+
+  let html=`
+    <div class="novaos-section">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--text-dim);font-weight:400">(${tab.categoria})</span></div>
+    <div class="novaos-row">
+      <div class="novaos-field"><label>M2 por Torre *</label><input type="number" id="osM2" value="${tab.m2}" min="0" oninput="atualizarOsWallM2()"></div>
+      <div class="novaos-field" style="max-width:100px"><label>Torres *</label><input type="number" id="osTorres" value="${tab.torres}" min="1"></div>
+    </div>
+    <div style="margin-top:12px">${wallsHTML}</div>
+    ${addWallBtn}`;
+
+  if(isTorre){
+    html+=`<div class="novaos-row" style="margin-top:14px">
+      <div class="novaos-field" style="max-width:160px"><label>Quantidade de Janelas</label><input type="number" id="osPU" value="${tab.puTelhado}" min="0"></div>
+    </div>`;
+  }
+
+  document.getElementById('osTabContent').innerHTML=html;
+}
+
+function saveOsActiveTab(){
+  const tab=osTabs[osActiveTab];
+  const m2El=document.getElementById('osM2');
+  if(m2El) tab.m2=parseFloat(m2El.value)||0;
+  const torresEl=document.getElementById('osTorres');
+  if(torresEl) tab.torres=parseInt(torresEl.value)||1;
+  const puEl=document.getElementById('osPU');
+  if(puEl) tab.puTelhado=parseInt(puEl.value)||0;
+  // walls
+  const wallBlocks=document.querySelectorAll('#osTabContent .novaos-wall');
+  wallBlocks.forEach((b,i)=>{
+    if(!tab.walls[i])return;
+    tab.walls[i].tipo=b.querySelector('.osWallTipo')?.value||'Textura';
+    tab.walls[i].demaos=parseInt(b.querySelector('.osWallDemaos')?.value)||2;
+    tab.walls[i].cor=b.querySelector('.osWallCor')?.value||'Clara';
+    tab.walls[i].percent=parseFloat(b.querySelector('.osWallPercent')?.value)||0;
+  });
+}
+
+function switchOsTab(i){
+  saveOsActiveTab();
+  osActiveTab=i;
+  renderOsTabBar();
+  renderOsTabContent();
+}
+
+function addOsTab(){
+  if(osTabs.length>=6)return;
+  // Dropdown for category
+  const existing=document.querySelector('#osTabBar .os-cat-dropdown');
+  if(existing){existing.remove();return;}
+  const wrap=document.createElement('div');
+  wrap.className='os-cat-dropdown';
+  wrap.style.cssText='position:relative;display:inline-block;margin-left:4px;vertical-align:middle';
+  const list=document.createElement('div');
+  list.style.cssText='position:absolute;top:100%;left:0;z-index:100;background:var(--surface2);border:1px solid var(--orange);border-radius:6px;overflow:hidden;min-width:130px;margin-top:4px;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+  ['Torre','Item Adicional'].forEach(cat=>{
+    const opt=document.createElement('div');
+    opt.textContent=cat;
+    opt.style.cssText='padding:8px 14px;cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-size:.9rem;color:var(--text);transition:background .15s';
+    opt.onmouseenter=()=>opt.style.background='rgba(245,132,31,.15)';
+    opt.onmouseleave=()=>opt.style.background='none';
+    opt.onclick=()=>{
+      wrap.remove();
+      saveOsActiveTab();
+      const num=String(osTabs.length+1).padStart(3,'0');
+      osTabs.push({id:num,categoria:cat,m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]});
+      osActiveTab=osTabs.length-1;
+      renderOsTabBar();
+      renderOsTabContent();
+    };
+    list.appendChild(opt);
+  });
+  wrap.appendChild(list);
+  const bar=document.getElementById('osTabBar');
+  bar.appendChild(wrap);
+  const close=(e)=>{if(!wrap.contains(e.target)){wrap.remove();document.removeEventListener('mousedown',close);}};
+  setTimeout(()=>document.addEventListener('mousedown',close),10);
+}
+
+function removeOsTab(i){
+  if(osTabs.length<=1)return;
+  osTabs.splice(i,1);
+  // Renumber
+  osTabs.forEach((t,j)=>t.id=String(j+1).padStart(3,'0'));
+  if(osActiveTab>=osTabs.length) osActiveTab=osTabs.length-1;
+  renderOsTabBar();
+  renderOsTabContent();
+}
+
+function addOsWall(){
+  saveOsActiveTab();
+  const tab=osTabs[osActiveTab];
+  if(tab.walls.length>=3)return;
+  const n=tab.walls.length+1;
+  const each=Math.floor(100/n);
+  const sobra=100-each*n;
+  tab.walls.forEach((w,i)=>{w.percent=each+(i<sobra?1:0);});
+  tab.walls.push({tipo:'Textura',demaos:2,cor:'Clara',percent:each});
+  renderOsTabContent();
+}
+
+function removeOsWall(wi){
+  saveOsActiveTab();
+  const tab=osTabs[osActiveTab];
+  if(tab.walls.length<=1)return;
+  tab.walls.splice(wi,1);
+  const n=tab.walls.length;
+  const each=Math.floor(100/n);
+  const sobra=100-each*n;
+  tab.walls.forEach((w,i)=>{w.percent=each+(i<sobra?1:0);});
+  renderOsTabContent();
+}
+
+function ajustarOsPercents(changed){
+  const all=Array.from(document.querySelectorAll('#osTabContent .osWallPercent'));
+  if(all.length<2)return;
+  let val=parseFloat(changed.value)||0;
+  if(val>100) val=100;if(val<0) val=0;
+  changed.value=val;
+  const others=all.filter(el=>el!==changed);
+  const restante=100-val;
+  if(others.length===1){others[0].value=Math.max(0,restante);}
+  else{const each=Math.floor(restante/others.length);const sobra=restante-each*others.length;others.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});}
+  atualizarOsWallM2();
+}
+
+function atualizarOsWallM2(){
+  const m2=parseFloat(document.getElementById('osM2')?.value)||0;
+  document.querySelectorAll('#osTabContent .novaos-wall').forEach(b=>{
+    const pct=parseFloat(b.querySelector('.osWallPercent')?.value)||0;
+    const m2El=b.querySelector('.osWallM2');
+    if(m2El) m2El.value=Math.round(m2*pct/100).toLocaleString('pt-BR');
+  });
+}
+
 function abrirNovaProposta(tipo){
   document.getElementById('novaPropostaMenu').style.display='none';
   propostaTipo=tipo||'Pintura Predial';
+  // Reset Nova OS form
+  osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+  osActiveTab=0;
+  document.getElementById('osNome').value='';
+  document.getElementById('osEndereco').value='';
+  document.getElementById('osVendedor').value='';
+  document.getElementById('osMunicipio').selectedIndex=0;
+  // Clear error styling
+  document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
+  renderOsTabBar();
+  renderOsTabContent();
+  document.getElementById('novaOsOverlay').classList.add('open');
+}
+
+function fecharNovaOs(){
+  document.getElementById('novaOsOverlay').classList.remove('open');
+}
+
+function salvarNovaOs(){
+  saveOsActiveTab();
+  // Validate required fields
+  let valid=true;
+  const nome=document.getElementById('osNome');
+  const endereco=document.getElementById('osEndereco');
+  const vendedor=document.getElementById('osVendedor');
+  const municipio=document.getElementById('osMunicipio');
+
+  [nome,endereco,vendedor,municipio].forEach(el=>{
+    el.classList.remove('field-error');
+    if(!el.value||el.value.trim()===''){el.classList.add('field-error');valid=false;}
+  });
+
+  // Validate tabs: M2 > 0, Torres > 0, walls with tipo
+  osTabs.forEach(t=>{
+    if(!t.m2||t.m2<=0) valid=false;
+    if(!t.torres||t.torres<1) valid=false;
+  });
+
+  // Highlight M2/Torres if invalid on active tab
+  const m2El=document.getElementById('osM2');
+  const torresEl=document.getElementById('osTorres');
+  if(m2El){m2El.classList.remove('field-error');if(!osTabs[osActiveTab].m2||osTabs[osActiveTab].m2<=0){m2El.classList.add('field-error');valid=false;}}
+  if(torresEl){torresEl.classList.remove('field-error');if(!osTabs[osActiveTab].torres||osTabs[osActiveTab].torres<1){torresEl.classList.add('field-error');valid=false;}}
+
+  if(!valid){showToast('Preencha todos os campos obrigatorios.');return;}
+
+  // Save to Firebase
+  const data={
+    nome:nome.value.trim(),
+    endereco:endereco.value.trim(),
+    vendedor:vendedor.value.trim(),
+    municipio:municipio.value,
+    tipo:propostaTipo,
+    updatedAt:new Date().toISOString(),
+    updatedBy:window.currentUser?.name||'—',
+    tabs:osTabs.map(t=>({
+      id:t.id,categoria:t.categoria,m2:t.m2,torres:t.torres,
+      puTelhado:t.puTelhado,walls:t.walls
+    }))
+  };
+
+  if(editandoPropostaId){
+    propostasRef.child(editandoPropostaId).update(data);
+    showToast('Ordem de Servico atualizada!');
+  } else {
+    data.status='nova_os';
+    data.revisao=false;
+    data.createdAt=new Date().toISOString();
+    propostasRef.push(data);
+    showToast('Ordem de Servico criada!');
+  }
   editandoPropostaId=null;
-  // Reset form
-  document.getElementById('nomeProjeto').value='';
-  document.getElementById('municipio').selectedIndex=0;
-  document.getElementById('comissao').value=2.2;
-  document.getElementById('margem').value=10;
-  document.getElementById('lucro').value=10;
-  lastSugMargem=null;lastSugLucro=null;lastSugComissao=null;lastSugPrazo={};
-  tabs=[createTab('001')];
-  activeTabIndex=0;
-  renderTabBar();
-  renderTabForm(0);
-  calcularProjeto();
-  document.getElementById('propostaOverlay').classList.add('open');
+  fecharNovaOs();
 }
 
 function abrirPropostaExistente(id){
   const p=propostas.find(x=>x.id===id);
   if(!p)return;
+
+  // If status is nova_os, open the simplified Nova OS overlay for editing
+  if(p.status==='nova_os'){
+    editandoPropostaId=id;
+    propostaTipo=p.tipo||'Pintura Predial';
+    document.getElementById('osNome').value=p.nome||'';
+    document.getElementById('osEndereco').value=p.endereco||'';
+    document.getElementById('osVendedor').value=p.vendedor||'';
+    document.getElementById('osMunicipio').value=p.municipio||'';
+    if(p.tabs&&p.tabs.length){
+      osTabs=p.tabs.map(t=>({
+        id:t.id,categoria:t.categoria||'Torre',m2:t.m2||0,torres:t.torres||1,
+        puTelhado:t.puTelhado||0,walls:t.walls||[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]
+      }));
+    } else {
+      osTabs=[{id:'001',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
+    }
+    osActiveTab=0;
+    document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
+    renderOsTabBar();
+    renderOsTabContent();
+    document.getElementById('novaOsOverlay').classList.add('open');
+    return;
+  }
+
+  // Otherwise open full calculator
   editandoPropostaId=id;
-  // Load data into form
   document.getElementById('nomeProjeto').value=p.nome||'';
-  document.getElementById('municipio').value=p.municipio||'Sao Paulo';
+  document.getElementById('municipio').value=p.municipio||'São Paulo';
   document.getElementById('comissao').value=(p.comissao||0)*100;
   document.getElementById('margem').value=(p.margem||0)*100;
   document.getElementById('lucro').value=(p.lucro||0)*100;
@@ -1840,6 +2198,8 @@ function abrirPropostaExistente(id){
   } else {
     tabs=[createTab('001')];
   }
+  if(p.endereco) tabs[0]._endereco=p.endereco;
+  if(p.vendedor) tabs[0]._vendedor=p.vendedor;
   activeTabIndex=0;
   renderTabBar();
   renderTabForm(0);
@@ -1861,9 +2221,14 @@ function salvarPropostaKanban(){
   const municipio=document.getElementById('municipio').value;
   const execucao=document.getElementById('execucaoGlobal').value;
 
+  // Preserve endereco/vendedor from existing proposta
+  const existing=editandoPropostaId?propostas.find(x=>x.id===editandoPropostaId):null;
+
   const data={
     nome:nome,
     municipio:municipio,
+    endereco:existing?.endereco||'',
+    vendedor:existing?.vendedor||'',
     comissao:(parseFloat(document.getElementById('comissao').value)||0)/100,
     margem:(parseFloat(document.getElementById('margem').value)||0)/100,
     lucro:(parseFloat(document.getElementById('lucro').value)||0)/100,
