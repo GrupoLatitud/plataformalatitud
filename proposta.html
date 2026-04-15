@@ -889,7 +889,7 @@ function renderTabForm(idx){
       </div>
       <div class="form-row">
         <div class="form-group"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
-        <div class="form-group" style="max-width:100px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1"></div>
+        <div class="form-group" style="max-width:100px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarPercents(this)"></div>
       </div>
     </div>`;
   });
@@ -950,11 +950,35 @@ function renderTabForm(idx){
 /* ══════════════════════════════════════════════
    WALL MANAGEMENT (per active tab)
    ══════════════════════════════════════════════ */
+function ajustarPercents(changed){
+  const all=Array.from(document.querySelectorAll('#wallTypesContainer .wallPercent'));
+  if(all.length<2)return;
+  let val=parseFloat(changed.value)||0;
+  if(val>100) val=100;
+  if(val<0) val=0;
+  changed.value=val;
+  const others=all.filter(el=>el!==changed);
+  const restante=100-val;
+  if(others.length===1){
+    others[0].value=Math.max(0,restante);
+  } else {
+    const each=Math.floor(restante/others.length);
+    const sobra=restante-each*others.length;
+    others.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});
+  }
+  autoCalc();
+}
+
 function addWall(){
   saveActiveTab();
   const tab=tabs[activeTabIndex];
   if(tab.walls.length>=3){showToast('Maximo 3 tipos de parede.');return;}
-  tab.walls.push({tipo:'Textura',demaos:2,cor:'Clara',percent:0});
+  // Distribute percentages equally
+  const n=tab.walls.length+1;
+  const each=Math.floor(100/n);
+  const sobra=100-each*n;
+  tab.walls.forEach((w,i)=>{w.percent=each+(i<sobra?1:0);});
+  tab.walls.push({tipo:'Textura',demaos:2,cor:'Clara',percent:each});
   renderTabForm(activeTabIndex);
 }
 
@@ -963,6 +987,11 @@ function removeWall(wi){
   const tab=tabs[activeTabIndex];
   if(tab.walls.length<=1)return;
   tab.walls.splice(wi,1);
+  // Redistribute to 100%
+  const n=tab.walls.length;
+  const each=Math.floor(100/n);
+  const sobra=100-each*n;
+  tab.walls.forEach((w,i)=>{w.percent=each+(i<sobra?1:0);});
   renderTabForm(activeTabIndex);
 }
 
