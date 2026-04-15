@@ -565,7 +565,12 @@ body{
     <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
     <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
     <div class="novaos-row">
+      <div class="novaos-field"><label>Responsavel *</label><input type="text" id="osResponsavel" placeholder="Nome do responsavel"></div>
+      <div class="novaos-field"><label>E-mail *</label><input type="email" id="osEmail" placeholder="email@exemplo.com"></div>
+    </div>
+    <div class="novaos-row">
       <div class="novaos-field"><label>Vendedor</label><input type="text" id="osVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
+      <div class="novaos-field" style="max-width:160px"><label>Numero da Proposta</label><input type="text" id="osNumeroProposta" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
       <div class="novaos-field"><label>Municipio *</label>
         <select id="osMunicipio">
           <option value="">Selecione...</option>
@@ -1844,10 +1849,12 @@ function renderKanban(){
       const tagClass=isRevisao?'tag-revisao':'tag-nova';
       const tagLabel=isRevisao?'Revisao':'Nova';
       const vendedor=p.vendedor||'—';
+      const numProp=p.numeroProposta?'#'+p.numeroProposta:'';
       return `<div class="kanban-card" draggable="true" data-id="${p.id}" onclick="abrirPropostaExistente('${p.id}')">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
           <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
+          ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
         </div>
         <div class="kanban-card-title">${p.nome||'Sem nome'}</div>
         <div class="kanban-card-info">
@@ -2138,15 +2145,31 @@ function atualizarOsWallM2(){
   });
 }
 
+function gerarNumeroProposta(){
+  // Find max existing number, start from 0005
+  let max=4;
+  propostas.forEach(p=>{
+    if(p.numeroProposta){
+      const n=parseInt(p.numeroProposta,10);
+      if(!isNaN(n)&&n>max) max=n;
+    }
+  });
+  return String(max+1).padStart(4,'0');
+}
+
 function abrirNovaProposta(tipo){
   document.getElementById('novaPropostaMenu').style.display='none';
   propostaTipo=tipo||'Pintura Predial';
+  editandoPropostaId=null;
   // Reset Nova OS form
   osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
   osActiveTab=0;
   document.getElementById('osNome').value='';
   document.getElementById('osEndereco').value='';
+  document.getElementById('osResponsavel').value='';
+  document.getElementById('osEmail').value='';
   document.getElementById('osVendedor').value=window.currentUser?.name||'';
+  document.getElementById('osNumeroProposta').value=gerarNumeroProposta();
   document.getElementById('osMunicipio').selectedIndex=0;
   // Clear error styling
   document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
@@ -2167,8 +2190,11 @@ function salvarNovaOs(){
   const endereco=document.getElementById('osEndereco');
   const vendedor=document.getElementById('osVendedor');
   const municipio=document.getElementById('osMunicipio');
+  const responsavel=document.getElementById('osResponsavel');
+  const email=document.getElementById('osEmail');
+  const numeroProposta=document.getElementById('osNumeroProposta');
 
-  [nome,endereco,municipio].forEach(el=>{
+  [nome,endereco,municipio,responsavel,email].forEach(el=>{
     el.classList.remove('field-error');
     if(!el.value||el.value.trim()===''){el.classList.add('field-error');valid=false;}
   });
@@ -2192,6 +2218,9 @@ function salvarNovaOs(){
     nome:nome.value.trim(),
     endereco:endereco.value.trim(),
     vendedor:vendedor.value.trim(),
+    responsavel:responsavel.value.trim(),
+    email:email.value.trim(),
+    numeroProposta:numeroProposta.value,
     municipio:municipio.value,
     tipo:propostaTipo,
     updatedAt:new Date().toISOString(),
@@ -2226,7 +2255,10 @@ function abrirPropostaExistente(id){
     propostaTipo=p.tipo||'Pintura Predial';
     document.getElementById('osNome').value=p.nome||'';
     document.getElementById('osEndereco').value=p.endereco||'';
+    document.getElementById('osResponsavel').value=p.responsavel||'';
+    document.getElementById('osEmail').value=p.email||'';
     document.getElementById('osVendedor').value=p.vendedor||'';
+    document.getElementById('osNumeroProposta').value=p.numeroProposta||gerarNumeroProposta();
     document.getElementById('osMunicipio').value=p.municipio||'';
     if(p.tabs&&p.tabs.length){
       osTabs=p.tabs.map(t=>({
@@ -2298,6 +2330,9 @@ function salvarPropostaKanban(){
     municipio:municipio,
     endereco:existing?.endereco||'',
     vendedor:existing?.vendedor||'',
+    responsavel:existing?.responsavel||'',
+    email:existing?.email||'',
+    numeroProposta:existing?.numeroProposta||'',
     comissao:(parseFloat(document.getElementById('comissao').value)||0)/100,
     margem:(parseFloat(document.getElementById('margem').value)||0)/100,
     lucro:(parseFloat(document.getElementById('lucro').value)||0)/100,
