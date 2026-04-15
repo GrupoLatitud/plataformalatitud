@@ -984,6 +984,7 @@ function getSugComissao(vp){
 }
 
 function createTab(id, nome, categoria){
+  const isItem=(categoria==='Item Adicional');
   return {
     id: id,
     nome: nome || 'Aba ' + id,
@@ -994,10 +995,10 @@ function createTab(id, nome, categoria){
     colaboradores: 4,
     desplacamento: 15,
     walls: [{tipo:'Textura',demaos:2,cor:'Clara',percent:100}],
-    equipamentos:[{nome:'Lavadora WAP',qty:1}],
+    equipamentos: isItem ? [] : [{nome:'Lavadora WAP',qty:1}],
     puTelhado: 0,
     comp: {
-      alpinistaDiaria:200, encarregadoDiaria:200, encarregadoQtd:1,
+      alpinistaDiaria:200, encarregadoDiaria:200, encarregadoQtd: isItem ? 0 : 1,
       fundoValor:{}, tintaValor:[450,600,600], deplacValor:{},
       ancoragemUni:640, artSeguroUni:3755,
       vedacaoQtd:null,
