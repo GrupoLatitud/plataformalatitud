@@ -406,11 +406,14 @@ body{
   background:rgba(255,255,255,.08);color:var(--text-dim);font-size:.72rem;
   font-weight:600;padding:2px 8px;border-radius:10px;
 }
-.kanban-col-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px}
+.kanban-col-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px;min-height:60px;transition:background .15s}
+.kanban-col-body.drag-over{background:rgba(245,132,31,.06);outline:2px dashed var(--orange);outline-offset:-4px;border-radius:6px}
 .kanban-card{
   background:var(--bg);border:1px solid #2e2818;border-radius:8px;
-  padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;
+  padding:12px 14px;cursor:grab;transition:border-color .15s,background .15s,opacity .15s;
 }
+.kanban-card:active{cursor:grabbing}
+.kanban-card.dragging{opacity:.4}
 .kanban-card:hover{border-color:var(--orange);background:rgba(245,132,31,.03)}
 .kanban-card-title{font-weight:600;font-size:.88rem;margin-bottom:6px}
 .kanban-card-info{font-size:.78rem;color:var(--text-dim);display:flex;flex-direction:column;gap:3px}
@@ -531,19 +534,19 @@ body{
   <div class="kanban-board">
     <div class="kanban-col">
       <div class="kanban-col-header">Nova OS / Revisao <span class="kanban-col-count" id="countNovaOS">0</span></div>
-      <div class="kanban-col-body" id="colNovaOS"></div>
+      <div class="kanban-col-body" id="colNovaOS" data-status="nova_os"></div>
     </div>
     <div class="kanban-col">
       <div class="kanban-col-header">Elaboracao de Proposta <span class="kanban-col-count" id="countElaboracao">0</span></div>
-      <div class="kanban-col-body" id="colElaboracao"></div>
+      <div class="kanban-col-body" id="colElaboracao" data-status="elaboracao"></div>
     </div>
     <div class="kanban-col">
       <div class="kanban-col-header">Aprovacao de Proposta <span class="kanban-col-count" id="countAprovacao">0</span></div>
-      <div class="kanban-col-body" id="colAprovacao"></div>
+      <div class="kanban-col-body" id="colAprovacao" data-status="aprovacao"></div>
     </div>
     <div class="kanban-col">
       <div class="kanban-col-header">Propostas Enviadas <span class="kanban-col-count" id="countEnviadas">0</span></div>
-      <div class="kanban-col-body" id="colEnviadas"></div>
+      <div class="kanban-col-body" id="colEnviadas" data-status="enviadas"></div>
     </div>
   </div>
 </main>
@@ -1840,7 +1843,8 @@ function renderKanban(){
       const isRevisao=p.revisao===true;
       const tagClass=isRevisao?'tag-revisao':'tag-nova';
       const tagLabel=isRevisao?'Revisao':'Nova';
-      return `<div class="kanban-card" onclick="abrirPropostaExistente('${p.id}')">
+      const vendedor=p.vendedor||'—';
+      return `<div class="kanban-card" draggable="true" data-id="${p.id}" onclick="abrirPropostaExistente('${p.id}')">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
           <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
@@ -1849,16 +1853,71 @@ function renderKanban(){
         <div class="kanban-card-info">
           <div class="kanban-card-row"><span>${p.municipio||'—'}</span><span class="kanban-card-timer ${timer.cls}">⏱ ${timer.text}</span></div>
           <div class="kanban-card-row"><span style="font-weight:600;color:var(--orange)">${valor}</span>
-            <select class="kanban-status-sel" data-id="${p.id}" onclick="event.stopPropagation()" onchange="mudarStatusProposta(this)" style="background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);border-radius:4px;font-size:.72rem;padding:2px 4px;cursor:pointer">
-              <option value="nova_os"${p.status==='nova_os'?' selected':''}>Nova OS</option>
-              <option value="elaboracao"${p.status==='elaboracao'?' selected':''}>Elaboracao</option>
-              <option value="aprovacao"${p.status==='aprovacao'?' selected':''}>Aprovacao</option>
-              <option value="enviadas"${p.status==='enviadas'?' selected':''}>Enviadas</option>
-            </select>
+            <span style="font-size:.75rem;color:var(--text-dim)">${vendedor}</span>
           </div>
         </div>
       </div>`;
     }).join('');
+  });
+  bindDragAndDrop();
+}
+
+/* ── DRAG & DROP ─────────────────────────────── */
+let draggedCardId=null;
+
+function bindDragAndDrop(){
+  // Card drag events
+  document.querySelectorAll('.kanban-card[draggable]').forEach(card=>{
+    card.addEventListener('dragstart',e=>{
+      draggedCardId=card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',card.dataset.id);
+    });
+    card.addEventListener('dragend',()=>{
+      card.classList.remove('dragging');
+      draggedCardId=null;
+      document.querySelectorAll('.kanban-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    });
+  });
+
+  // Column drop zones
+  document.querySelectorAll('.kanban-col-body[data-status]').forEach(col=>{
+    col.addEventListener('dragover',e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      col.classList.add('drag-over');
+    });
+    col.addEventListener('dragleave',e=>{
+      if(!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+    });
+    col.addEventListener('drop',e=>{
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id=e.dataTransfer.getData('text/plain')||draggedCardId;
+      if(!id)return;
+      const novoStatus=col.dataset.status;
+      const p=propostas.find(x=>x.id===id);
+      if(!p||p.status===novoStatus)return;
+
+      // Validate nova_os -> elaboracao
+      if(p.status==='nova_os'&&novoStatus==='elaboracao'){
+        if(!p.nome||!p.endereco||!p.vendedor||!p.municipio){
+          showToast('Preencha todos os campos obrigatorios antes de mover para Elaboracao.');
+          return;
+        }
+        const tabsValid=p.tabs&&p.tabs.every(t=>t.m2>0&&t.torres>=1);
+        if(!tabsValid){
+          showToast('Preencha M2 e Torres em todas as abas.');
+          return;
+        }
+      }
+
+      propostasRef.child(id).update({status:novoStatus});
+      if(novoStatus==='elaboracao'){
+        setTimeout(()=>abrirPropostaExistente(id),300);
+      }
+    });
   });
 }
 
