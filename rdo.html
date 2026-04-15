@@ -835,6 +835,7 @@ body{
   const u=JSON.parse(s);
   if(u.role==='encarregado'){window.location.href='overview.html';return;}
   if(u.role==='dp'){window.location.href='locacao.html';return;}
+  if(u.role==='orcamentista'){window.location.href='proposta.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');

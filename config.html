@@ -175,6 +175,7 @@ body{
 .role-admin{background:rgba(245,132,31,.15);color:var(--orange)}
 .role-gestao{background:rgba(107,175,212,.15);color:var(--blue)}
 .role-encarregado{background:rgba(143,207,106,.15);color:var(--green)}
+.role-orcamentista{background:rgba(200,160,60,.15);color:#c8a03c}
 .status-active{color:var(--green);font-weight:600;font-size:.8rem}
 .status-inactive{color:#f07070;font-weight:600;font-size:.8rem}
 .pages-list{display:flex;gap:4px;flex-wrap:wrap}
@@ -359,6 +360,7 @@ body{
         <option value="admin">Administrador</option>
         <option value="gestao">Gestao</option>
         <option value="encarregado">Encarregado</option>
+        <option value="orcamentista">Orcamentista</option>
         <option value="dp">Departamento Pessoal</option>
       </select>
     </div>
@@ -475,14 +477,15 @@ let usersData={};  // Firebase object {key: userData}
 let projectsList=[];
 let editingKey=null;
 
-const ROLE_LABELS={admin:'Administrador',gestao:'Gestao',encarregado:'Encarregado',dp:'Departamento Pessoal'};
+const ROLE_LABELS={admin:'Administrador',gestao:'Gestao',encarregado:'Encarregado',dp:'Departamento Pessoal',orcamentista:'Orcamentista'};
 
 /* Pages per role (auto-assigned) */
 const ROLE_PAGES={
-  admin:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'locacao':true,'config':true},
+  admin:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'locacao':true,'proposta':true,'config':true},
   gestao:{'project-board':true,'overview':true,'cronograma':true,'team':true,'rdo':true,'config':true},
   encarregado:{'overview':true},
-  dp:{'locacao':true,'team':true}
+  dp:{'locacao':true,'team':true},
+  orcamentista:{'proposta':true}
 };
 
 /* ── INIT ─────────────────────────────────────── */
@@ -562,8 +565,8 @@ function onRoleChange(){
   const role=document.getElementById('uRole').value;
   const fieldProjetos=document.getElementById('fieldProjetos');
   const allRow=document.getElementById('allProjectsRow');
-  if(role==='dp'){
-    // DP: não precisa selecionar projetos
+  if(role==='dp'||role==='orcamentista'){
+    // DP/Orcamentista: não precisa selecionar projetos
     fieldProjetos.style.display='none';
   }else if(role==='admin'||role==='gestao'){
     // Admin/Gestao: show projects with "Todos" option
@@ -718,7 +721,7 @@ async function saveUser(){
 
   // Admin/Gestao: can choose all or specific; Encarregado: must select specific; DP: no projects
   let allowedProjects;
-  if(role==='dp'){
+  if(role==='dp'||role==='orcamentista'){
     allowedProjects='none';
   }else if(role==='admin'||role==='gestao'){
     allowedProjects=allProjectsMode?'all':[...selectedProjectIds];

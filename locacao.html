@@ -527,6 +527,7 @@ body{
   // Apenas admin e dp podem acessar locação
   if(u.role!=='admin'&&u.role!=='dp'){
     if(u.role==='encarregado') window.location.href='overview.html';
+    else if(u.role==='orcamentista') window.location.href='proposta.html';
     else window.location.href='project-board.html';
     return;
   }

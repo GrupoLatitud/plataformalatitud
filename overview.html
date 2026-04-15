@@ -1100,6 +1100,7 @@ console.log('[Overview] Script iniciado');
   const u=JSON.parse(s);
   // DP só acessa locação e team
   if(u.role==='dp'){window.location.href='locacao.html';return;}
+  if(u.role==='orcamentista'){window.location.href='proposta.html';return;}
   // Todos os demais perfis tem acesso ao overview
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
