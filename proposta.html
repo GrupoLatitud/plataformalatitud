@@ -379,6 +379,16 @@ body{
   transition:background .15s;letter-spacing:.3px;
 }
 .btn-nova-proposta:hover{background:#d9710e}
+.nova-proposta-menu{
+  position:absolute;top:100%;right:0;margin-top:4px;z-index:100;
+  background:var(--surface2);border:1px solid var(--orange);border-radius:6px;
+  overflow:hidden;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.nova-proposta-opt{
+  padding:10px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.9rem;color:var(--text);transition:background .15s;
+}
+.nova-proposta-opt:hover{background:rgba(245,132,31,.15)}
 .kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
 @media(max-width:1100px){.kanban-board{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.kanban-board{grid-template-columns:1fr}}
@@ -411,6 +421,13 @@ body{
 }
 .tag-torre{background:rgba(107,175,212,.15);color:var(--blue)}
 .tag-item{background:rgba(143,207,106,.15);color:var(--green)}
+.tag-nova{background:rgba(107,175,212,.15);color:var(--blue)}
+.tag-revisao{background:rgba(245,132,31,.15);color:var(--orange)}
+.tag-tipo{background:rgba(255,255,255,.06);color:var(--text-dim)}
+.kanban-card-timer{font-size:.75rem;display:flex;align-items:center;gap:4px}
+.timer-ok{color:var(--green)}
+.timer-warn{color:#f1c40f}
+.timer-danger{color:#e74c3c}
 
 /* PROPOSTA OVERLAY */
 .proposta-overlay{
@@ -471,13 +488,18 @@ body{
 <main class="page-body" id="kanbanPage">
   <div class="kanban-header">
     <div>
-      <h1 class="page-title" style="margin-bottom:0">Proposta - Pintura Predial</h1>
+      <h1 class="page-title" style="margin-bottom:0">Proposta</h1>
       <p class="page-sub" style="margin-bottom:0">Gerencie suas propostas orcamentarias.</p>
     </div>
-    <button class="btn-nova-proposta" onclick="abrirNovaProposta()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nova Proposta
-    </button>
+    <div style="position:relative;display:inline-block">
+      <button class="btn-nova-proposta" onclick="toggleNovaPropostaMenu()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova Proposta
+      </button>
+      <div class="nova-proposta-menu" id="novaPropostaMenu" style="display:none">
+        <div class="nova-proposta-opt" onclick="abrirNovaProposta('Pintura Predial')">Pintura Predial</div>
+      </div>
+    </div>
   </div>
 
   <div class="kanban-board">
@@ -1691,6 +1713,37 @@ const KANBAN_COLS={
   'enviadas':{bodyId:'colEnviadas',countId:'countEnviadas'}
 };
 
+function calcTimer(createdAt){
+  if(!createdAt) return {text:'—',cls:'timer-ok'};
+  const created=new Date(createdAt);
+  const now=new Date();
+  const diffMs=now-created;
+  const diffH=Math.floor(diffMs/(1000*60*60));
+  const limitH=72; // 3 dias
+  const restH=limitH-diffH;
+  if(restH<=0) return {text:'Expirado',cls:'timer-danger'};
+  if(restH<=24){
+    const h=restH;
+    return {text:h+'h restantes',cls:'timer-danger'};
+  }
+  if(restH<=48){
+    const d=Math.floor(restH/24);const h=restH%24;
+    return {text:d+'d '+h+'h',cls:'timer-warn'};
+  }
+  const d=Math.floor(restH/24);const h=restH%24;
+  return {text:d+'d '+h+'h',cls:'timer-ok'};
+}
+
+function toggleNovaPropostaMenu(){
+  const menu=document.getElementById('novaPropostaMenu');
+  const isOpen=menu.style.display!=='none';
+  menu.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    const close=(e)=>{if(!menu.contains(e.target)&&!e.target.closest('.btn-nova-proposta')){menu.style.display='none';document.removeEventListener('mousedown',close);}};
+    document.addEventListener('mousedown',close);
+  }
+}
+
 function renderKanban(){
   const groups={nova_os:[],elaboracao:[],aprovacao:[],enviadas:[]};
   propostas.forEach(p=>{
@@ -1708,11 +1761,19 @@ function renderKanban(){
     }
     body.innerHTML=items.map(p=>{
       const valor=p.valorTotal?fmtBRL(p.valorTotal):'—';
-      const m2=p.m2Total?fmtNum(p.m2Total)+' m2':'—';
+      const timer=calcTimer(p.createdAt);
+      const tipoTag=p.tipo||'Pintura Predial';
+      const isRevisao=p.revisao===true;
+      const tagClass=isRevisao?'tag-revisao':'tag-nova';
+      const tagLabel=isRevisao?'Revisao':'Nova';
       return `<div class="kanban-card" onclick="abrirPropostaExistente('${p.id}')">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+          <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
+          <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
+        </div>
         <div class="kanban-card-title">${p.nome||'Sem nome'}</div>
         <div class="kanban-card-info">
-          <div class="kanban-card-row"><span>${p.municipio||'—'}</span><span>${m2}</span></div>
+          <div class="kanban-card-row"><span>${p.municipio||'—'}</span><span class="kanban-card-timer ${timer.cls}">⏱ ${timer.text}</span></div>
           <div class="kanban-card-row"><span style="font-weight:600;color:var(--orange)">${valor}</span>
             <select class="kanban-status-sel" data-id="${p.id}" onclick="event.stopPropagation()" onchange="mudarStatusProposta(this)" style="background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);border-radius:4px;font-size:.72rem;padding:2px 4px;cursor:pointer">
               <option value="nova_os"${p.status==='nova_os'?' selected':''}>Nova OS</option>
@@ -1733,7 +1794,10 @@ function mudarStatusProposta(sel){
   propostasRef.child(id).update({status:novoStatus});
 }
 
-function abrirNovaProposta(){
+let propostaTipo='Pintura Predial';
+function abrirNovaProposta(tipo){
+  document.getElementById('novaPropostaMenu').style.display='none';
+  propostaTipo=tipo||'Pintura Predial';
   editandoPropostaId=null;
   // Reset form
   document.getElementById('nomeProjeto').value='';
@@ -1822,6 +1886,8 @@ function salvarPropostaKanban(){
   } else {
     data.status='elaboracao';
     data.createdAt=new Date().toISOString();
+    data.tipo=propostaTipo;
+    data.revisao=false;
     const newRef=propostasRef.push(data);
     editandoPropostaId=newRef.key;
     showToast('Proposta criada!');
