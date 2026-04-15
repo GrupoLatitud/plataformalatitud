@@ -1143,17 +1143,21 @@ function ajustarPercents(changed){
   const all=Array.from(document.querySelectorAll('#wallTypesContainer .wallPercent'));
   if(all.length<2)return;
   let val=parseFloat(changed.value)||0;
-  if(val>100) val=100;
-  if(val<0) val=0;
+  if(val>100) val=100;if(val<0) val=0;
   changed.value=val;
-  const others=all.filter(el=>el!==changed);
-  const restante=100-val;
-  if(others.length===1){
-    others[0].value=Math.max(0,restante);
-  } else {
-    const each=Math.floor(restante/others.length);
-    const sobra=restante-each*others.length;
-    others.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});
+  const idx=all.indexOf(changed);
+  // Soma dos anteriores (que não mudam)
+  let somaAnteriores=0;
+  for(let i=0;i<idx;i++) somaAnteriores+=parseFloat(all[i].value)||0;
+  // Somente as posteriores se ajustam
+  const posteriores=all.slice(idx+1);
+  const restante=Math.max(0,100-somaAnteriores-val);
+  if(posteriores.length===1){
+    posteriores[0].value=restante;
+  } else if(posteriores.length>1){
+    const each=Math.floor(restante/posteriores.length);
+    const sobra=restante-each*posteriores.length;
+    posteriores.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});
   }
   atualizarWallM2();
   autoCalc();
@@ -2056,10 +2060,13 @@ function ajustarOsPercents(changed){
   let val=parseFloat(changed.value)||0;
   if(val>100) val=100;if(val<0) val=0;
   changed.value=val;
-  const others=all.filter(el=>el!==changed);
-  const restante=100-val;
-  if(others.length===1){others[0].value=Math.max(0,restante);}
-  else{const each=Math.floor(restante/others.length);const sobra=restante-each*others.length;others.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});}
+  const idx=all.indexOf(changed);
+  let somaAnteriores=0;
+  for(let i=0;i<idx;i++) somaAnteriores+=parseFloat(all[i].value)||0;
+  const posteriores=all.slice(idx+1);
+  const restante=Math.max(0,100-somaAnteriores-val);
+  if(posteriores.length===1){posteriores[0].value=restante;}
+  else if(posteriores.length>1){const each=Math.floor(restante/posteriores.length);const sobra=restante-each*posteriores.length;posteriores.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});}
   atualizarOsWallM2();
 }
 
