@@ -980,24 +980,33 @@ function addTab(){
   // Show inline select next to + button
   const existing=document.getElementById('addTabSelect');
   if(existing){existing.remove();return;}
-  const sel=document.createElement('select');
-  sel.id='addTabSelect';
-  sel.style.cssText='background:var(--surface2);color:var(--text);border:1px solid var(--orange);border-radius:6px;padding:4px 8px;font-family:"Barlow Condensed",sans-serif;font-size:.85rem;cursor:pointer;outline:none;margin-left:4px';
-  sel.innerHTML='<option value="" disabled selected>Selecione...</option><option value="Torre">Torre</option><option value="Item Adicional">Item Adicional</option>';
-  sel.onchange=function(){
-    const cat=this.value;
-    this.remove();
-    const num=String(tabs.length+1).padStart(3,'0');
-    tabs.push(createTab(num, null, cat));
-    activeTabIndex=tabs.length-1;
-    renderTabBar();
-    renderTabForm(activeTabIndex);
-    autoCalc();
-  };
-  sel.onblur=function(){this.remove();};
+  const wrap=document.createElement('div');
+  wrap.id='addTabSelect';
+  wrap.style.cssText='position:relative;display:inline-block;margin-left:4px;vertical-align:middle';
+  const list=document.createElement('div');
+  list.style.cssText='position:absolute;top:100%;left:0;z-index:100;background:var(--surface2);border:1px solid var(--orange);border-radius:6px;overflow:hidden;min-width:130px;margin-top:4px;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+  ['Torre','Item Adicional'].forEach(cat=>{
+    const opt=document.createElement('div');
+    opt.textContent=cat;
+    opt.style.cssText='padding:8px 14px;cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-size:.9rem;color:var(--text);transition:background .15s';
+    opt.onmouseenter=()=>opt.style.background='rgba(245,132,31,.15)';
+    opt.onmouseleave=()=>opt.style.background='none';
+    opt.onclick=()=>{
+      wrap.remove();
+      const num=String(tabs.length+1).padStart(3,'0');
+      tabs.push(createTab(num, null, cat));
+      activeTabIndex=tabs.length-1;
+      renderTabBar();
+      renderTabForm(activeTabIndex);
+      autoCalc();
+    };
+    list.appendChild(opt);
+  });
+  wrap.appendChild(list);
   const addBtn=document.querySelector('.tab-btn-add');
-  if(addBtn) addBtn.parentNode.insertBefore(sel, addBtn.nextSibling);
-  setTimeout(()=>{sel.focus();sel.click?.();},50);
+  if(addBtn) addBtn.parentNode.insertBefore(wrap, addBtn.nextSibling);
+  const closeOnClick=(e)=>{if(!wrap.contains(e.target)&&e.target!==addBtn){wrap.remove();document.removeEventListener('mousedown',closeOnClick);}};
+  document.addEventListener('mousedown',closeOnClick);
 }
 
 function removeTab(idx){
