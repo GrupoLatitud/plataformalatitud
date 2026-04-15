@@ -664,7 +664,6 @@ body{
           Dados do Projeto
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn" onclick="calcularProjeto()" style="padding:6px 12px;font-size:.8rem">Calcular</button>
           <button class="btn btn-success" onclick="salvarProposta()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
           <button class="btn btn-secondary" onclick="gerarPDF()" style="padding:6px 12px;font-size:.8rem">PDF</button>
           <button class="btn btn-secondary" onclick="toggleComentarios()" style="padding:6px 12px;font-size:.8rem">💬 Comentario</button>
@@ -1828,6 +1827,7 @@ function gerarPDF(){
    ══════════════════════════════════════════════ */
 let autoCalcTimer=null;
 function autoCalc(){
+  propostaDirty=true;
   clearTimeout(autoCalcTimer);
   autoCalcTimer=setTimeout(calcularProjeto,400);
 }
@@ -1845,6 +1845,8 @@ function bindAutoCalc(container){
    ══════════════════════════════════════════════ */
 let propostas=[];
 let editandoPropostaId=null;
+let propostaDirty=false;
+let propostaLastSaved=null;
 const propostasRef=db.ref('propostas');
 
 const KANBAN_COLS={
@@ -2216,6 +2218,7 @@ function gerarNumeroProposta(){
 function abrirNovaProposta(tipo){
   document.getElementById('novaPropostaMenu').style.display='none';
   propostaTipo=tipo||'Pintura Predial';
+  propostaDirty=false;
   editandoPropostaId=null;
   // Reset Nova OS form
   osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
@@ -2304,6 +2307,7 @@ function salvarNovaOs(){
 function abrirPropostaExistente(id){
   const p=propostas.find(x=>x.id===id);
   if(!p)return;
+  propostaDirty=false;
 
   // If status is nova_os, open the simplified Nova OS overlay for editing
   if(p.status==='nova_os'){
@@ -2365,6 +2369,12 @@ function abrirPropostaExistente(id){
 }
 
 function fecharProposta(){
+  if(propostaDirty){
+    if(confirm('Existem alteracoes nao salvas. Deseja salvar antes de voltar?')){
+      salvarProposta();
+    }
+  }
+  propostaDirty=false;
   document.getElementById('propostaOverlay').classList.remove('open');
   const sb=document.getElementById('comentariosSidebar');
   if(sb) sb.classList.remove('open');
@@ -2410,6 +2420,7 @@ function salvarPropostaKanban(){
 
   if(editandoPropostaId){
     propostasRef.child(editandoPropostaId).update(data);
+    propostaDirty=false;
     showToast('Proposta atualizada!');
   } else {
     data.status='elaboracao';
@@ -2418,6 +2429,7 @@ function salvarPropostaKanban(){
     data.revisao=false;
     const newRef=propostasRef.push(data);
     editandoPropostaId=newRef.key;
+    propostaDirty=false;
     showToast('Proposta criada!');
   }
 }
