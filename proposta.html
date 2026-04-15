@@ -473,6 +473,10 @@ body{
         </div>
         <div class="form-row">
           <div class="form-group" style="max-width:130px">
+            <label style="color:var(--orange);font-size:.75rem">Comissao (Sugestao)</label>
+            <input type="text" id="comissaoSugestao" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default">
+          </div>
+          <div class="form-group" style="max-width:130px">
             <label style="color:var(--orange);font-size:.75rem">Margem (Sugestao)</label>
             <input type="text" id="margemSugestao" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default">
           </div>
@@ -749,7 +753,36 @@ const IMPOSTOS_MUNICIPIO = {
    ══════════════════════════════════════════════ */
 const MAX_TABS = 6;
 let activeTabIndex = 0;
-let lastSugMargem = null, lastSugLucro = null;
+let lastSugMargem = null, lastSugLucro = null, lastSugComissao = null;
+
+const COMISSAO_FAIXAS = [
+  [35001,3.58],[65000,3.15],[95000,2.93],[125000,2.79],[155000,2.65],
+  [185000,2.58],[215000,2.50],[245000,2.43],[275000,2.36],[305000,2.29],
+  [335000,2.14],[665000,2.12],[965000,2.06],[1265000,2.00],
+  [1295000,1.96],[1325000,1.94],[1355000,1.92],[1385000,1.90],
+  [1415000,1.88],[1445000,1.86],[1475000,1.84],[1505000,1.82],
+  [1535000,1.80],[1565000,1.78],[1595000,1.76],[1625000,1.74],
+  [1655000,1.72],[1685000,1.70],[1715000,1.68],[1745000,1.66],
+  [1775000,1.64],[1805000,1.62],[1835000,1.60],[1865000,1.58],
+  [1895000,1.57],[1925000,1.56],[1955000,1.55],[1985000,1.54],
+  [2015000,1.53],[2045000,1.52],[2075000,1.51],[2105000,1.50],
+  [2135000,1.49],[2165000,1.48],[2195000,1.47],[2225000,1.46],
+  [2255000,1.45],[2285000,1.44],[2315000,1.43],[2345000,1.42],
+  [2375000,1.41],[2405000,1.40],[2435000,1.39],[2465000,1.38],
+  [2495000,1.37],[2525000,1.36],[2555000,1.35],[2585000,1.34],
+  [2615000,1.33],[2645000,1.32],[2675000,1.31],[2705000,1.30],
+  [2735000,1.29],[2765000,1.28],[2795000,1.27],[2825000,1.26],
+  [2855000,1.25],[2885000,1.24],[2915000,1.23],[2945000,1.22],
+  [2975000,1.21],[3005000,1.20],[3035000,1.19],[3065000,1.18],
+  [3095000,1.17],[3125000,1.16],[3155000,1.15],[3185000,1.14],
+  [3215000,1.13]
+];
+function getSugComissao(vp){
+  for(let i=0;i<COMISSAO_FAIXAS.length;i++){
+    if(vp<=COMISSAO_FAIXAS[i][0]) return COMISSAO_FAIXAS[i][1];
+  }
+  return 1.00;
+}
 
 function createTab(id, nome){
   return {
@@ -1120,7 +1153,6 @@ function calcularProjeto(){
   saveActiveTab();
 
   const municipio=document.getElementById('municipio').value;
-  const comissao=(parseFloat(document.getElementById('comissao').value)||0)/100;
   const nome=document.getElementById('nomeProjeto').value||'Sem nome';
   const impostos=IMPOSTOS_MUNICIPIO[municipio]||0.12;
 
@@ -1137,27 +1169,39 @@ function calcularProjeto(){
 
   const custoDireto=aggMO+aggDesl+aggMat;
 
-  // Calculo preliminar para determinar faixa de sugestao
+  // Calculo preliminar para determinar faixas de sugestao
+  const comissaoAtual=(parseFloat(document.getElementById('comissao').value)||0)/100;
   const margemAtual=(parseFloat(document.getElementById('margem').value)||0)/100;
   const lucroAtual=(parseFloat(document.getElementById('lucro').value)||0)/100;
-  const vpPreliminar=custoDireto/(1-(comissao+impostos+margemAtual+lucroAtual));
+  const vpPreliminar=custoDireto/(1-(comissaoAtual+impostos+margemAtual+lucroAtual));
 
+  // Sugestao margem/lucro
   let sugMargem, sugLucro;
   if(vpPreliminar<=1000000){sugMargem=15;sugLucro=14;}
   else if(vpPreliminar<=1500000){sugMargem=13;sugLucro=12;}
   else if(vpPreliminar<=2000000){sugMargem=11;sugLucro=10;}
   else{sugMargem=9;sugLucro=8;}
 
+  // Sugestao comissao
+  const sugComissao=getSugComissao(vpPreliminar);
+
   // Atualizar inputs apenas se sugestao mudou de faixa
   document.getElementById('margemSugestao').value=sugMargem+'%';
   document.getElementById('lucroSugestao').value=sugLucro+'%';
+  document.getElementById('comissaoSugestao').value=sugComissao.toFixed(2).replace('.',',')+'%';
+
   if(lastSugMargem!==sugMargem||lastSugLucro!==sugLucro){
     document.getElementById('margem').value=sugMargem;
     document.getElementById('lucro').value=sugLucro;
     lastSugMargem=sugMargem;
     lastSugLucro=sugLucro;
   }
+  if(lastSugComissao!==sugComissao){
+    document.getElementById('comissao').value=sugComissao;
+    lastSugComissao=sugComissao;
+  }
 
+  const comissao=(parseFloat(document.getElementById('comissao').value)||0)/100;
   const margem=(parseFloat(document.getElementById('margem').value)||0)/100;
   const lucro=(parseFloat(document.getElementById('lucro').value)||0)/100;
   const percentualIndireto=comissao+impostos+margem+lucro;
