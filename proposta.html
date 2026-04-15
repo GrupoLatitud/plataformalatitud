@@ -951,7 +951,7 @@ body{
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script>
 /* ── AUTH GUARD ─────────────────────────────── */
 (function(){
@@ -1903,6 +1903,10 @@ async function gerarPDF(){
   saveActiveTab();
   showToast('Gerando PDF...');
 
+  if(!window.jspdf){
+    alert('Biblioteca jsPDF nao carregou. Verifique sua conexao e recarregue a pagina.');
+    return;
+  }
   const {jsPDF} = window.jspdf;
   const doc = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
   const W=595.28, H=841.89;
