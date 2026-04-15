@@ -2009,17 +2009,12 @@ function renderOsTabContent(){
     <div class="novaos-section">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--text-dim);font-weight:400">(${tab.categoria})</span></div>
     <div class="novaos-field"><label>Nome da Aba</label><input type="text" id="osTabNome" value="${tab.nome||''}" placeholder="Ex: 4 Torres"></div>
     <div class="novaos-row">
-      <div class="novaos-field"><label>M2 por Torre *</label><input type="number" id="osM2" value="${tab.m2}" min="0" oninput="atualizarOsWallM2()"></div>
-      <div class="novaos-field" style="max-width:100px"><label>Torres *</label><input type="number" id="osTorres" value="${tab.torres}" min="1"></div>
+      <div class="novaos-field" style="max-width:120px"><label>M2 por Torre *</label><input type="number" id="osM2" value="${tab.m2}" min="0" oninput="atualizarOsWallM2()"></div>
+      <div class="novaos-field" style="max-width:80px"><label>Torres *</label><input type="number" id="osTorres" value="${tab.torres}" min="1"></div>
+      ${isTorre?`<div class="novaos-field" style="max-width:120px"><label>Qtd. Janelas</label><input type="number" id="osPU" value="${tab.puTelhado}" min="0"></div>`:''}
     </div>
     <div style="margin-top:12px">${wallsHTML}</div>
     ${addWallBtn}`;
-
-  if(isTorre){
-    html+=`<div class="novaos-row" style="margin-top:14px">
-      <div class="novaos-field" style="max-width:160px"><label>Quantidade de Janelas</label><input type="number" id="osPU" value="${tab.puTelhado}" min="0"></div>
-    </div>`;
-  }
 
   document.getElementById('osTabContent').innerHTML=html;
 }
