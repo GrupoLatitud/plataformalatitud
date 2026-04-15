@@ -884,20 +884,11 @@ function renderTabForm(idx){
   const addWallBtn=tab.walls.length<3?`<button class="btn-add-wall" onclick="addWall()">+ Adicionar Tipo de Parede</button>`:'';
 
   const isTorre=tab.categoria!=='Item Adicional';
-  const catSelect=idx>0?`
-    <div class="form-row">
-      <div class="form-group"><label>Tipo</label>
-        <select id="tabCategoria" onchange="onCategoriaChange(this.value)">
-          <option value="Torre"${tab.categoria==='Torre'?' selected':''}>Torre</option>
-          <option value="Item Adicional"${tab.categoria==='Item Adicional'?' selected':''}>Item Adicional</option>
-        </select>
-      </div>
-    </div>`:'';
+  const catLabel=isTorre?'Torre':'Item Adicional';
 
   const html=`
   <div class="panel-section">
-    <div class="panel-section-title">Dados da Aba: ${tab.id}</div>
-    ${catSelect}
+    <div class="panel-section-title">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--text-dim);font-weight:400;margin-left:8px">(${catLabel})</span></div>
     <div class="form-row">
       <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
     </div>
@@ -983,22 +974,30 @@ function removeEquip(ei){
 /* ══════════════════════════════════════════════
    TAB MANAGEMENT
    ══════════════════════════════════════════════ */
-function onCategoriaChange(val){
-  saveActiveTab();
-  tabs[activeTabIndex].categoria=val;
-  renderTabForm(activeTabIndex);
-  autoCalc();
-}
-
 function addTab(){
   saveActiveTab();
   if(tabs.length>=MAX_TABS){showToast('Maximo '+MAX_TABS+' abas.');return;}
-  const num=String(tabs.length+1).padStart(3,'0');
-  tabs.push(createTab(num));
-  activeTabIndex=tabs.length-1;
-  renderTabBar();
-  renderTabForm(activeTabIndex);
-  autoCalc();
+  // Show inline select next to + button
+  const existing=document.getElementById('addTabSelect');
+  if(existing){existing.remove();return;}
+  const sel=document.createElement('select');
+  sel.id='addTabSelect';
+  sel.style.cssText='background:var(--surface2);color:var(--text);border:1px solid var(--orange);border-radius:6px;padding:4px 8px;font-family:"Barlow Condensed",sans-serif;font-size:.85rem;cursor:pointer;outline:none;margin-left:4px';
+  sel.innerHTML='<option value="" disabled selected>Selecione...</option><option value="Torre">Torre</option><option value="Item Adicional">Item Adicional</option>';
+  sel.onchange=function(){
+    const cat=this.value;
+    this.remove();
+    const num=String(tabs.length+1).padStart(3,'0');
+    tabs.push(createTab(num, null, cat));
+    activeTabIndex=tabs.length-1;
+    renderTabBar();
+    renderTabForm(activeTabIndex);
+    autoCalc();
+  };
+  sel.onblur=function(){this.remove();};
+  const addBtn=document.querySelector('.tab-btn-add');
+  if(addBtn) addBtn.parentNode.insertBefore(sel, addBtn.nextSibling);
+  setTimeout(()=>{sel.focus();sel.click?.();},50);
 }
 
 function removeTab(idx){
@@ -1030,8 +1029,6 @@ function saveActiveTab(){
   const vi=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
 
   if(v('tabNome')!==null) tab.nome=v('tabNome')||tab.nome;
-  const catEl=document.getElementById('tabCategoria');
-  if(catEl) tab.categoria=catEl.value;
   tab.m2=vn('tabM2');
   tab.torres=vi('tabTorres')||1;
   tab.prazo=vi('tabPrazo')||1;
