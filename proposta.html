@@ -770,8 +770,8 @@ let lastSugMargem = null, lastSugLucro = null, lastSugComissao = null;
 let lastSugPrazo = {};
 
 function getSugPrazo(m2){
-  if(m2<=1000) return 5;
-  return Math.ceil(5+((m2-1000)/1000*10));
+  if(m2<=1000) return 20;
+  return Math.ceil(20+((m2-1000)/1000*10));
 }
 
 const COMISSAO_FAIXAS = [
