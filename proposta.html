@@ -895,11 +895,16 @@ body{
 
       <!-- Objeto da Proposta (toggle) -->
       <div class="panel-section">
-        <div class="comp-toggle" onclick="document.getElementById('objetoPropostaContent').classList.toggle('open');this.querySelector('.comp-arrow').classList.toggle('open')" style="cursor:pointer">
-          <span style="font-weight:700;font-size:.85rem">Objeto da Proposta</span>
-          <span class="comp-arrow">▶</span>
-        </div>
-        <div id="objetoPropostaContent" class="comp-panel">
+        <button onclick="const s=document.getElementById('objetoPropostaContent');const a=document.getElementById('objetoToggleArrow');if(s.style.display==='none'){s.style.display='block';a.style.transform='rotate(90deg)';}else{s.style.display='none';a.style.transform='rotate(0)';}" style="
+          width:100%;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+          padding:12px 16px;color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+          font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;
+          display:flex;align-items:center;justify-content:space-between;transition:background .15s;
+        ">
+          <span>Objeto da Proposta</span>
+          <span id="objetoToggleArrow" style="transition:transform .2s">&#9654;</span>
+        </button>
+        <div id="objetoPropostaContent" style="display:none;margin-top:12px">
           <div id="objetoPropostaList"></div>
         </div>
       </div>
@@ -1683,18 +1688,21 @@ const OBJETO_FIXOS=[
 ];
 
 let objetoDescricoes={};
+let objetoFixosEdit={};
 
 function renderObjetoProposta(){
   const el=document.getElementById('objetoPropostaList');
   if(!el) return;
   let html='';
 
-  // 4 itens fixos
-  OBJETO_FIXOS.forEach((txt,i)=>{
+  // 4 itens fixos editaveis
+  OBJETO_FIXOS.forEach((txtDefault,i)=>{
     const num='1.'+(i+1);
+    const key='fixo_'+i;
+    const saved=objetoFixosEdit[key]!==undefined?objetoFixosEdit[key]:txtDefault;
     html+=`<div style="margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:6px">
       <div style="font-weight:600;font-size:.82rem;color:var(--orange);margin-bottom:4px">Item ${num}</div>
-      <div style="font-size:.8rem;color:var(--text);line-height:1.4">${txt}</div>
+      <textarea class="objeto-fixo" data-fixo-key="${key}" rows="3" style="width:100%;resize:vertical;background:var(--surface);border:1px solid #2e2818;border-radius:4px;padding:6px 8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.8rem;line-height:1.4">${saved}</textarea>
     </div>`;
   });
 
@@ -1711,7 +1719,14 @@ function renderObjetoProposta(){
 
   el.innerHTML=html;
 
-  // Bind change events
+  // Bind change events - fixos
+  el.querySelectorAll('.objeto-fixo').forEach(ta=>{
+    ta.addEventListener('input',()=>{
+      objetoFixosEdit[ta.dataset.fixoKey]=ta.value;
+      propostaDirty=true;
+    });
+  });
+  // Bind change events - abas
   el.querySelectorAll('.objeto-desc').forEach(ta=>{
     ta.addEventListener('input',()=>{
       objetoDescricoes[ta.dataset.tabId]=ta.value;
@@ -2413,6 +2428,7 @@ function abrirPropostaExistente(id){
   if(p.execucao) document.getElementById('execucaoGlobal').value=p.execucao;
   lastSugMargem=null;lastSugLucro=null;lastSugComissao=null;lastSugPrazo={};
   objetoDescricoes=p.objetoDescricoes||{};
+  objetoFixosEdit=p.objetoFixosEdit||{};
   if(p.tabs&&p.tabs.length){
     tabs=p.tabs.map(t=>{
       const tab=createTab(t.id,t.nome,t.categoria);
@@ -2430,6 +2446,7 @@ function abrirPropostaExistente(id){
   if(p.endereco) tabs[0]._endereco=p.endereco;
   if(p.vendedor) tabs[0]._vendedor=p.vendedor;
   objetoDescricoes=p.objetoDescricoes||{};
+  objetoFixosEdit=p.objetoFixosEdit||{};
   activeTabIndex=0;
   renderTabBar();
   renderTabForm(0);
@@ -2484,6 +2501,7 @@ function salvarPropostaKanban(){
     valorTotal:parseFloat(document.getElementById('resTotalBig').textContent.replace(/[^\d,]/g,'').replace(',','.'))||0,
     m2Total:tabs.reduce((s,t)=>s+(t.m2||0)*(t.torres||1),0),
     objetoDescricoes:objetoDescricoes,
+    objetoFixosEdit:objetoFixosEdit,
     updatedAt:new Date().toISOString(),
     updatedBy:window.currentUser?.name||'—'
   };
