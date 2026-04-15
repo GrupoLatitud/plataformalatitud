@@ -888,8 +888,9 @@ function renderTabForm(idx){
         <div class="form-group" style="max-width:80px"><label>Demaos</label><input type="number" class="wallDemaos" value="${w.demaos}" min="1" max="5"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
-        <div class="form-group" style="max-width:100px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarPercents(this)"></div>
+        <div class="form-group" style="max-width:90px"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
+        <div class="form-group" style="max-width:90px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarPercents(this)"></div>
+        <div class="form-group" style="max-width:90px"><label>M2</label><input type="text" class="wallM2Calc" value="${((w.percent/100)*tab.m2).toLocaleString('pt-BR',{maximumFractionDigits:0})}" readonly style="background:var(--surface);opacity:.7;cursor:default"></div>
       </div>
     </div>`;
   });
@@ -906,7 +907,7 @@ function renderTabForm(idx){
       <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>M2 por Torre</label><input type="number" id="tabM2" value="${tab.m2}" min="0"></div>
+      <div class="form-group"><label>M2 por Torre</label><input type="number" id="tabM2" value="${tab.m2}" min="0" oninput="atualizarWallM2()"></div>
       <div class="form-group" style="max-width:80px"><label>Torres</label><input type="number" id="tabTorres" value="${tab.torres}" min="1"></div>
     </div>
     <div class="form-row">
@@ -950,6 +951,15 @@ function renderTabForm(idx){
 /* ══════════════════════════════════════════════
    WALL MANAGEMENT (per active tab)
    ══════════════════════════════════════════════ */
+function atualizarWallM2(){
+  const m2=parseFloat(document.getElementById('tabM2')?.value)||0;
+  document.querySelectorAll('#wallTypesContainer .wall-block').forEach(b=>{
+    const pct=parseFloat(b.querySelector('.wallPercent')?.value)||0;
+    const m2El=b.querySelector('.wallM2Calc');
+    if(m2El) m2El.value=Math.round(m2*pct/100).toLocaleString('pt-BR');
+  });
+}
+
 function ajustarPercents(changed){
   const all=Array.from(document.querySelectorAll('#wallTypesContainer .wallPercent'));
   if(all.length<2)return;
@@ -966,6 +976,7 @@ function ajustarPercents(changed){
     const sobra=restante-each*others.length;
     others.forEach((el,i)=>{el.value=each+(i<sobra?1:0);});
   }
+  atualizarWallM2();
   autoCalc();
 }
 
