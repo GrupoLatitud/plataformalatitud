@@ -2378,7 +2378,7 @@ function fecharProposta(){
   document.getElementById('propostaOverlay').classList.remove('open');
   const sb=document.getElementById('comentariosSidebar');
   if(sb) sb.classList.remove('open');
-  if(comentariosListener){comentariosListener();comentariosListener=null;}
+  stopComentariosListener();
 }
 
 // Override salvarProposta to save to kanban
@@ -2448,7 +2448,8 @@ propostasRef.on('value',snap=>{
    ══════════════════════════════════════════════ */
 const STATUS_LABELS={nova_os:'Nova OS / Revisao',elaboracao:'Elaboracao de Proposta',aprovacao:'Aprovacao de Proposta',enviadas:'Propostas Enviadas'};
 let allUsers=[];
-let comentariosListener=null;
+let comentariosRef=null;
+let comentariosHandler=null;
 
 // Load all users for @mention
 db.ref('users').once('value').then(snap=>{
@@ -2472,11 +2473,19 @@ function toggleComentarios(){
   const isOpen=sb.classList.contains('open');
   if(isOpen){
     sb.classList.remove('open');
-    if(comentariosListener){comentariosListener();comentariosListener=null;}
+    stopComentariosListener();
   } else {
     sb.classList.add('open');
     carregarComentarios();
   }
+}
+
+function stopComentariosListener(){
+  if(comentariosRef&&comentariosHandler){
+    comentariosRef.off('value',comentariosHandler);
+  }
+  comentariosRef=null;
+  comentariosHandler=null;
 }
 
 function carregarComentarios(){
@@ -2484,15 +2493,15 @@ function carregarComentarios(){
     document.getElementById('comentariosList').innerHTML='<div style="color:var(--text-dim);text-align:center;padding:20px;font-size:.82rem">Salve a proposta primeiro para usar comentarios.</div>';
     return;
   }
-  const ref=db.ref('propostas/'+editandoPropostaId+'/comentarios');
-  if(comentariosListener) comentariosListener();
-  const handler=ref.on('value',snap=>{
+  stopComentariosListener();
+  comentariosRef=db.ref('propostas/'+editandoPropostaId+'/comentarios');
+  comentariosHandler=function(snap){
     const list=[];
     snap.forEach(c=>list.push({id:c.key,...c.val()}));
     list.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
     renderComentarios(list);
-  });
-  comentariosListener=()=>ref.off('value',handler);
+  };
+  comentariosRef.on('value',comentariosHandler);
 }
 
 function renderComentarios(list){
