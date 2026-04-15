@@ -1359,7 +1359,7 @@ function renderResults(a){
     const thTabs=tabData.map(t=>`<th style="text-align:right;min-width:110px">${t.nome}</th>`).join('');
     const row=(label,key,totalVal,pct)=>{
       const cells=tabData.map(t=>`<td style="text-align:right">${fmtBRL(t[key])}</td>`).join('');
-      return `<tr><td>${label}</td>${cells}<td style="text-align:right;color:var(--text-dim)">${pct}</td><td style="text-align:right;font-weight:600;color:var(--orange)">${fmtBRL(totalVal)}</td></tr>`;
+      return `<tr><td>${label}</td>${cells}<td style="text-align:right;color:var(--text-dim)">${pct}</td><td style="text-align:right;font-weight:600">${fmtBRL(totalVal)}</td></tr>`;
     };
     const html=`<div style="overflow-x:auto">
       <table class="result-table" style="margin:0;white-space:nowrap">
