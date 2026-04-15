@@ -632,7 +632,7 @@ body{
 
       <!-- Per-tab breakdown -->
       <div class="panel-section" id="resTabBreakdown">
-        <div class="panel-section-title">Detalhamento por Aba</div>
+        <div class="panel-section-title">Composicao de Custos</div>
         <div id="resTabList"></div>
       </div>
 
@@ -1359,12 +1359,12 @@ function renderResults(a){
     const thTabs=tabData.map(t=>`<th style="text-align:right;min-width:110px">${t.nome}</th>`).join('');
     const row=(label,key,totalVal,pct)=>{
       const cells=tabData.map(t=>`<td style="text-align:right">${fmtBRL(t[key])}</td>`).join('');
-      return `<tr><td>${label}</td>${cells}<td style="text-align:right;color:var(--text-dim)">${pct}</td><td style="text-align:right;font-weight:600">${fmtBRL(totalVal)}</td></tr>`;
+      return `<tr><td>${label}</td>${cells}<td style="text-align:right;color:var(--text-dim)">${pct}</td><td style="text-align:right;font-weight:600;color:var(--orange)">${fmtBRL(totalVal)}</td></tr>`;
     };
     const html=`<div style="overflow-x:auto">
       <table class="result-table" style="margin:0;white-space:nowrap">
         <thead>
-          <tr><th></th>${thTabs}<th style="text-align:right">%</th><th style="text-align:right;min-width:120px">Total do Projeto</th></tr>
+          <tr><th></th>${thTabs}<th style="text-align:right">%</th><th style="text-align:right;min-width:120px;color:var(--orange)">Total do Projeto</th></tr>
         </thead>
         <tbody>
           ${row('Mao de Obra','mo',a.aggMO,fmtPct(a.aggMO/vp))}
@@ -1374,8 +1374,8 @@ function renderResults(a){
           ${row('Impostos','imp',a.impostosValor,fmtPct(_imp))}
           ${row('Margem Contr.','marg',a.margemValor,fmtPct(_mar))}
           ${row('Lucro Liquido','luc',a.lucroValor,fmtPct(_luc))}
-          <tr class="row-total"><td>Total</td>${tabData.map(t=>`<td style="text-align:right">${fmtBRL(t.total)}</td>`).join('')}<td style="text-align:right">100%</td><td style="text-align:right;font-weight:700">${fmtBRL(vp)}</td></tr>
-          <tr><td>Prazo (dias uteis)</td>${tabData.map(t=>`<td style="text-align:right">${t.prazo}</td>`).join('')}<td></td><td style="text-align:right;font-weight:600">${a.aggPrazo} dias uteis</td></tr>
+          <tr class="row-total"><td>Total</td>${tabData.map(t=>`<td style="text-align:right;color:var(--text)">${fmtBRL(t.total)}</td>`).join('')}<td style="text-align:right;color:var(--text)">100%</td><td style="text-align:right;font-weight:700;color:var(--orange)">${fmtBRL(vp)}</td></tr>
+          <tr><td>Prazo (dias uteis)</td>${tabData.map(t=>`<td style="text-align:right">${t.prazo}</td>`).join('')}<td></td><td style="text-align:right;font-weight:600;color:var(--orange)">${a.aggPrazo} dias uteis</td></tr>
         </tbody>
       </table>
     </div>`;
