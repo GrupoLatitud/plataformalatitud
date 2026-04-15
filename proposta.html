@@ -185,6 +185,7 @@ body{
 .form-group input:focus,.form-group select:focus{border-color:var(--orange)}
 .form-group select{cursor:pointer}
 .form-group select option{background:var(--surface);color:var(--text)}
+.field-invalid{border-color:#e74c3c!important;box-shadow:0 0 0 1px #e74c3c!important}
 
 /* WALL TYPE BLOCK */
 .wall-block{
@@ -1191,8 +1192,36 @@ function calcularTab(tab, municipio){
   return result;
 }
 
+function validarCampos(){
+  let ok=true;
+  function chk(el,invalid){
+    if(!el)return;
+    if(invalid){el.classList.add('field-invalid');ok=false;}
+    else{el.classList.remove('field-invalid');}
+  }
+  // Nome do Projeto
+  const nomeEl=document.getElementById('nomeProjeto');
+  chk(nomeEl,!nomeEl||!nomeEl.value.trim());
+  // Per-tab fields
+  const m2El=document.getElementById('tabM2');
+  chk(m2El,!m2El||!(parseFloat(m2El.value)>0));
+  const torresEl=document.getElementById('tabTorres');
+  chk(torresEl,!torresEl||!(parseInt(torresEl.value)>0));
+  const colabsEl=document.getElementById('tabColabs');
+  chk(colabsEl,!colabsEl||!(parseInt(colabsEl.value)>0));
+  const prazoEl=document.getElementById('tabPrazo');
+  chk(prazoEl,!prazoEl||!(parseInt(prazoEl.value)>0));
+  // Walls
+  document.querySelectorAll('#wallTypesContainer .wall-block').forEach(b=>{
+    chk(b.querySelector('.wallDemaos'),!(parseFloat(b.querySelector('.wallDemaos')?.value)>0));
+    chk(b.querySelector('.wallPercent'),!(parseFloat(b.querySelector('.wallPercent')?.value)>0));
+  });
+  return ok;
+}
+
 function calcularProjeto(){
   saveActiveTab();
+  validarCampos();
 
   const municipio=document.getElementById('municipio').value;
   const nome=document.getElementById('nomeProjeto').value||'Sem nome';
