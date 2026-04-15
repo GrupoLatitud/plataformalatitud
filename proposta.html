@@ -636,29 +636,6 @@ body{
         <div id="resTabList"></div>
       </div>
 
-      <!-- Cost Breakdown -->
-      <div class="panel-section">
-        <div class="panel-section-title">Composicao de Custos</div>
-        <table class="result-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th class="col-val">Valor (R$)</th>
-              <th class="col-pct">%</th>
-            </tr>
-          </thead>
-          <tbody id="resultTableBody">
-            <tr><td>Mao de Obra</td><td class="col-val" id="resMO">--</td><td class="col-pct" id="resMOp">--</td></tr>
-            <tr><td>Deslocamento</td><td class="col-val" id="resDesl">--</td><td class="col-pct" id="resDeslp">--</td></tr>
-            <tr><td>Material</td><td class="col-val" id="resMat">--</td><td class="col-pct" id="resMatp">--</td></tr>
-            <tr><td>Comissao</td><td class="col-val" id="resCom">--</td><td class="col-pct" id="resComp">--</td></tr>
-            <tr><td>Impostos</td><td class="col-val" id="resImp">--</td><td class="col-pct" id="resImpp">--</td></tr>
-            <tr><td>Margem Contribuicao</td><td class="col-val" id="resMarg">--</td><td class="col-pct" id="resMargp">--</td></tr>
-            <tr><td>Lucro Liquido</td><td class="col-val" id="resLuc">--</td><td class="col-pct" id="resLucp">--</td></tr>
-            <tr class="row-total"><td>TOTAL</td><td class="col-val" id="resTotal">--</td><td class="col-pct">100%</td></tr>
-          </tbody>
-        </table>
-      </div>
 
       <!-- Valor Total -->
       <div class="panel-section">
@@ -1365,21 +1342,6 @@ function renderResults(a){
   document.getElementById('resPrazo').textContent=a.aggPrazo+' dias uteis';
 
   const vp=a.valorProjeto;
-  document.getElementById('resMO').textContent=fmtBRL(a.aggMO);
-  document.getElementById('resMOp').textContent=fmtPct(a.aggMO/vp);
-  document.getElementById('resDesl').textContent=fmtBRL(a.aggDesl);
-  document.getElementById('resDeslp').textContent=fmtPct(a.aggDesl/vp);
-  document.getElementById('resMat').textContent=fmtBRL(a.aggMat);
-  document.getElementById('resMatp').textContent=fmtPct(a.aggMat/vp);
-  document.getElementById('resCom').textContent=fmtBRL(a.comissaoValor);
-  document.getElementById('resComp').textContent=fmtPct(a.comissao);
-  document.getElementById('resImp').textContent=fmtBRL(a.impostosValor);
-  document.getElementById('resImpp').textContent=fmtPct(a.impostos);
-  document.getElementById('resMarg').textContent=fmtBRL(a.margemValor);
-  document.getElementById('resMargp').textContent=fmtPct(a.margem);
-  document.getElementById('resLuc').textContent=fmtBRL(a.lucroValor);
-  document.getElementById('resLucp').textContent=fmtPct(a.lucro);
-  document.getElementById('resTotal').textContent=fmtBRL(vp);
   document.getElementById('resTotalBig').textContent=fmtBRL(vp);
 
   // Per-tab breakdown — horizontal table (tabs as columns)
