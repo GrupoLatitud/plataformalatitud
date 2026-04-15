@@ -485,6 +485,15 @@ body{
             <input type="text" id="lucroSugestao" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Execucao</label>
+            <select id="execucaoGlobal" onchange="autoCalc()">
+              <option value="Individual">Individual</option>
+              <option value="Simultânea">Simultanea</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- TAB BAR -->
@@ -794,7 +803,6 @@ function createTab(id, nome, categoria){
     prazo: 30,
     colaboradores: 4,
     desplacamento: 15,
-    execucao: 'Individual',
     walls: [{tipo:'Textura',demaos:2,cor:'Clara',percent:100}],
     equipamentos:[{nome:'Lavadora WAP',qty:1}],
     puTelhado: 10,
@@ -902,7 +910,6 @@ function renderTabForm(idx){
     </div>
     <div class="form-row">
       <div class="form-group" style="max-width:100px"><label>Desplacamento (%)</label><input type="number" id="tabDesplac" value="${tab.desplacamento}" min="0" max="100" step="1"></div>
-      <div class="form-group"><label>Execucao</label><select id="tabExecucao"><option value="Individual"${tab.execucao==='Individual'?' selected':''}>Individual</option><option value="Simultânea"${tab.execucao==='Simultânea'?' selected':''}>Simultanea</option></select></div>
     </div>
   </div>
 
@@ -1043,7 +1050,7 @@ function saveActiveTab(){
   tab.prazo=vi('tabPrazo')||1;
   tab.colaboradores=vi('tabColabs')||1;
   tab.desplacamento=vn('tabDesplac');
-  if(v('tabExecucao')!==null) tab.execucao=v('tabExecucao');
+  // execucao is now global, not per-tab
   // Save equipamentos from DOM
   const equipRows=document.querySelectorAll('#equipContainer .equip-row');
   if(equipRows.length>0){
@@ -1086,7 +1093,8 @@ function calcularTab(tab, municipio){
   const m2PerTower=tab.m2;
   const prazo=tab.prazo;
   const desplacamento=tab.desplacamento/100;
-  const simultanea=tab.execucao==='Simultânea';
+  const execGlobal=document.getElementById('execucaoGlobal');
+  const simultanea=execGlobal?execGlobal.value==='Simultânea':false;
 
   let totalFundo=0, totalTinta=0, totalDesplac=0;
   const wallDetails=[];
@@ -1453,10 +1461,11 @@ function salvarProposta(){
     comissao: (parseFloat(document.getElementById('comissao').value)||0)/100,
     margem: (parseFloat(document.getElementById('margem').value)||0)/100,
     lucro: (parseFloat(document.getElementById('lucro').value)||0)/100,
+    execucao: document.getElementById('execucaoGlobal').value,
     tabs: tabs.map(t=>({
       id:t.id, nome:t.nome, m2:t.m2, torres:t.torres, prazo:t.prazo,
       colaboradores:t.colaboradores, desplacamento:t.desplacamento,
-      execucao:t.execucao, walls:t.walls,
+      walls:t.walls,
       equipamentos:t.equipamentos,
       puTelhado:t.puTelhado,
       result: t.result ? {
