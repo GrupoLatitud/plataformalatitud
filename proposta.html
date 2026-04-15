@@ -1386,15 +1386,16 @@ function renderResults(a){
   {
     document.getElementById('resTabBreakdown').style.display='';
     let html='';
+    const _pi=a.percentualIndireto, _com=a.comissao, _imp=a.impostos, _mar=a.margem, _luc=a.lucro;
     tabs.forEach(tab=>{
       if(!tab.result)return;
       const r=tab.result;
       const custoDiretoTab=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
-      const vpTab=custoDiretoTab/(1-percentualIndireto);
-      const comTab=vpTab*comissao;
-      const impTab=vpTab*impostos;
-      const margTab=vpTab*margem;
-      const lucTab=vpTab*lucro;
+      const vpTab=_pi<1?custoDiretoTab/(1-_pi):0;
+      const comTab=vpTab*_com;
+      const impTab=vpTab*_imp;
+      const margTab=vpTab*_mar;
+      const lucTab=vpTab*_luc;
       html+=`<div style="margin-bottom:12px">
         <div style="font-weight:700;color:var(--orange);margin-bottom:6px;font-size:.9rem">${tab.id} - ${tab.nome}</div>
         <table class="result-table" style="margin:0">
@@ -1403,10 +1404,10 @@ function renderResults(a){
             <tr><td>Mao de Obra</td><td class="col-val">${fmtBRL(r.totalMaoObra)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaoObra/vpTab):'--'}</td></tr>
             <tr><td>Deslocamento</td><td class="col-val">${fmtBRL(r.totalDeslocamento)}</td><td class="col-pct">${vpTab?fmtPct(r.totalDeslocamento/vpTab):'--'}</td></tr>
             <tr><td>Material</td><td class="col-val">${fmtBRL(r.totalMaterial)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaterial/vpTab):'--'}</td></tr>
-            <tr><td>Comissao</td><td class="col-val">${fmtBRL(comTab)}</td><td class="col-pct">${fmtPct(comissao)}</td></tr>
-            <tr><td>Impostos</td><td class="col-val">${fmtBRL(impTab)}</td><td class="col-pct">${fmtPct(impostos)}</td></tr>
-            <tr><td>Margem Contribuicao</td><td class="col-val">${fmtBRL(margTab)}</td><td class="col-pct">${fmtPct(margem)}</td></tr>
-            <tr><td>Lucro Liquido</td><td class="col-val">${fmtBRL(lucTab)}</td><td class="col-pct">${fmtPct(lucro)}</td></tr>
+            <tr><td>Comissao</td><td class="col-val">${fmtBRL(comTab)}</td><td class="col-pct">${fmtPct(_com)}</td></tr>
+            <tr><td>Impostos</td><td class="col-val">${fmtBRL(impTab)}</td><td class="col-pct">${fmtPct(_imp)}</td></tr>
+            <tr><td>Margem Contribuicao</td><td class="col-val">${fmtBRL(margTab)}</td><td class="col-pct">${fmtPct(_mar)}</td></tr>
+            <tr><td>Lucro Liquido</td><td class="col-val">${fmtBRL(lucTab)}</td><td class="col-pct">${fmtPct(_luc)}</td></tr>
             <tr class="row-total"><td>TOTAL</td><td class="col-val">${fmtBRL(vpTab)}</td><td class="col-pct">100%</td></tr>
           </tbody>
         </table>
