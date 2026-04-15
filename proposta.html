@@ -836,8 +836,7 @@ function renderTabBar(){
   tabs.forEach((tab,i)=>{
     const act=i===activeTabIndex?' active':'';
     const rm=tabs.length>1?`<span class="tab-remove" onclick="event.stopPropagation();removeTab(${i})">&times;</span>`:'';
-    const catIcon=tab.categoria==='Item Adicional'?' 📦':' 🏗️';
-    h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id}${catIcon} ${tab.nome}${rm}</button>`;
+    h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id} - ${tab.nome}${rm}</button>`;
   });
   if(tabs.length<MAX_TABS) h+=`<button class="tab-btn-add" onclick="addTab()">+</button>`;
   h+='</div>';
@@ -885,11 +884,20 @@ function renderTabForm(idx){
   const addWallBtn=tab.walls.length<3?`<button class="btn-add-wall" onclick="addWall()">+ Adicionar Tipo de Parede</button>`:'';
 
   const isTorre=tab.categoria!=='Item Adicional';
-  const catLabel=isTorre?'Torre':'Item Adicional';
+  const catSelect=idx>0?`
+    <div class="form-row">
+      <div class="form-group"><label>Tipo</label>
+        <select id="tabCategoria" onchange="onCategoriaChange(this.value)">
+          <option value="Torre"${tab.categoria==='Torre'?' selected':''}>Torre</option>
+          <option value="Item Adicional"${tab.categoria==='Item Adicional'?' selected':''}>Item Adicional</option>
+        </select>
+      </div>
+    </div>`:'';
 
   const html=`
   <div class="panel-section">
-    <div class="panel-section-title">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--orange);font-weight:400;margin-left:8px">(${catLabel})</span></div>
+    <div class="panel-section-title">Dados da Aba: ${tab.id}</div>
+    ${catSelect}
     <div class="form-row">
       <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
     </div>
@@ -975,38 +983,18 @@ function removeEquip(ei){
 /* ══════════════════════════════════════════════
    TAB MANAGEMENT
    ══════════════════════════════════════════════ */
+function onCategoriaChange(val){
+  saveActiveTab();
+  tabs[activeTabIndex].categoria=val;
+  renderTabForm(activeTabIndex);
+  autoCalc();
+}
+
 function addTab(){
   saveActiveTab();
   if(tabs.length>=MAX_TABS){showToast('Maximo '+MAX_TABS+' abas.');return;}
-  showCategoriaModal();
-}
-
-function showCategoriaModal(){
-  let overlay=document.getElementById('catModalOverlay');
-  if(overlay) overlay.remove();
-  overlay=document.createElement('div');
-  overlay.id='catModalOverlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center';
-  overlay.innerHTML=`
-    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);padding:28px 32px;min-width:320px;text-align:center">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--orange);margin-bottom:18px;text-transform:uppercase;letter-spacing:1px">Tipo da Nova Aba</div>
-      <div style="display:flex;gap:14px;justify-content:center">
-        <button onclick="confirmAddTab('Torre')" style="flex:1;padding:14px 10px;background:var(--surface2);border:2px solid var(--orange);border-radius:var(--radius);color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;transition:background .2s">
-          <div style="font-size:1.5rem;margin-bottom:4px">🏗️</div>Torre
-        </button>
-        <button onclick="confirmAddTab('Item Adicional')" style="flex:1;padding:14px 10px;background:var(--surface2);border:2px solid #2e2818;border-radius:var(--radius);color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;transition:background .2s">
-          <div style="font-size:1.5rem;margin-bottom:4px">📦</div>Item Adicional
-        </button>
-      </div>
-      <button onclick="document.getElementById('catModalOverlay').remove()" style="margin-top:14px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.85rem">Cancelar</button>
-    </div>`;
-  document.body.appendChild(overlay);
-}
-
-function confirmAddTab(categoria){
-  document.getElementById('catModalOverlay').remove();
   const num=String(tabs.length+1).padStart(3,'0');
-  tabs.push(createTab(num, null, categoria));
+  tabs.push(createTab(num));
   activeTabIndex=tabs.length-1;
   renderTabBar();
   renderTabForm(activeTabIndex);
@@ -1042,6 +1030,8 @@ function saveActiveTab(){
   const vi=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
 
   if(v('tabNome')!==null) tab.nome=v('tabNome')||tab.nome;
+  const catEl=document.getElementById('tabCategoria');
+  if(catEl) tab.categoria=catEl.value;
   tab.m2=vn('tabM2');
   tab.torres=vi('tabTorres')||1;
   tab.prazo=vi('tabPrazo')||1;
