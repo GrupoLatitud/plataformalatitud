@@ -1382,37 +1382,41 @@ function renderResults(a){
   document.getElementById('resTotal').textContent=fmtBRL(vp);
   document.getElementById('resTotalBig').textContent=fmtBRL(vp);
 
-  // Per-tab breakdown (same 7 items as Composicao de Custos)
+  // Per-tab breakdown — horizontal table (tabs as columns)
   {
     document.getElementById('resTabBreakdown').style.display='';
-    let html='';
     const _pi=a.percentualIndireto, _com=a.comissao, _imp=a.impostos, _mar=a.margem, _luc=a.lucro;
-    tabs.forEach(tab=>{
-      if(!tab.result)return;
-      const r=tab.result;
-      const custoDiretoTab=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
-      const vpTab=_pi<1?custoDiretoTab/(1-_pi):0;
-      const comTab=vpTab*_com;
-      const impTab=vpTab*_imp;
-      const margTab=vpTab*_mar;
-      const lucTab=vpTab*_luc;
-      html+=`<div style="margin-bottom:12px">
-        <div style="font-weight:700;color:var(--orange);margin-bottom:6px;font-size:.9rem">${tab.id} - ${tab.nome}</div>
-        <table class="result-table" style="margin:0">
-          <thead><tr><th>Item</th><th class="col-val">Valor (R$)</th><th class="col-pct">%</th></tr></thead>
-          <tbody>
-            <tr><td>Mao de Obra</td><td class="col-val">${fmtBRL(r.totalMaoObra)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaoObra/vpTab):'--'}</td></tr>
-            <tr><td>Deslocamento</td><td class="col-val">${fmtBRL(r.totalDeslocamento)}</td><td class="col-pct">${vpTab?fmtPct(r.totalDeslocamento/vpTab):'--'}</td></tr>
-            <tr><td>Material</td><td class="col-val">${fmtBRL(r.totalMaterial)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaterial/vpTab):'--'}</td></tr>
-            <tr><td>Comissao</td><td class="col-val">${fmtBRL(comTab)}</td><td class="col-pct">${fmtPct(_com)}</td></tr>
-            <tr><td>Impostos</td><td class="col-val">${fmtBRL(impTab)}</td><td class="col-pct">${fmtPct(_imp)}</td></tr>
-            <tr><td>Margem Contribuicao</td><td class="col-val">${fmtBRL(margTab)}</td><td class="col-pct">${fmtPct(_mar)}</td></tr>
-            <tr><td>Lucro Liquido</td><td class="col-val">${fmtBRL(lucTab)}</td><td class="col-pct">${fmtPct(_luc)}</td></tr>
-            <tr class="row-total"><td>TOTAL</td><td class="col-val">${fmtBRL(vpTab)}</td><td class="col-pct">100%</td></tr>
-          </tbody>
-        </table>
-      </div>`;
+    const tabData=tabs.map(tab=>{
+      const r=tab.result||{totalMaoObra:0,totalDeslocamento:0,totalMaterial:0,prazoTotal:0};
+      const cd=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
+      const vp=_pi<1?cd/(1-_pi):0;
+      return {nome:tab.nome||tab.id, mo:r.totalMaoObra, desl:r.totalDeslocamento, mat:r.totalMaterial,
+        com:vp*_com, imp:vp*_imp, marg:vp*_mar, luc:vp*_luc, total:vp, prazo:r.prazoTotal||0};
     });
+    const vp=a.valorProjeto;
+    const thTabs=tabData.map(t=>`<th style="text-align:right;min-width:110px">${t.nome}</th>`).join('');
+    const row=(label,key,totalVal,pct)=>{
+      const cells=tabData.map(t=>`<td style="text-align:right">${fmtBRL(t[key])}</td>`).join('');
+      return `<tr><td>${label}</td>${cells}<td style="text-align:right;color:var(--text-dim)">${pct}</td><td style="text-align:right;font-weight:600">${fmtBRL(totalVal)}</td></tr>`;
+    };
+    const html=`<div style="overflow-x:auto">
+      <table class="result-table" style="margin:0;white-space:nowrap">
+        <thead>
+          <tr><th></th>${thTabs}<th style="text-align:right">%</th><th style="text-align:right;min-width:120px">Total do Projeto</th></tr>
+        </thead>
+        <tbody>
+          ${row('Mao de Obra','mo',a.aggMO,fmtPct(a.aggMO/vp))}
+          ${row('Deslocamento','desl',a.aggDesl,fmtPct(a.aggDesl/vp))}
+          ${row('Material','mat',a.aggMat,fmtPct(a.aggMat/vp))}
+          ${row('Comissao','com',a.comissaoValor,fmtPct(_com))}
+          ${row('Impostos','imp',a.impostosValor,fmtPct(_imp))}
+          ${row('Margem Contr.','marg',a.margemValor,fmtPct(_mar))}
+          ${row('Lucro Liquido','luc',a.lucroValor,fmtPct(_luc))}
+          <tr class="row-total"><td>Total</td>${tabData.map(t=>`<td style="text-align:right">${fmtBRL(t.total)}</td>`).join('')}<td style="text-align:right">100%</td><td style="text-align:right;font-weight:700">${fmtBRL(vp)}</td></tr>
+          <tr><td>Prazo (dias uteis)</td>${tabData.map(t=>`<td style="text-align:right">${t.prazo}</td>`).join('')}<td></td><td style="text-align:right;font-weight:600">${a.aggPrazo} dias uteis</td></tr>
+        </tbody>
+      </table>
+    </div>`;
     document.getElementById('resTabList').innerHTML=html;
   }
 }
