@@ -767,6 +767,12 @@ const IMPOSTOS_MUNICIPIO = {
 const MAX_TABS = 6;
 let activeTabIndex = 0;
 let lastSugMargem = null, lastSugLucro = null, lastSugComissao = null;
+let lastSugPrazo = {};
+
+function getSugPrazo(m2){
+  if(m2<=1000) return 20;
+  return Math.ceil(20+((m2-1000)/1000*10));
+}
 
 const COMISSAO_FAIXAS = [
   [35001,3.58],[65000,3.15],[95000,2.93],[125000,2.79],[155000,2.65],
@@ -911,7 +917,8 @@ function renderTabForm(idx){
       <div class="form-group" style="max-width:80px"><label>Torres</label><input type="number" id="tabTorres" value="${tab.torres}" min="1"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Prazo por Torre (dias uteis)</label><input type="number" id="tabPrazo" value="${tab.prazo}" min="1"></div>
+      <div class="form-group" style="flex:1"><label>Prazo por Torre (dias uteis)</label><input type="number" id="tabPrazo" value="${tab.prazo}" min="1"></div>
+      <div class="form-group" style="flex:1"><label style="color:var(--orange);font-size:.75rem">Prazo (Sugestao)</label><input type="text" id="tabPrazoSug" value="—" readonly style="background:var(--surface);color:var(--orange);border:1px solid #2e2818;opacity:.85;cursor:default"></div>
       <div class="form-group" style="max-width:80px"><label>Colaboradores</label><input type="number" id="tabColabs" value="${tab.colaboradores}" min="1"></div>
     </div>
     <div class="form-row">
@@ -1262,6 +1269,18 @@ function validarCampos(){
 function calcularProjeto(){
   saveActiveTab();
   validarCampos();
+
+  // Sugestao prazo por torre (aba ativa)
+  const tabAtiva=tabs[activeTabIndex];
+  const sugPrazo=getSugPrazo(tabAtiva.m2);
+  const sugEl=document.getElementById('tabPrazoSug');
+  if(sugEl) sugEl.value=sugPrazo+' dias';
+  const tabKey=tabAtiva.id;
+  if(lastSugPrazo[tabKey]!==sugPrazo){
+    document.getElementById('tabPrazo').value=sugPrazo;
+    tabAtiva.prazo=sugPrazo;
+    lastSugPrazo[tabKey]=sugPrazo;
+  }
 
   const municipio=document.getElementById('municipio').value;
   const nome=document.getElementById('nomeProjeto').value||'Sem nome';
