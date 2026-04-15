@@ -825,6 +825,10 @@ body{
             <span class="result-card-label">Prazo Total</span>
             <span class="result-card-value" id="resPrazo">--</span>
           </div>
+          <div class="result-card">
+            <span class="result-card-label">Valor M2</span>
+            <span class="result-card-value" id="resValorM2" style="color:var(--orange)">--</span>
+          </div>
         </div>
       </div>
 
@@ -841,10 +845,6 @@ body{
           <div>
             <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR TOTAL DO PROJETO</div>
             <div class="result-total" id="resTotalBig">R$ 0,00</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:4px">VALOR M2</div>
-            <div class="result-total" id="resValorM2" style="font-size:1.3rem">R$ 0,00</div>
           </div>
         </div>
       </div>
@@ -1561,7 +1561,7 @@ function renderResults(a){
   const vp=a.valorProjeto;
   document.getElementById('resTotalBig').textContent=fmtBRL(vp);
   const m2Total=a.aggM2||1;
-  document.getElementById('resValorM2').textContent=fmtBRL(vp/m2Total);
+  document.getElementById('resValorM2').textContent=fmtBRL(vp/m2Total)+'/m2';
 
   // Per-tab breakdown — horizontal table (tabs as columns)
   {
