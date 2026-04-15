@@ -2460,7 +2460,7 @@ db.ref('users').once('value').then(snap=>{
 function logStatusChange(propostaId, statusAnterior, statusNovo){
   if(!propostaId) return;
   const userName=window.currentUser?.name||'Sistema';
-  db.ref('propostas/'+propostaId+'/comentarios').push({
+  db.ref('propostaComentarios/'+propostaId).push({
     tipo:'sistema',
     texto:`Moveu de "${STATUS_LABELS[statusAnterior]||statusAnterior}" para "${STATUS_LABELS[statusNovo]||statusNovo}"`,
     autor:userName,
@@ -2494,7 +2494,7 @@ function carregarComentarios(){
     return;
   }
   stopComentariosListener();
-  comentariosRef=db.ref('propostas/'+editandoPropostaId+'/comentarios');
+  comentariosRef=db.ref('propostaComentarios/'+editandoPropostaId);
   comentariosHandler=function(snap){
     const list=[];
     snap.forEach(c=>list.push({id:c.key,...c.val()}));
@@ -2537,13 +2537,20 @@ function enviarComentario(){
   const texto=input.value.trim();
   if(!texto) return;
   const userName=window.currentUser?.name||'Usuario';
-  db.ref('propostas/'+editandoPropostaId+'/comentarios').push({
+  const comentarioData={
     tipo:'comentario',
     texto:texto,
     autor:userName,
     createdAt:new Date().toISOString()
+  };
+  // Save to separate node to avoid overwrite on proposta update
+  const cRef=db.ref('propostaComentarios/'+editandoPropostaId);
+  cRef.push(comentarioData).then(()=>{
+    input.value='';
+  }).catch(err=>{
+    console.error('Erro ao salvar comentario:',err);
+    showToast('Erro ao salvar comentario.');
   });
-  input.value='';
 }
 
 function initMentionAutocomplete(){
