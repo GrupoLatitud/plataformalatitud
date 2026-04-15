@@ -631,7 +631,7 @@ body{
       </div>
 
       <!-- Per-tab breakdown -->
-      <div class="panel-section" id="resTabBreakdown" style="display:none">
+      <div class="panel-section" id="resTabBreakdown">
         <div class="panel-section-title">Detalhamento por Aba</div>
         <div id="resTabList"></div>
       </div>
@@ -1383,7 +1383,7 @@ function renderResults(a){
   document.getElementById('resTotalBig').textContent=fmtBRL(vp);
 
   // Per-tab breakdown (same 7 items as Composicao de Custos)
-  if(tabs.length>1){
+  {
     document.getElementById('resTabBreakdown').style.display='';
     let html='';
     tabs.forEach(tab=>{
@@ -1413,8 +1413,6 @@ function renderResults(a){
       </div>`;
     });
     document.getElementById('resTabList').innerHTML=html;
-  } else {
-    document.getElementById('resTabBreakdown').style.display='none';
   }
 }
 
