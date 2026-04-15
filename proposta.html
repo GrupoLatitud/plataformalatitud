@@ -428,6 +428,11 @@ body{
   transition:background .15s;
 }
 .mention-opt:hover{background:rgba(245,132,31,.15)}
+.btn-edit-comment{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:.9rem;padding:2px 6px;border-radius:4px;transition:color .15s;
+}
+.btn-edit-comment:hover{color:var(--orange)}
 .kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
 @media(max-width:1100px){.kanban-board{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.kanban-board{grid-template-columns:1fr}}
@@ -2539,13 +2544,55 @@ function renderComentarios(){
     }
     let texto=(c.texto||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     texto=texto.replace(/@(\w[\w\s]*?\w)(?=\s|$|[.,!?])/g,'<span class="mention">@$1</span>');
-    return `<div class="comentario-item">
-      <div class="comentario-autor">${c.autor||'—'}</div>
-      <div class="comentario-data">${dataStr}</div>
-      <div class="comentario-texto">${texto}</div>
+    const isMyComment=(c.autor===window.currentUser?.name);
+    const minsSince=dt?Math.floor((Date.now()-dt.getTime())/60000):999;
+    const canEdit=isMyComment&&minsSince<30;
+    const editBtn=canEdit?`<button class="btn-edit-comment" onclick="editarComentario('${c.id}')" title="Editar">✎</button>`:'';
+    const editedTag=c.editedAt?'<span style="font-size:.7rem;color:var(--text-dim);margin-left:6px">(editado)</span>':'';
+    return `<div class="comentario-item" id="cmt-${c.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="comentario-autor">${c.autor||'—'}${editedTag}</div>
+        ${editBtn}
+      </div>
+      <div class="comentario-data">${dataStr}${canEdit?' · <span style="color:var(--text-dim);font-size:.68rem">'+(30-minsSince)+'min para editar</span>':''}</div>
+      <div class="comentario-texto" id="cmt-txt-${c.id}">${texto}</div>
     </div>`;
   }).join('');
   el.scrollTop=el.scrollHeight;
+}
+
+function editarComentario(cmtId){
+  const c=comentariosCache.find(x=>x.id===cmtId);
+  if(!c) return;
+  const dt=c.createdAt?new Date(c.createdAt):null;
+  const minsSince=dt?Math.floor((Date.now()-dt.getTime())/60000):999;
+  if(minsSince>=30){showToast('Tempo para edicao expirado.');renderComentarios();return;}
+
+  const container=document.getElementById('cmt-txt-'+cmtId);
+  if(!container) return;
+  const raw=c.texto||'';
+  container.innerHTML=`<textarea id="cmt-edit-${cmtId}" style="width:100%;resize:none;background:var(--surface);border:1px solid var(--orange);border-radius:4px;padding:6px 8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.82rem" rows="2">${raw}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn" onclick="salvarEdicaoComentario('${cmtId}')" style="padding:4px 10px;font-size:.75rem">Salvar</button>
+      <button class="btn btn-secondary" onclick="renderComentarios()" style="padding:4px 10px;font-size:.75rem">Cancelar</button>
+    </div>`;
+  document.getElementById('cmt-edit-'+cmtId).focus();
+}
+
+function salvarEdicaoComentario(cmtId){
+  const textarea=document.getElementById('cmt-edit-'+cmtId);
+  if(!textarea) return;
+  const novoTexto=textarea.value.trim();
+  if(!novoTexto){showToast('Comentario nao pode ficar vazio.');return;}
+  db.ref('propostaComentarios/'+editandoPropostaId+'/'+cmtId).update({
+    texto:novoTexto,
+    editedAt:new Date().toISOString()
+  }).then(()=>{
+    const c=comentariosCache.find(x=>x.id===cmtId);
+    if(c){c.texto=novoTexto;c.editedAt=new Date().toISOString();}
+    renderComentarios();
+    showToast('Comentario editado.');
+  });
 }
 
 function enviarComentario(){
