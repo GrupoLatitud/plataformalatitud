@@ -1382,17 +1382,34 @@ function renderResults(a){
   document.getElementById('resTotal').textContent=fmtBRL(vp);
   document.getElementById('resTotalBig').textContent=fmtBRL(vp);
 
-  // Per-tab breakdown
+  // Per-tab breakdown (same 7 items as Composicao de Custos)
   if(tabs.length>1){
     document.getElementById('resTabBreakdown').style.display='';
     let html='';
     tabs.forEach(tab=>{
       if(!tab.result)return;
       const r=tab.result;
-      const total=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
-      html+=`<div class="tab-summary-row">
-        <span class="tab-summary-label">${tab.id} - ${tab.nome}</span>
-        <span class="tab-summary-val">${fmtBRL(total)}</span>
+      const custoDiretoTab=r.totalMaoObra+r.totalDeslocamento+r.totalMaterial;
+      const vpTab=custoDiretoTab/(1-percentualIndireto);
+      const comTab=vpTab*comissao;
+      const impTab=vpTab*impostos;
+      const margTab=vpTab*margem;
+      const lucTab=vpTab*lucro;
+      html+=`<div style="margin-bottom:12px">
+        <div style="font-weight:700;color:var(--orange);margin-bottom:6px;font-size:.9rem">${tab.id} - ${tab.nome}</div>
+        <table class="result-table" style="margin:0">
+          <thead><tr><th>Item</th><th class="col-val">Valor (R$)</th><th class="col-pct">%</th></tr></thead>
+          <tbody>
+            <tr><td>Mao de Obra</td><td class="col-val">${fmtBRL(r.totalMaoObra)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaoObra/vpTab):'--'}</td></tr>
+            <tr><td>Deslocamento</td><td class="col-val">${fmtBRL(r.totalDeslocamento)}</td><td class="col-pct">${vpTab?fmtPct(r.totalDeslocamento/vpTab):'--'}</td></tr>
+            <tr><td>Material</td><td class="col-val">${fmtBRL(r.totalMaterial)}</td><td class="col-pct">${vpTab?fmtPct(r.totalMaterial/vpTab):'--'}</td></tr>
+            <tr><td>Comissao</td><td class="col-val">${fmtBRL(comTab)}</td><td class="col-pct">${fmtPct(comissao)}</td></tr>
+            <tr><td>Impostos</td><td class="col-val">${fmtBRL(impTab)}</td><td class="col-pct">${fmtPct(impostos)}</td></tr>
+            <tr><td>Margem Contribuicao</td><td class="col-val">${fmtBRL(margTab)}</td><td class="col-pct">${fmtPct(margem)}</td></tr>
+            <tr><td>Lucro Liquido</td><td class="col-val">${fmtBRL(lucTab)}</td><td class="col-pct">${fmtPct(lucro)}</td></tr>
+            <tr class="row-total"><td>TOTAL</td><td class="col-val">${fmtBRL(vpTab)}</td><td class="col-pct">100%</td></tr>
+          </tbody>
+        </table>
       </div>`;
     });
     document.getElementById('resTabList').innerHTML=html;
