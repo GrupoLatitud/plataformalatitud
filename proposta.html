@@ -734,6 +734,9 @@ const db=firebase.database();
 const FUNDO_VALOR_DEFAULT = {
   'Textura':61,'Parede Lisa':150,'Monocapa':100,'Grafiato':80,'Projetada Acrílico':110
 };
+const DESPLAC_VALOR_DEFAULT = {
+  'Textura':65,'Parede Lisa':65,'Monocapa':65,'Grafiato':65,'Projetada Acrílico':65
+};
 const FUNDO_RENDIMENTO = {
   'Textura':200,'Parede Lisa':250,'Monocapa':200,'Grafiato':200,'Projetada Acrílico':200
 };
@@ -798,21 +801,22 @@ function createTab(id, nome, categoria){
     id: id,
     nome: nome || 'Aba ' + id,
     categoria: categoria || 'Torre',
-    m2: 5000,
+    m2: 0,
     torres: 1,
     prazo: 30,
     colaboradores: 4,
     desplacamento: 15,
     walls: [{tipo:'Textura',demaos:2,cor:'Clara',percent:100}],
     equipamentos:[{nome:'Lavadora WAP',qty:1}],
-    puTelhado: 10,
+    puTelhado: 0,
     comp: {
       alpinistaDiaria:200, encarregadoDiaria:200, encarregadoQtd:1,
       fundoValor:{}, tintaValor:[450,600,600], deplacValor:{},
-      ancoragemUni:310, artSeguroUni:3755,
+      ancoragemUni:640, artSeguroUni:3755,
       vedacaoQtd:null,
-      insumosPercent:5,
-      combustivelUni:5.60, hospedagemUni:3000, pedagioUni:13, alimentacaoUni:30
+      insumosPercent:10,
+      kmOverride:null,
+      combustivelUni:0, hospedagemUni:0, pedagioUni:0, alimentacaoUni:0
     },
     result: null
   };
@@ -834,7 +838,7 @@ function showToast(msg){
 
 function getFundoValor(comp,tipo){return comp.fundoValor[tipo]??FUNDO_VALOR_DEFAULT[tipo];}
 function getTintaValor(comp,i){return comp.tintaValor[i]??TINTA_VALOR_DEFAULT[i]??600;}
-function getDesplacValor(comp,tipo){return comp.deplacValor[tipo]??FUNDO_VALOR_DEFAULT[tipo];}
+function getDesplacValor(comp,tipo){return comp.deplacValor[tipo]??DESPLAC_VALOR_DEFAULT[tipo]??65;}
 
 /* ══════════════════════════════════════════════
    TAB BAR RENDERING
@@ -901,7 +905,7 @@ function renderTabForm(idx){
       <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>M2 por Torre</label><input type="number" id="tabM2" value="${tab.m2}" min="1"></div>
+      <div class="form-group"><label>M2 por Torre</label><input type="number" id="tabM2" value="${tab.m2}" min="0"></div>
       <div class="form-group" style="max-width:80px"><label>Torres</label><input type="number" id="tabTorres" value="${tab.torres}" min="1"></div>
     </div>
     <div class="form-row">
@@ -1133,7 +1137,7 @@ function calcularTab(tab, municipio){
 
   // Deslocamento (zero for Item Adicional)
   const isItemAdicional=tab.categoria==='Item Adicional';
-  const km=KM_MUNICIPIO[municipio]||250;
+  const km=comp.kmOverride!==null?comp.kmOverride:(KM_MUNICIPIO[municipio]||250);
   const combustivel=isItemAdicional?0:(km/10*comp.combustivelUni)*prazo;
   const hospedagem=isItemAdicional?0:(prazo/30)*comp.hospedagemUni;
   const pedagio=isItemAdicional?0:comp.pedagioUni*prazo;
@@ -1371,10 +1375,10 @@ function renderComposicao(r, comp){
 
   // Locacao
   let lH='',lT=0;
-  (r.tab.equipamentos||[]).forEach(eq=>{
+  (r.tab.equipamentos||[]).forEach((eq,i)=>{
     if(eq.nome&&eq.qty>0){
       const p=EQUIP_PRECO[eq.nome]||0;const val=p*eq.qty;
-      lH+=`<tr><td>${eq.nome}</td><td>${fmtBRL(p)}</td><td>${eq.qty}</td><td>${fmtBRL(val)}</td></tr>`;
+      lH+=`<tr><td>${eq.nome}</td><td>${fmtBRL(p)}</td><td><input type="number" class="comp-input" data-comp-eq-qty="${i}" value="${eq.qty}" min="1" style="width:50px" onchange="onCompChange()"></td><td>${fmtBRL(val)}</td></tr>`;
       lT+=val;
     }
   });
@@ -1384,7 +1388,7 @@ function renderComposicao(r, comp){
 
   // Despesa Operacional
   document.getElementById('compDespesa').innerHTML=`
-    <tr><td>Combustivel</td><td>${ci('comp_comb_uni',comp.combustivelUni)}</td><td>${r.prazo}</td><td>${r.km} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
+    <tr><td>Combustivel</td><td>${ci('comp_comb_uni',comp.combustivelUni)}</td><td>${r.prazo}</td><td>${ci('comp_km',r.km)} km</td><td>${fmtBRL(r.combustivel)}</td></tr>
     <tr><td>Hospedagem</td><td>${ci('comp_hosp_uni',comp.hospedagemUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.hospedagem)}</td></tr>
     <tr><td>Pedagio</td><td>${ci('comp_ped_uni',comp.pedagioUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.pedagio)}</td></tr>
     <tr><td>Alimentacao</td><td>${ci('comp_alim_uni',comp.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
@@ -1426,10 +1430,24 @@ function onCompChange(){
   const puEl=document.getElementById('tabPU');
   if(puEl) puEl.value=vedVal;
   comp.insumosPercent=v('comp_ins_pct');
+  const kmEl=document.getElementById('comp_km');
+  if(kmEl) comp.kmOverride=parseFloat(kmEl.value)||0;
   comp.combustivelUni=v('comp_comb_uni');
   comp.hospedagemUni=v('comp_hosp_uni');
   comp.pedagioUni=v('comp_ped_uni');
   comp.alimentacaoUni=v('comp_alim_uni');
+
+  // Sync equipment qty from composition inputs
+  document.querySelectorAll('[data-comp-eq-qty]').forEach(el=>{
+    const idx=parseInt(el.dataset.compEqQty);
+    const tab=tabs[activeTabIndex];
+    if(tab.equipamentos&&tab.equipamentos[idx]){
+      tab.equipamentos[idx].qty=parseInt(el.value)||1;
+      // Sync form input
+      const formEl=document.getElementById('equip'+idx+'Qty');
+      if(formEl) formEl.value=tab.equipamentos[idx].qty;
+    }
+  });
 
   calcularProjeto();
 }
