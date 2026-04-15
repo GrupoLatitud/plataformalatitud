@@ -369,6 +369,67 @@ body{
 }
 .print-header{display:none;text-align:center;margin-bottom:20px}
 .print-header h2{font-family:'Barlow Condensed',sans-serif;color:#d47b0a}
+
+/* KANBAN BOARD */
+.kanban-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.btn-nova-proposta{
+  background:var(--orange);color:#fff;border:none;border-radius:8px;
+  padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:.95rem;cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .15s;letter-spacing:.3px;
+}
+.btn-nova-proposta:hover{background:#d9710e}
+.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+@media(max-width:1100px){.kanban-board{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kanban-board{grid-template-columns:1fr}}
+.kanban-col{
+  background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);
+  min-height:300px;display:flex;flex-direction:column;
+}
+.kanban-col-header{
+  padding:14px 16px;border-bottom:1px solid #2e2818;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.kanban-col-count{
+  background:rgba(255,255,255,.08);color:var(--text-dim);font-size:.72rem;
+  font-weight:600;padding:2px 8px;border-radius:10px;
+}
+.kanban-col-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px}
+.kanban-card{
+  background:var(--bg);border:1px solid #2e2818;border-radius:8px;
+  padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;
+}
+.kanban-card:hover{border-color:var(--orange);background:rgba(245,132,31,.03)}
+.kanban-card-title{font-weight:600;font-size:.88rem;margin-bottom:6px}
+.kanban-card-info{font-size:.78rem;color:var(--text-dim);display:flex;flex-direction:column;gap:3px}
+.kanban-card-row{display:flex;justify-content:space-between;align-items:center}
+.kanban-card-tag{
+  display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:4px;
+  font-weight:600;font-family:'Barlow Condensed',sans-serif;
+}
+.tag-torre{background:rgba(107,175,212,.15);color:var(--blue)}
+.tag-item{background:rgba(143,207,106,.15);color:var(--green)}
+
+/* PROPOSTA OVERLAY */
+.proposta-overlay{
+  position:fixed;inset:0;z-index:500;background:var(--bg);
+  overflow-y:auto;display:none;
+}
+.proposta-overlay.open{display:block}
+.proposta-overlay-header{
+  position:sticky;top:0;z-index:10;background:var(--bg);
+  border-bottom:1px solid #2e2818;padding:12px 28px;
+  display:flex;align-items:center;gap:16px;
+}
+.btn-voltar{
+  background:none;border:1px solid #2e2818;border-radius:8px;
+  color:var(--text-dim);padding:8px 16px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.88rem;
+  display:flex;align-items:center;gap:6px;transition:all .15s;
+}
+.btn-voltar:hover{color:var(--text);border-color:var(--orange)}
 </style>
 </head>
 <body>
@@ -407,18 +468,55 @@ body{
     </div>
   </div>
 
-<main class="page-body">
-  <div class="print-header">
-    <h2>LATITUD - Proposta de Pintura Predial</h2>
-    <p id="printDate"></p>
+<main class="page-body" id="kanbanPage">
+  <div class="kanban-header">
+    <div>
+      <h1 class="page-title" style="margin-bottom:0">Proposta - Pintura Predial</h1>
+      <p class="page-sub" style="margin-bottom:0">Gerencie suas propostas orcamentarias.</p>
+    </div>
+    <button class="btn-nova-proposta" onclick="abrirNovaProposta()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova Proposta
+    </button>
   </div>
 
-  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap" class="no-print">
-    <h1 class="page-title" style="margin-bottom:0">Proposta - Pintura Predial</h1>
+  <div class="kanban-board">
+    <div class="kanban-col">
+      <div class="kanban-col-header">Nova OS / Revisao <span class="kanban-col-count" id="countNovaOS">0</span></div>
+      <div class="kanban-col-body" id="colNovaOS"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-col-header">Elaboracao de Proposta <span class="kanban-col-count" id="countElaboracao">0</span></div>
+      <div class="kanban-col-body" id="colElaboracao"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-col-header">Aprovacao de Proposta <span class="kanban-col-count" id="countAprovacao">0</span></div>
+      <div class="kanban-col-body" id="colAprovacao"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-col-header">Propostas Enviadas <span class="kanban-col-count" id="countEnviadas">0</span></div>
+      <div class="kanban-col-body" id="colEnviadas"></div>
+    </div>
   </div>
-  <p class="page-sub no-print">Gerador de propostas orcamentarias para projetos de pintura predial.</p>
+</main>
 
-  <div class="proposta-grid">
+<!-- PROPOSTA OVERLAY (calculator) -->
+<div class="proposta-overlay" id="propostaOverlay">
+  <div class="proposta-overlay-header">
+    <button class="btn-voltar" onclick="fecharProposta()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar
+    </button>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Gerador de Proposta</h2>
+  </div>
+
+  <div style="padding:28px">
+    <div class="print-header">
+      <h2>LATITUD - Proposta de Pintura Predial</h2>
+      <p id="printDate"></p>
+    </div>
+
+    <div class="proposta-grid">
     <!-- LEFT: FORM + COMPOSIÇÃO -->
     <div class="panel panel-form no-print">
       <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
@@ -648,7 +746,8 @@ body{
       </div>
     </div>
   </div>
-</main>
+  </div><!-- /padding -->
+</div><!-- /proposta-overlay -->
 
 <!-- MOBILE MENU -->
 <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
@@ -1539,38 +1638,7 @@ function toggleComposicao(){
    SAVE TO FIREBASE
    ══════════════════════════════════════════════ */
 function salvarProposta(){
-  calcularProjeto();
-  const nome=document.getElementById('nomeProjeto').value||'Sem nome';
-  const municipio=document.getElementById('municipio').value;
-
-  const data={
-    nome: nome,
-    municipio: municipio,
-    comissao: (parseFloat(document.getElementById('comissao').value)||0)/100,
-    margem: (parseFloat(document.getElementById('margem').value)||0)/100,
-    lucro: (parseFloat(document.getElementById('lucro').value)||0)/100,
-    execucao: document.getElementById('execucaoGlobal').value,
-    tabs: tabs.map(t=>({
-      id:t.id, nome:t.nome, m2:t.m2, torres:t.torres, prazo:t.prazo,
-      colaboradores:t.colaboradores, desplacamento:t.desplacamento,
-      walls:t.walls,
-      equipamentos:t.equipamentos,
-      puTelhado:t.puTelhado,
-      result: t.result ? {
-        totalMaoObra:t.result.totalMaoObra,
-        totalDeslocamento:t.result.totalDeslocamento,
-        totalMaterial:t.result.totalMaterial
-      } : null
-    })),
-    criadoPor: window.currentUser?window.currentUser.name:'desconhecido',
-    criadoEm: new Date().toISOString()
-  };
-
-  db.ref('propostas').push().set(data).then(()=>{
-    showToast('Proposta salva com sucesso!');
-  }).catch(err=>{
-    showToast('Erro ao salvar: '+err.message);
-  });
+  salvarPropostaKanban();
 }
 
 /* ══════════════════════════════════════════════
@@ -1601,6 +1669,166 @@ function bindAutoCalc(container){
 }
 
 /* ══════════════════════════════════════════════
+   KANBAN — PROPOSTAS
+   ══════════════════════════════════════════════ */
+let propostas=[];
+let editandoPropostaId=null;
+const propostasRef=db.ref('propostas');
+
+const KANBAN_COLS={
+  'nova_os':{bodyId:'colNovaOS',countId:'countNovaOS'},
+  'elaboracao':{bodyId:'colElaboracao',countId:'countElaboracao'},
+  'aprovacao':{bodyId:'colAprovacao',countId:'countAprovacao'},
+  'enviadas':{bodyId:'colEnviadas',countId:'countEnviadas'}
+};
+
+function renderKanban(){
+  const groups={nova_os:[],elaboracao:[],aprovacao:[],enviadas:[]};
+  propostas.forEach(p=>{
+    const st=p.status||'nova_os';
+    if(groups[st]) groups[st].push(p);
+  });
+  Object.keys(KANBAN_COLS).forEach(st=>{
+    const col=KANBAN_COLS[st];
+    const items=groups[st]||[];
+    document.getElementById(col.countId).textContent=items.length;
+    const body=document.getElementById(col.bodyId);
+    if(!items.length){
+      body.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:20px">Nenhuma proposta</div>';
+      return;
+    }
+    body.innerHTML=items.map(p=>{
+      const valor=p.valorTotal?fmtBRL(p.valorTotal):'—';
+      const m2=p.m2Total?fmtNum(p.m2Total)+' m2':'—';
+      return `<div class="kanban-card" onclick="abrirPropostaExistente('${p.id}')">
+        <div class="kanban-card-title">${p.nome||'Sem nome'}</div>
+        <div class="kanban-card-info">
+          <div class="kanban-card-row"><span>${p.municipio||'—'}</span><span>${m2}</span></div>
+          <div class="kanban-card-row"><span style="font-weight:600;color:var(--orange)">${valor}</span>
+            <select class="kanban-status-sel" data-id="${p.id}" onclick="event.stopPropagation()" onchange="mudarStatusProposta(this)" style="background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);border-radius:4px;font-size:.72rem;padding:2px 4px;cursor:pointer">
+              <option value="nova_os"${p.status==='nova_os'?' selected':''}>Nova OS</option>
+              <option value="elaboracao"${p.status==='elaboracao'?' selected':''}>Elaboracao</option>
+              <option value="aprovacao"${p.status==='aprovacao'?' selected':''}>Aprovacao</option>
+              <option value="enviadas"${p.status==='enviadas'?' selected':''}>Enviadas</option>
+            </select>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function mudarStatusProposta(sel){
+  const id=sel.dataset.id;
+  const novoStatus=sel.value;
+  propostasRef.child(id).update({status:novoStatus});
+}
+
+function abrirNovaProposta(){
+  editandoPropostaId=null;
+  // Reset form
+  document.getElementById('nomeProjeto').value='';
+  document.getElementById('municipio').selectedIndex=0;
+  document.getElementById('comissao').value=2.2;
+  document.getElementById('margem').value=10;
+  document.getElementById('lucro').value=10;
+  lastSugMargem=null;lastSugLucro=null;lastSugComissao=null;lastSugPrazo={};
+  tabs=[createTab('001')];
+  activeTabIndex=0;
+  renderTabBar();
+  renderTabForm(0);
+  calcularProjeto();
+  document.getElementById('propostaOverlay').classList.add('open');
+}
+
+function abrirPropostaExistente(id){
+  const p=propostas.find(x=>x.id===id);
+  if(!p)return;
+  editandoPropostaId=id;
+  // Load data into form
+  document.getElementById('nomeProjeto').value=p.nome||'';
+  document.getElementById('municipio').value=p.municipio||'Sao Paulo';
+  document.getElementById('comissao').value=(p.comissao||0)*100;
+  document.getElementById('margem').value=(p.margem||0)*100;
+  document.getElementById('lucro').value=(p.lucro||0)*100;
+  if(p.execucao) document.getElementById('execucaoGlobal').value=p.execucao;
+  lastSugMargem=null;lastSugLucro=null;lastSugComissao=null;lastSugPrazo={};
+  if(p.tabs&&p.tabs.length){
+    tabs=p.tabs.map(t=>{
+      const tab=createTab(t.id,t.nome,t.categoria);
+      tab.m2=t.m2||0;tab.torres=t.torres||1;tab.prazo=t.prazo||30;
+      tab.colaboradores=t.colaboradores||4;tab.desplacamento=t.desplacamento||15;
+      tab.walls=t.walls||[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}];
+      tab.equipamentos=t.equipamentos||[{nome:'Lavadora WAP',qty:1}];
+      tab.puTelhado=t.puTelhado||0;
+      if(t.comp) tab.comp=Object.assign(tab.comp,t.comp);
+      return tab;
+    });
+  } else {
+    tabs=[createTab('001')];
+  }
+  activeTabIndex=0;
+  renderTabBar();
+  renderTabForm(0);
+  calcularProjeto();
+  document.getElementById('propostaOverlay').classList.add('open');
+}
+
+function fecharProposta(){
+  document.getElementById('propostaOverlay').classList.remove('open');
+}
+
+// Override salvarProposta to save to kanban
+const _salvarPropostaOriginal=typeof salvarProposta==='function'?salvarProposta:null;
+
+function salvarPropostaKanban(){
+  saveActiveTab();
+  calcularProjeto();
+  const nome=document.getElementById('nomeProjeto').value||'Sem nome';
+  const municipio=document.getElementById('municipio').value;
+  const execucao=document.getElementById('execucaoGlobal').value;
+
+  const data={
+    nome:nome,
+    municipio:municipio,
+    comissao:(parseFloat(document.getElementById('comissao').value)||0)/100,
+    margem:(parseFloat(document.getElementById('margem').value)||0)/100,
+    lucro:(parseFloat(document.getElementById('lucro').value)||0)/100,
+    execucao:execucao,
+    tabs:tabs.map(t=>({
+      id:t.id,nome:t.nome,categoria:t.categoria,m2:t.m2,torres:t.torres,prazo:t.prazo,
+      colaboradores:t.colaboradores,desplacamento:t.desplacamento,
+      walls:t.walls,equipamentos:t.equipamentos,puTelhado:t.puTelhado,
+      comp:t.comp
+    })),
+    valorTotal:parseFloat(document.getElementById('resTotalBig').textContent.replace(/[^\d,]/g,'').replace(',','.'))||0,
+    m2Total:tabs.reduce((s,t)=>s+(t.m2||0)*(t.torres||1),0),
+    updatedAt:new Date().toISOString(),
+    updatedBy:window.currentUser?.name||'—'
+  };
+
+  if(editandoPropostaId){
+    propostasRef.child(editandoPropostaId).update(data);
+    showToast('Proposta atualizada!');
+  } else {
+    data.status='elaboracao';
+    data.createdAt=new Date().toISOString();
+    const newRef=propostasRef.push(data);
+    editandoPropostaId=newRef.key;
+    showToast('Proposta criada!');
+  }
+}
+
+// Firebase listener for propostas
+propostasRef.on('value',snap=>{
+  propostas=[];
+  snap.forEach(c=>{
+    propostas.push({id:c.key,...c.val()});
+  });
+  renderKanban();
+});
+
+/* ══════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1611,7 +1839,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   renderTabBar();
   renderTabForm(0);
-  calcularProjeto();
 });
 </script>
 </body>
