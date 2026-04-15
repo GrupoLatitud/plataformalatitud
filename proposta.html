@@ -888,9 +888,9 @@ function renderTabForm(idx){
         <div class="form-group" style="max-width:80px"><label>Demaos</label><input type="number" class="wallDemaos" value="${w.demaos}" min="1" max="5"></div>
       </div>
       <div class="form-row">
-        <div class="form-group" style="max-width:90px"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
-        <div class="form-group" style="max-width:90px"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarPercents(this)"></div>
-        <div class="form-group" style="max-width:90px"><label>M2</label><input type="text" class="wallM2Calc" value="${((w.percent/100)*tab.m2).toLocaleString('pt-BR',{maximumFractionDigits:0})}" readonly style="background:var(--surface);opacity:.7;cursor:default"></div>
+        <div class="form-group" style="flex:1"><label>Cor</label><select class="wallCor"><option value="Clara"${w.cor==='Clara'?' selected':''}>Clara</option><option value="Escura"${w.cor==='Escura'?' selected':''}>Escura</option></select></div>
+        <div class="form-group" style="flex:1"><label>% da Area</label><input type="number" class="wallPercent" value="${w.percent}" min="0" max="100" step="1" onchange="ajustarPercents(this)"></div>
+        <div class="form-group" style="flex:1"><label>M2</label><input type="text" class="wallM2Calc" value="${((w.percent/100)*tab.m2).toLocaleString('pt-BR',{maximumFractionDigits:0})}" readonly style="background:var(--surface);opacity:.7;cursor:default"></div>
       </div>
     </div>`;
   });
