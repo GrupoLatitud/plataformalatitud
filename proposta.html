@@ -543,7 +543,7 @@ body{
           </table>
         </div>
 
-        <div class="panel-section comp-section">
+        <div class="panel-section comp-section" id="compSecSeguranca">
           <div class="comp-title">MATERIAL — SEGURANCA</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
@@ -551,7 +551,7 @@ body{
           </table>
         </div>
 
-        <div class="panel-section comp-section">
+        <div class="panel-section comp-section" id="compSecVedacao">
           <div class="comp-title">MATERIAL — VEDACAO</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Quantidade</th><th>Valor Total</th></tr></thead>
@@ -575,7 +575,7 @@ body{
           </table>
         </div>
 
-        <div class="panel-section comp-section">
+        <div class="panel-section comp-section" id="compSecDespesa">
           <div class="comp-title">DESPESA OPERACIONAL</div>
           <table class="comp-table">
             <thead><tr><th>Material</th><th>Valor Uni.</th><th>Dias</th><th>KM</th><th>Valor Total</th></tr></thead>
@@ -784,10 +784,11 @@ function getSugComissao(vp){
   return 1.00;
 }
 
-function createTab(id, nome){
+function createTab(id, nome, categoria){
   return {
     id: id,
     nome: nome || 'Aba ' + id,
+    categoria: categoria || 'Torre',
     m2: 5000,
     torres: 1,
     prazo: 30,
@@ -835,7 +836,8 @@ function renderTabBar(){
   tabs.forEach((tab,i)=>{
     const act=i===activeTabIndex?' active':'';
     const rm=tabs.length>1?`<span class="tab-remove" onclick="event.stopPropagation();removeTab(${i})">&times;</span>`:'';
-    h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id} - ${tab.nome}${rm}</button>`;
+    const catIcon=tab.categoria==='Item Adicional'?' 📦':' 🏗️';
+    h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id}${catIcon} ${tab.nome}${rm}</button>`;
   });
   if(tabs.length<MAX_TABS) h+=`<button class="tab-btn-add" onclick="addTab()">+</button>`;
   h+='</div>';
@@ -882,9 +884,12 @@ function renderTabForm(idx){
 
   const addWallBtn=tab.walls.length<3?`<button class="btn-add-wall" onclick="addWall()">+ Adicionar Tipo de Parede</button>`:'';
 
+  const isTorre=tab.categoria!=='Item Adicional';
+  const catLabel=isTorre?'Torre':'Item Adicional';
+
   const html=`
   <div class="panel-section">
-    <div class="panel-section-title">Dados da Aba: ${tab.id}</div>
+    <div class="panel-section-title">Dados da Aba: ${tab.id} <span style="font-size:.8rem;color:var(--orange);font-weight:400;margin-left:8px">(${catLabel})</span></div>
     <div class="form-row">
       <div class="form-group"><label>Nome da Aba</label><input type="text" id="tabNome" value="${tab.nome}"></div>
     </div>
@@ -920,12 +925,12 @@ function renderTabForm(idx){
     <button type="button" class="btn-add-wall" onclick="addEquip()">+ Adicionar Equipamento</button>
   </div>
 
-  <div class="panel-section">
+  ${isTorre?`<div class="panel-section">
     <div class="panel-section-title">Vedacao (PU Hibrido 40)</div>
     <div class="form-row">
       <div class="form-group" style="max-width:120px"><label>Quantidade de Janelas</label><input type="number" id="tabPU" value="${tab.puTelhado}" min="0"></div>
     </div>
-  </div>`;
+  </div>`:''}`;
 
   document.getElementById('tabFormContent').innerHTML=html;
   bindAutoCalc(document.getElementById('tabFormContent'));
@@ -973,8 +978,35 @@ function removeEquip(ei){
 function addTab(){
   saveActiveTab();
   if(tabs.length>=MAX_TABS){showToast('Maximo '+MAX_TABS+' abas.');return;}
+  showCategoriaModal();
+}
+
+function showCategoriaModal(){
+  let overlay=document.getElementById('catModalOverlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='catModalOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:var(--radius);padding:28px 32px;min-width:320px;text-align:center">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--orange);margin-bottom:18px;text-transform:uppercase;letter-spacing:1px">Tipo da Nova Aba</div>
+      <div style="display:flex;gap:14px;justify-content:center">
+        <button onclick="confirmAddTab('Torre')" style="flex:1;padding:14px 10px;background:var(--surface2);border:2px solid var(--orange);border-radius:var(--radius);color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;transition:background .2s">
+          <div style="font-size:1.5rem;margin-bottom:4px">🏗️</div>Torre
+        </button>
+        <button onclick="confirmAddTab('Item Adicional')" style="flex:1;padding:14px 10px;background:var(--surface2);border:2px solid #2e2818;border-radius:var(--radius);color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;transition:background .2s">
+          <div style="font-size:1.5rem;margin-bottom:4px">📦</div>Item Adicional
+        </button>
+      </div>
+      <button onclick="document.getElementById('catModalOverlay').remove()" style="margin-top:14px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.85rem">Cancelar</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function confirmAddTab(categoria){
+  document.getElementById('catModalOverlay').remove();
   const num=String(tabs.length+1).padStart(3,'0');
-  tabs.push(createTab(num));
+  tabs.push(createTab(num, null, categoria));
   activeTabIndex=tabs.length-1;
   renderTabBar();
   renderTabForm(activeTabIndex);
@@ -1027,7 +1059,8 @@ function saveActiveTab(){
       });
     });
   }
-  tab.puTelhado=vi('tabPU');
+  const puEl=document.getElementById('tabPU');
+  if(puEl) tab.puTelhado=parseInt(puEl.value)||0;
   tab.comp.vedacaoQtd=null; // sync: form PU always drives vedação qty
 
   // Save walls from DOM
@@ -1094,21 +1127,22 @@ function calcularTab(tab, municipio){
   const encarregadoValor=encDiaria*prazo*encQtd;
   const maoDeObraPerTower=alpinistasValor+encarregadoValor;
 
-  // Deslocamento
+  // Deslocamento (zero for Item Adicional)
+  const isItemAdicional=tab.categoria==='Item Adicional';
   const km=KM_MUNICIPIO[municipio]||250;
-  const combustivel=(km/10*comp.combustivelUni)*prazo;
-  const hospedagem=(prazo/30)*comp.hospedagemUni;
-  const pedagio=comp.pedagioUni*prazo;
-  const alimentacao=(tab.colaboradores+0.5)*comp.alimentacaoUni*prazo;
+  const combustivel=isItemAdicional?0:(km/10*comp.combustivelUni)*prazo;
+  const hospedagem=isItemAdicional?0:(prazo/30)*comp.hospedagemUni;
+  const pedagio=isItemAdicional?0:comp.pedagioUni*prazo;
+  const alimentacao=isItemAdicional?0:(tab.colaboradores+0.5)*comp.alimentacaoUni*prazo;
   const deslocamentoPerTower=combustivel+hospedagem+pedagio+alimentacao;
 
-  // Seguranca
-  const ancoragem=comp.ancoragemUni*torres;
-  const artSeguro=comp.artSeguroUni;
+  // Seguranca (zero for Item Adicional)
+  const ancoragem=isItemAdicional?0:comp.ancoragemUni*torres;
+  const artSeguro=isItemAdicional?0:comp.artSeguroUni;
 
-  // Vedacao
+  // Vedacao (zero for Item Adicional)
   const vedQtd=comp.vedacaoQtd!==null?comp.vedacaoQtd:tab.puTelhado;
-  const vedacaoPerTower=(29.9*vedQtd)/2;
+  const vedacaoPerTower=isItemAdicional?0:(29.9*vedQtd)/2;
 
   // Insumos
   const insumosPerTower=(totalTinta+totalFundo+totalDesplac)*(comp.insumosPercent/100);
@@ -1352,6 +1386,11 @@ function renderComposicao(r, comp){
     <tr><td>Alimentacao</td><td>${ci('comp_alim_uni',comp.alimentacaoUni)}</td><td>${r.prazo}</td><td>—</td><td>${fmtBRL(r.alimentacao)}</td></tr>
     <tr class="comp-total"><td colspan="4">Total Deslocamento por Torre</td><td>${fmtBRL(r.deslocamentoPerTower)}</td></tr>`;
 
+  // Show/hide sections based on tab category
+  const isItemAdicional=r.tab.categoria==='Item Adicional';
+  document.getElementById('compSecSeguranca').style.display=isItemAdicional?'none':'';
+  document.getElementById('compSecVedacao').style.display=isItemAdicional?'none':'';
+  document.getElementById('compSecDespesa').style.display=isItemAdicional?'none':'';
 }
 
 /* ══════════════════════════════════════════════
