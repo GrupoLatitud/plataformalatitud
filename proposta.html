@@ -1350,6 +1350,11 @@ function calcularProjeto(){
   saveActiveTab();
   validarCampos();
 
+  // Auto execucao: 3+ torres na primeira aba = Simultanea
+  const torresAba1=tabs[0]?tabs[0].torres:1;
+  const execEl=document.getElementById('execucaoGlobal');
+  if(execEl) execEl.value=torresAba1>=3?'Simultânea':'Individual';
+
   // Sugestao prazo por torre (aba ativa)
   const tabAtiva=tabs[activeTabIndex];
   const sugPrazo=getSugPrazo(tabAtiva.m2);
