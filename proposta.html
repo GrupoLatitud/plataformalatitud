@@ -892,6 +892,17 @@ body{
           </div>
         </div>
       </div>
+
+      <!-- Objeto da Proposta (toggle) -->
+      <div class="panel-section">
+        <div class="comp-toggle" onclick="document.getElementById('objetoPropostaContent').classList.toggle('open');this.querySelector('.comp-arrow').classList.toggle('open')" style="cursor:pointer">
+          <span style="font-weight:700;font-size:.85rem">Objeto da Proposta</span>
+          <span class="comp-arrow">▶</span>
+        </div>
+        <div id="objetoPropostaContent" class="comp-panel">
+          <div id="objetoPropostaList"></div>
+        </div>
+      </div>
     </div>
   </div>
   </div><!-- /padding -->
@@ -1656,6 +1667,57 @@ function renderResults(a){
     </div>`;
     document.getElementById('resTabList').innerHTML=html;
   }
+
+  // Objeto da Proposta
+  renderObjetoProposta();
+}
+
+/* ══════════════════════════════════════════════
+   OBJETO DA PROPOSTA
+   ══════════════════════════════════════════════ */
+const OBJETO_FIXOS=[
+  'Mobilizacao de equipe tecnica especializada e equipamentos, incluindo logistica de transporte, instalacao e preparacao do canteiro de trabalho.',
+  'Instalacao de ancoragem provisoria executada por tecnico alpinista, com emissao de ART pelo engenheiro de seguranca responsavel para homologacao do sistema de seguranca.',
+  'Equipe especializada para execucao dos servicos, com acompanhamento em tempo integral realizado por profissional qualificado, sendo tecnico de seguranca do trabalho ou bombeiro civil resgatista, conforme exigencias normativas de seguranca.',
+  'Hidrojateamento geral utilizando agente quimico adequado e certificado para a remocao eficaz de fungos e fuligens em todo o perimetro externo, com preparo das superficies danificadas por meio de tratamento de trincas e fissuras.'
+];
+
+let objetoDescricoes={};
+
+function renderObjetoProposta(){
+  const el=document.getElementById('objetoPropostaList');
+  if(!el) return;
+  let html='';
+
+  // 4 itens fixos
+  OBJETO_FIXOS.forEach((txt,i)=>{
+    const num='1.'+(i+1);
+    html+=`<div style="margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+      <div style="font-weight:600;font-size:.82rem;color:var(--orange);margin-bottom:4px">Item ${num}</div>
+      <div style="font-size:.8rem;color:var(--text);line-height:1.4">${txt}</div>
+    </div>`;
+  });
+
+  // 1 item por aba
+  tabs.forEach((tab,idx)=>{
+    const num='1.'+(5+idx);
+    const key=tab.id;
+    const saved=objetoDescricoes[key]||'';
+    html+=`<div style="margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+      <div style="font-weight:600;font-size:.82rem;color:var(--orange);margin-bottom:4px">Item ${num} — ${tab.nome||'Aba '+tab.id}</div>
+      <textarea class="objeto-desc" data-tab-id="${key}" rows="2" placeholder="Descreva o escopo desta aba..." style="width:100%;resize:vertical;background:var(--surface);border:1px solid #2e2818;border-radius:4px;padding:6px 8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.8rem">${saved}</textarea>
+    </div>`;
+  });
+
+  el.innerHTML=html;
+
+  // Bind change events
+  el.querySelectorAll('.objeto-desc').forEach(ta=>{
+    ta.addEventListener('input',()=>{
+      objetoDescricoes[ta.dataset.tabId]=ta.value;
+      propostaDirty=true;
+    });
+  });
 }
 
 /* ══════════════════════════════════════════════
@@ -2350,6 +2412,7 @@ function abrirPropostaExistente(id){
   document.getElementById('lucro').value=(p.lucro||0)*100;
   if(p.execucao) document.getElementById('execucaoGlobal').value=p.execucao;
   lastSugMargem=null;lastSugLucro=null;lastSugComissao=null;lastSugPrazo={};
+  objetoDescricoes=p.objetoDescricoes||{};
   if(p.tabs&&p.tabs.length){
     tabs=p.tabs.map(t=>{
       const tab=createTab(t.id,t.nome,t.categoria);
@@ -2366,6 +2429,7 @@ function abrirPropostaExistente(id){
   }
   if(p.endereco) tabs[0]._endereco=p.endereco;
   if(p.vendedor) tabs[0]._vendedor=p.vendedor;
+  objetoDescricoes=p.objetoDescricoes||{};
   activeTabIndex=0;
   renderTabBar();
   renderTabForm(0);
@@ -2419,6 +2483,7 @@ function salvarPropostaKanban(){
     })),
     valorTotal:parseFloat(document.getElementById('resTotalBig').textContent.replace(/[^\d,]/g,'').replace(',','.'))||0,
     m2Total:tabs.reduce((s,t)=>s+(t.m2||0)*(t.torres||1),0),
+    objetoDescricoes:objetoDescricoes,
     updatedAt:new Date().toISOString(),
     updatedBy:window.currentUser?.name||'—'
   };
