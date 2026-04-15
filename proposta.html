@@ -958,7 +958,7 @@ body{
   const s=localStorage.getItem('loggedUser');
   if(!s){window.location.href='login.html';return;}
   const u=JSON.parse(s);
-  if(u.role!=='admin'&&u.role!=='orcamentista'){window.location.href='project-board.html';return;}
+  if(u.role!=='admin'&&u.role!=='orcamentista'&&u.role!=='gestao'){window.location.href='project-board.html';return;}
   window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
     const cl=document.getElementById('configLink');
