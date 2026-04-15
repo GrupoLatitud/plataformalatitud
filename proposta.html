@@ -2480,12 +2480,15 @@ function toggleComentarios(){
   }
 }
 
+let comentariosCache=[];
+
 function stopComentariosListener(){
-  if(comentariosRef&&comentariosHandler){
-    comentariosRef.off('value',comentariosHandler);
+  if(comentariosRef){
+    comentariosRef.off();
   }
   comentariosRef=null;
   comentariosHandler=null;
+  comentariosCache=[];
 }
 
 function carregarComentarios(){
@@ -2494,23 +2497,38 @@ function carregarComentarios(){
     return;
   }
   stopComentariosListener();
-  comentariosRef=db.ref('propostaComentarios/'+editandoPropostaId);
-  comentariosHandler=function(snap){
-    const list=[];
-    snap.forEach(c=>list.push({id:c.key,...c.val()}));
-    list.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
-    renderComentarios(list);
-  };
-  comentariosRef.on('value',comentariosHandler);
+  comentariosCache=[];
+  const el=document.getElementById('comentariosList');
+  el.innerHTML='<div style="color:var(--text-dim);text-align:center;padding:20px;font-size:.82rem">Carregando...</div>';
+
+  comentariosRef=db.ref('propostaComentarios/'+editandoPropostaId).orderByChild('createdAt');
+
+  // Load all existing first
+  comentariosRef.once('value').then(snap=>{
+    comentariosCache=[];
+    snap.forEach(c=>{comentariosCache.push({id:c.key,...c.val()});});
+    renderComentarios();
+
+    // Then listen for new ones added after
+    comentariosRef.on('child_added',childSnap=>{
+      const exists=comentariosCache.find(x=>x.id===childSnap.key);
+      if(!exists){
+        comentariosCache.push({id:childSnap.key,...childSnap.val()});
+        renderComentarios();
+      }
+    });
+  });
 }
 
-function renderComentarios(list){
+function renderComentarios(){
   const el=document.getElementById('comentariosList');
-  if(!list.length){
+  if(!comentariosCache.length){
     el.innerHTML='<div style="color:var(--text-dim);text-align:center;padding:20px;font-size:.82rem">Nenhum comentario ainda.</div>';
     return;
   }
-  el.innerHTML=list.map(c=>{
+  // Sort by date
+  comentariosCache.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  el.innerHTML=comentariosCache.map(c=>{
     const dt=c.createdAt?new Date(c.createdAt):null;
     const dataStr=dt?dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
     if(c.tipo==='sistema'){
@@ -2519,8 +2537,7 @@ function renderComentarios(list){
         <span style="font-weight:600">${c.autor}</span> — ${c.texto}
       </div>`;
     }
-    // Highlight @mentions
-    let texto=c.texto||'';
+    let texto=(c.texto||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     texto=texto.replace(/@(\w[\w\s]*?\w)(?=\s|$|[.,!?])/g,'<span class="mention">@$1</span>');
     return `<div class="comentario-item">
       <div class="comentario-autor">${c.autor||'—'}</div>
@@ -2536,20 +2553,13 @@ function enviarComentario(){
   const input=document.getElementById('comentarioInput');
   const texto=input.value.trim();
   if(!texto) return;
+  input.value='';
   const userName=window.currentUser?.name||'Usuario';
-  const comentarioData={
+  db.ref('propostaComentarios/'+editandoPropostaId).push({
     tipo:'comentario',
     texto:texto,
     autor:userName,
     createdAt:new Date().toISOString()
-  };
-  // Save to separate node to avoid overwrite on proposta update
-  const cRef=db.ref('propostaComentarios/'+editandoPropostaId);
-  cRef.push(comentarioData).then(()=>{
-    input.value='';
-  }).catch(err=>{
-    console.error('Erro ao salvar comentario:',err);
-    showToast('Erro ao salvar comentario.');
   });
 }
 
