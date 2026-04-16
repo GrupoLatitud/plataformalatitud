@@ -1108,7 +1108,7 @@ body{
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
         Detalhes da Proposta
       </div>
-      <div class="novaos-field"><label>Valor Total (R$)</label><input type="text" id="dmValorTotal" placeholder="R$ 0,00" oninput="formatarValorDemais(this)"></div>
+      <div class="novaos-field" id="dmSecaoValor"><label>Valor Total (R$)</label><input type="text" id="dmValorTotal" placeholder="R$ 0,00" oninput="formatarValorDemais(this)"></div>
       <div class="novaos-field">
         <label>Observacao *</label>
         <textarea id="dmObservacao" rows="4" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
@@ -1116,7 +1116,7 @@ body{
     </div>
 
     <!-- SECAO 4: Anexos -->
-    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+    <div id="dmSecaoAnexos" style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
         Anexos
@@ -3303,6 +3303,9 @@ function abrirDemaisProposta(){
   document.getElementById('dmPdfPreview').style.display='none';
   dmImagens=[];
   renderImgGallery('dm');
+  // Nova OS: ocultar campos que só aparecem a partir de Elaboração
+  document.getElementById('dmSecaoValor').style.display='none';
+  document.getElementById('dmSecaoAnexos').style.display='none';
   document.getElementById('demaisOverlay').classList.add('open');
   setTimeout(()=>{demaisDirty=false;},50);
 }
@@ -3335,6 +3338,10 @@ function abrirDemaisExistente(p){
   }
   dmImagens=p.imagens||[];
   renderImgGallery('dm');
+  // Ocultar Valor/Anexos se ainda em Nova OS
+  const isNovaOs=p.status==='nova_os';
+  document.getElementById('dmSecaoValor').style.display=isNovaOs?'none':'';
+  document.getElementById('dmSecaoAnexos').style.display=isNovaOs?'none':'';
   document.getElementById('demaisOverlay').classList.add('open');
   setTimeout(()=>{demaisDirty=false;},50);
 }
