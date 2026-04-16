@@ -966,11 +966,22 @@ body{
       </div>
       <div class="novaos-field">
         <label>Proposta PDF</label>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input type="file" id="dmPdfFile" accept=".pdf" style="display:none" onchange="handleDemaisPdf(this)">
-          <button class="btn btn-secondary" onclick="document.getElementById('dmPdfFile').click()" style="padding:6px 14px;font-size:.82rem">Anexar PDF</button>
-          <span id="dmPdfName" style="font-size:.82rem;color:var(--text-dim)">Nenhum arquivo</span>
-          <a id="dmPdfLink" href="#" target="_blank" style="display:none;font-size:.82rem;color:var(--orange)">Ver PDF</a>
+        <input type="file" id="dmPdfFile" accept=".pdf" style="display:none" onchange="handleDemaisPdf(this)">
+        <div id="dmPdfEmpty" style="border:2px dashed #3a3225;border-radius:8px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s" onclick="document.getElementById('dmPdfFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" style="margin-bottom:8px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          <div style="color:var(--text-dim);font-size:.85rem">Clique para anexar ou arraste o PDF aqui</div>
+          <div style="color:var(--text-dim);font-size:.72rem;margin-top:4px;opacity:.6">Maximo 5MB</div>
+        </div>
+        <div id="dmPdfPreview" style="display:none;border:1px solid #3a3225;border-radius:8px;padding:14px 16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div id="dmPdfName" style="font-size:.88rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+              <div id="dmPdfSize" style="font-size:.72rem;color:var(--text-dim);margin-top:2px">—</div>
+            </div>
+            <button onclick="visualizarDemaisPdf()" style="background:none;border:1px solid var(--orange);color:var(--orange);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;white-space:nowrap;transition:background .15s" onmouseenter="this.style.background='rgba(245,132,31,.1)'" onmouseleave="this.style.background='none'">Visualizar</button>
+            <button onclick="removerDemaisPdf()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1rem;padding:4px 6px" title="Remover">✕</button>
+          </div>
         </div>
       </div>
     </div>
@@ -3061,8 +3072,8 @@ function abrirDemaisProposta(){
   document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
   document.getElementById('dmObservacao').value='';
   document.getElementById('dmLink').value='';
-  document.getElementById('dmPdfName').textContent='Nenhum arquivo';
-  document.getElementById('dmPdfLink').style.display='none';
+  document.getElementById('dmPdfEmpty').style.display='';
+  document.getElementById('dmPdfPreview').style.display='none';
   document.getElementById('demaisOverlay').classList.add('open');
 }
 
@@ -3079,15 +3090,14 @@ function abrirDemaisExistente(p){
   document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
   document.getElementById('dmObservacao').value=p.observacao||'';
   document.getElementById('dmLink').value=p.link||'';
-  if(p.pdfFileName){
+  if(p.pdfFileName&&p.pdfBase64){
+    document.getElementById('dmPdfEmpty').style.display='none';
+    document.getElementById('dmPdfPreview').style.display='';
     document.getElementById('dmPdfName').textContent=p.pdfFileName;
-    if(p.pdfBase64){
-      document.getElementById('dmPdfLink').href=p.pdfBase64;
-      document.getElementById('dmPdfLink').style.display='inline';
-    }
+    document.getElementById('dmPdfSize').textContent='Arquivo anexado';
   } else {
-    document.getElementById('dmPdfName').textContent='Nenhum arquivo';
-    document.getElementById('dmPdfLink').style.display='none';
+    document.getElementById('dmPdfEmpty').style.display='';
+    document.getElementById('dmPdfPreview').style.display='none';
   }
   document.getElementById('demaisOverlay').classList.add('open');
 }
@@ -3106,14 +3116,37 @@ function handleDemaisPdf(input){
     return;
   }
   demaisPdfFileName=file.name;
-  document.getElementById('dmPdfName').textContent=file.name;
+  const sizeTxt=file.size<1024*1024?(file.size/1024).toFixed(0)+' KB':(file.size/(1024*1024)).toFixed(1)+' MB';
   const reader=new FileReader();
   reader.onload=function(e){
     demaisPdfBase64=e.target.result;
-    document.getElementById('dmPdfLink').href=demaisPdfBase64;
-    document.getElementById('dmPdfLink').style.display='inline';
+    document.getElementById('dmPdfEmpty').style.display='none';
+    document.getElementById('dmPdfPreview').style.display='';
+    document.getElementById('dmPdfName').textContent=file.name;
+    document.getElementById('dmPdfSize').textContent=sizeTxt;
   };
   reader.readAsDataURL(file);
+}
+
+function visualizarDemaisPdf(){
+  if(!demaisPdfBase64)return;
+  // Convert base64 data URL to Blob for reliable viewing
+  const parts=demaisPdfBase64.split(',');
+  const mime=parts[0].match(/:(.*?);/)[1];
+  const bstr=atob(parts[1]);
+  const u8=new Uint8Array(bstr.length);
+  for(let i=0;i<bstr.length;i++) u8[i]=bstr.charCodeAt(i);
+  const blob=new Blob([u8],{type:mime});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+}
+
+function removerDemaisPdf(){
+  demaisPdfBase64=null;
+  demaisPdfFileName=null;
+  document.getElementById('dmPdfFile').value='';
+  document.getElementById('dmPdfEmpty').style.display='';
+  document.getElementById('dmPdfPreview').style.display='none';
 }
 
 function salvarDemais(){
