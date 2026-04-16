@@ -3380,8 +3380,9 @@ function handleDemaisPdf(input){
     demaisPdfBase64=null;
     document.getElementById('dmPdfSize').textContent=sizeTxt;
     demaisDirty=true;
-  }).catch(()=>{
-    showToast('Erro ao enviar PDF');
+  }).catch(err=>{
+    console.error('Storage PDF upload error:',err);
+    showToast('Erro ao enviar PDF: '+err.code);
     document.getElementById('dmPdfEmpty').style.display='';
     document.getElementById('dmPdfPreview').style.display='none';
   });
@@ -3571,7 +3572,8 @@ function handleImagens(input, prefix){
     ref.put(file).then(snap=>snap.ref.getDownloadURL()).then(url=>{
       arr.push({name:file.name,url:url});
       renderImgGallery(prefix);
-    }).catch(()=>showToast('Erro ao enviar '+file.name));
+      demaisDirty=true;
+    }).catch(err=>{console.error('Storage upload error:',err);showToast('Erro ao enviar '+file.name+': '+err.code);});
   });
   input.value='';
 }
