@@ -2548,8 +2548,8 @@ function bindDragAndDrop(){
       const p=propostas.find(x=>x.id===id);
       if(!p||p.status===novoStatus)return;
 
-      // Validate nova_os -> elaboracao
-      if(p.status==='nova_os'&&novoStatus==='elaboracao'){
+      // Validate nova_os -> elaboracao (only for Pintura Predial)
+      if(p.status==='nova_os'&&novoStatus==='elaboracao'&&p.tipo!=='Demais Propostas'){
         if(!p.nome||!p.endereco||!p.vendedor||!p.municipio){
           showToast('Preencha todos os campos obrigatorios antes de mover para Elaboracao.');
           return;
@@ -2575,8 +2575,8 @@ function mudarStatusProposta(sel){
   const novoStatus=sel.value;
   const p=propostas.find(x=>x.id===id);
 
-  // Validate when moving from nova_os to elaboracao
-  if(p&&p.status==='nova_os'&&novoStatus==='elaboracao'){
+  // Validate when moving from nova_os to elaboracao (only for Pintura Predial)
+  if(p&&p.status==='nova_os'&&novoStatus==='elaboracao'&&p.tipo!=='Demais Propostas'){
     if(!p.nome||!p.endereco||!p.vendedor||!p.municipio){
       showToast('Preencha todos os campos obrigatorios antes de mover para Elaboracao.');
       sel.value=p.status;
