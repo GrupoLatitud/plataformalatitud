@@ -798,6 +798,14 @@ body{
       </div>
       <div id="rdoContent"></div>
     </div>
+    <!-- Equipamentos Locados -->
+    <div class="dash-section full">
+      <div class="dash-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Equipamentos Locados
+      </div>
+      <div id="locacaoContent"></div>
+    </div>
   </div>
 </div>
 
@@ -1386,6 +1394,30 @@ function renderDashboard(){
   renderMaterialsTable(p);
   renderMiniGantt(p,stage);
   renderRdoHistory(p,stage);
+  renderLocacoes(p);
+}
+
+/* ── EQUIPAMENTOS LOCADOS ────────────────────── */
+function renderLocacoes(p){
+  const items=locacoes.filter(l=>l.projeto===p.name);
+  const el=document.getElementById('locacaoContent');
+  if(!items.length){
+    el.innerHTML='<div style="color:var(--text-dim);font-size:.85rem;padding:12px 0">Nenhum equipamento locado para este projeto.</div>';
+    return;
+  }
+  let html='<div style="overflow-x:auto"><table class="dash-table"><thead><tr><th>Equipamento</th><th>Fornecedor</th><th>Codigo</th><th>Inicio</th><th>Final</th><th>Obs</th></tr></thead><tbody>';
+  items.forEach(l=>{
+    html+=`<tr>
+      <td>${l.equipamento||'—'}</td>
+      <td>${l.fornecedor||'—'}</td>
+      <td>${l.codigo||'—'}</td>
+      <td>${l.dataInicio?formatDate(l.dataInicio):'—'}</td>
+      <td>${l.dataFinal?formatDate(l.dataFinal):'—'}</td>
+      <td>${l.obs||'—'}</td>
+    </tr>`;
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
 }
 
 /* ── DETAILS ──────────────────────────────────── */
