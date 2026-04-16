@@ -188,11 +188,21 @@ body{
 .time-bar-pct{font-size:.72rem;font-weight:600;margin-top:2px}
 
 /* NF */
-.nf-link{color:var(--blue);text-decoration:none;font-size:.82rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
-.nf-link:hover{text-decoration:underline;color:#8cc8e8}
 .nf-empty{color:var(--text-dim);font-size:.8rem;font-style:italic}
-.nf-list{display:flex;flex-direction:column;gap:2px}
-.nf-count{font-size:.72rem;color:var(--text-dim);margin-top:1px}
+.nf-thumbs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.nf-thumb{
+  width:44px;height:44px;border-radius:6px;border:1px solid #2e2818;
+  cursor:pointer;object-fit:cover;transition:border-color .15s;
+}
+.nf-thumb:hover{border-color:var(--orange)}
+.nf-thumb-icon{
+  width:44px;height:44px;border-radius:6px;border:1px solid #2e2818;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);font-size:.6rem;color:var(--text-dim);
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  text-transform:uppercase;transition:border-color .15s;flex-direction:column;gap:1px;
+}
+.nf-thumb-icon:hover{border-color:var(--orange)}
 .btn-attach{
   background:none;border:1px dashed #3a3020;color:var(--text-dim);
   padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;
@@ -642,17 +652,22 @@ function populateProjectSelect(){
 }
 
 /* ── RENDER ───────────────────────────────────── */
+function isImageFile(name){return /\.(jpg|jpeg|png|gif|webp)$/i.test(name||'')}
+function getFileExt(name){const m=(name||'').match(/\.(\w+)$/);return m?m[1].toUpperCase():'NF'}
+
 function buildNfHTML(l){
   const arquivos=l.arquivos?[...l.arquivos]:[];
   if(!arquivos.length&&l.nfData&&l.nfName) arquivos.push({name:l.nfName,data:l.nfData});
-  if(arquivos.length){
-    const first=arquivos[0];
-    return `<div class="nf-list">
-      <a class="nf-link" href="#" onclick="event.preventDefault();openNF(${l.id},0)">📎 ${first.name.length>15?first.name.substring(0,15)+'...':first.name}</a>
-      ${arquivos.length>1?`<span class="nf-count">+${arquivos.length-1} arquivo(s)</span>`:''}
+  if(!arquivos.length) return `<span class="nf-empty">—</span>`;
+  return `<div class="nf-thumbs">${arquivos.map((a,i)=>{
+    const src=a.url||a.data||'';
+    if(isImageFile(a.name)&&src){
+      return `<img class="nf-thumb" src="${src}" title="${a.name}" onclick="openNF(${l.id},${i})">`;
+    }
+    return `<div class="nf-thumb-icon" title="${a.name}" onclick="openNF(${l.id},${i})">
+      <span style="font-size:1rem">📄</span><span>${getFileExt(a.name)}</span>
     </div>`;
-  }
-  return `<span class="nf-empty">—</span>`;
+  }).join('')}</div>`;
 }
 
 function render(){
