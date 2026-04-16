@@ -391,6 +391,13 @@ body{
 .nova-proposta-opt:hover{background:rgba(245,132,31,.15)}
 
 /* Comentarios Sidebar */
+.info-sidebar{
+  position:fixed;top:0;left:-380px;width:380px;height:100vh;
+  background:var(--surface);border-right:1px solid #2e2818;
+  z-index:1100;display:flex;flex-direction:column;
+  transition:left .3s ease;box-shadow:4px 0 16px rgba(0,0,0,.3);
+}
+.info-sidebar.open{left:0}
 .comentarios-sidebar{
   position:fixed;top:0;right:-380px;width:380px;height:100vh;
   background:var(--surface);border-left:1px solid #2e2818;
@@ -700,6 +707,7 @@ body{
         <div style="display:flex;gap:8px">
           <button class="btn btn-success" onclick="salvarProposta()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
           <button class="btn btn-secondary" onclick="gerarPDF()" style="padding:6px 12px;font-size:.8rem">PDF</button>
+          <button class="btn btn-secondary" onclick="toggleInfoSidebar()" style="padding:6px 12px;font-size:.8rem">ℹ Informacoes</button>
           <button class="btn btn-secondary" onclick="toggleComentarios()" style="padding:6px 12px;font-size:.8rem">💬 Comentario</button>
         </div>
       </div>
@@ -955,6 +963,45 @@ body{
     </div>
   </div>
   </div><!-- /padding -->
+
+  <!-- INFO SIDEBAR (left) -->
+  <div class="info-sidebar" id="infoSidebar">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #2e2818">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text);margin:0">Informacoes</h3>
+      <button onclick="toggleInfoSidebar()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Nome da Empresa</label>
+        <input type="text" id="infoEmpresa" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Endereco</label>
+        <input type="text" id="infoEndereco" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Responsavel</label>
+        <input type="text" id="infoResponsavel" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">E-mail Responsavel</label>
+        <input type="email" id="infoEmail" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Vendedor</label>
+        <input type="text" id="infoVendedor" readonly style="width:100%;background:var(--surface);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem;opacity:.85;cursor:default">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Imagens</label>
+        <input type="file" id="infoImgFile" accept="image/*" multiple style="display:none" onchange="handleImagens(this,'info')">
+        <div class="img-gallery" id="infoImgGallery"></div>
+        <div class="img-dropzone" onclick="document.getElementById('infoImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'" style="padding:14px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Adicionar imagens</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- COMENTARIOS SIDEBAR -->
   <div class="comentarios-sidebar" id="comentariosSidebar">
@@ -2851,6 +2898,7 @@ function abrirPropostaExistente(id){
   objetoDescricoes=p.objetoDescricoes||{};
   objetoFixosEdit=p.objetoFixosEdit||{};
   ppImagens=p.imagens||[];
+  loadInfoSidebar(p);
   activeTabIndex=0;
   renderTabBar();
   renderTabForm(0);
@@ -2869,6 +2917,8 @@ function fecharProposta(){
   document.getElementById('propostaOverlay').classList.remove('open');
   const sb=document.getElementById('comentariosSidebar');
   if(sb) sb.classList.remove('open');
+  const isb=document.getElementById('infoSidebar');
+  if(isb) isb.classList.remove('open');
   stopComentariosListener();
 }
 
@@ -2908,6 +2958,7 @@ function salvarPropostaKanban(){
     objetoDescricoes:objetoDescricoes,
     objetoFixosEdit:objetoFixosEdit,
     imagens:ppImagens,
+    ...saveInfoSidebar(),
     updatedAt:new Date().toISOString(),
     updatedBy:window.currentUser?.name||'—'
   };
@@ -3376,12 +3427,39 @@ function salvarDemais(){
 
 /* ═══ IMAGENS (shared) ═══ */
 let ppImagens=[];  // Pintura Predial
+let infoImagens=[]; // Info sidebar
+
+function toggleInfoSidebar(){
+  const sb=document.getElementById('infoSidebar');
+  sb.classList.toggle('open');
+}
+
+function loadInfoSidebar(p){
+  document.getElementById('infoEmpresa').value=p.empresa||'';
+  document.getElementById('infoEndereco').value=p.endereco||'';
+  document.getElementById('infoResponsavel').value=p.responsavel||'';
+  document.getElementById('infoEmail').value=p.email||'';
+  document.getElementById('infoVendedor').value=p.vendedor||'';
+  infoImagens=p.infoImagens||[];
+  renderImgGallery('info');
+}
+
+function saveInfoSidebar(){
+  return {
+    empresa:document.getElementById('infoEmpresa').value,
+    endereco:document.getElementById('infoEndereco').value,
+    responsavel:document.getElementById('infoResponsavel').value,
+    email:document.getElementById('infoEmail').value,
+    vendedor:document.getElementById('infoVendedor').value,
+    infoImagens:infoImagens
+  };
+}
 let dmImagens=[];  // Demais Propostas
 
 function handleImagens(input, prefix){
   const files=Array.from(input.files);
   if(!files.length)return;
-  const arr=prefix==='pp'?ppImagens:dmImagens;
+  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:dmImagens;
   let remaining=files.length;
   files.forEach(file=>{
     if(file.size>3*1024*1024){showToast('Imagem '+file.name+' muito grande (max 3MB)');remaining--;return;}
@@ -3397,7 +3475,7 @@ function handleImagens(input, prefix){
 }
 
 function renderImgGallery(prefix){
-  const arr=prefix==='pp'?ppImagens:dmImagens;
+  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:dmImagens;
   const gallery=document.getElementById(prefix+'ImgGallery');
   gallery.innerHTML=arr.map((img,i)=>`
     <div class="img-thumb" onclick="abrirLightbox('${prefix}',${i})">
@@ -3408,13 +3486,13 @@ function renderImgGallery(prefix){
 }
 
 function removerImagem(prefix,idx){
-  const arr=prefix==='pp'?ppImagens:dmImagens;
+  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:dmImagens;
   arr.splice(idx,1);
   renderImgGallery(prefix);
 }
 
 function abrirLightbox(prefix,idx){
-  const arr=prefix==='pp'?ppImagens:dmImagens;
+  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:dmImagens;
   if(!arr[idx])return;
   const lb=document.createElement('div');
   lb.className='img-lightbox';
