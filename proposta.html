@@ -635,6 +635,7 @@ body{
   <div class="novaos-content">
     <div class="novaos-section">Informacoes do Projeto</div>
     <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
+    <div class="novaos-field"><label>Nome da Empresa *</label><input type="text" id="osEmpresa" placeholder="Nome da empresa"></div>
     <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
     <div class="novaos-row">
       <div class="novaos-field"><label>Responsavel *</label><input type="text" id="osResponsavel" placeholder="Nome do responsavel"></div>
@@ -2698,6 +2699,7 @@ function abrirNovaProposta(tipo){
   osTabs=[{id:'001',nome:'',categoria:'Torre',m2:0,torres:1,puTelhado:0,walls:[{tipo:'Textura',demaos:2,cor:'Clara',percent:100}]}];
   osActiveTab=0;
   document.getElementById('osNome').value='';
+  document.getElementById('osEmpresa').value='';
   document.getElementById('osEndereco').value='';
   document.getElementById('osResponsavel').value='';
   document.getElementById('osEmail').value='';
@@ -2720,6 +2722,7 @@ function salvarNovaOs(){
   // Validate required fields
   let valid=true;
   const nome=document.getElementById('osNome');
+  const empresa=document.getElementById('osEmpresa');
   const endereco=document.getElementById('osEndereco');
   const vendedor=document.getElementById('osVendedor');
   const municipio=document.getElementById('osMunicipio');
@@ -2727,7 +2730,7 @@ function salvarNovaOs(){
   const email=document.getElementById('osEmail');
   const numeroProposta=document.getElementById('osNumeroProposta');
 
-  [nome,endereco,municipio,responsavel,email].forEach(el=>{
+  [nome,empresa,endereco,municipio,responsavel,email].forEach(el=>{
     el.classList.remove('field-error');
     if(!el.value||el.value.trim()===''){el.classList.add('field-error');valid=false;}
   });
@@ -2749,6 +2752,7 @@ function salvarNovaOs(){
   // Save to Firebase
   const data={
     nome:nome.value.trim(),
+    empresa:empresa.value.trim(),
     endereco:endereco.value.trim(),
     vendedor:vendedor.value.trim(),
     responsavel:responsavel.value.trim(),
@@ -2794,6 +2798,7 @@ function abrirPropostaExistente(id){
     editandoPropostaId=id;
     propostaTipo=p.tipo||'Pintura Predial';
     document.getElementById('osNome').value=p.nome||'';
+    document.getElementById('osEmpresa').value=p.empresa||'';
     document.getElementById('osEndereco').value=p.endereco||'';
     document.getElementById('osResponsavel').value=p.responsavel||'';
     document.getElementById('osEmail').value=p.email||'';
