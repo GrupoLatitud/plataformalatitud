@@ -1040,43 +1040,56 @@ body{
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Demais Propostas</h2>
     <div style="display:flex;gap:8px">
       <button class="btn btn-success" onclick="salvarDemais()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
-      <button class="btn btn-secondary" onclick="toggleComentariosDemais()" style="padding:6px 12px;font-size:.8rem">💬 Comentario</button>
+      <button class="btn btn-secondary" onclick="toggleComentariosDemais()" style="padding:6px 12px;font-size:.8rem">Comentario</button>
     </div>
   </div>
-  <div style="padding:28px;max-width:700px">
-    <div class="panel-section">
-      <div class="panel-section-title">Informacoes da Proposta</div>
+  <div style="padding:28px;max-width:800px;margin:0 auto">
+
+    <!-- SECAO 1: Dados do Projeto -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dados do Projeto
+      </div>
       <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="dmNome" placeholder="Ex: Residencial Aurora"></div>
       <div class="novaos-field"><label>Nome da Empresa *</label><input type="text" id="dmEmpresa" placeholder="Nome da empresa"></div>
       <div class="novaos-field"><label>Endereco *</label><input type="text" id="dmEndereco" placeholder="Rua, numero, bairro, cidade - UF"></div>
+    </div>
+
+    <!-- SECAO 2: Contato -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Contato
+      </div>
       <div class="novaos-row">
         <div class="novaos-field"><label>Responsavel *</label><input type="text" id="dmResponsavel" placeholder="Nome do responsavel"></div>
         <div class="novaos-field"><label>E-mail Responsavel *</label><input type="email" id="dmEmail" placeholder="email@exemplo.com"></div>
       </div>
       <div class="novaos-row">
-        <div class="novaos-field"><label>Vendedor</label><input type="text" id="dmVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
-        <div class="novaos-field" style="max-width:180px"><label>Numero da Proposta</label><input type="text" id="dmNumeroProposta" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
+        <div class="novaos-field"><label>Vendedor</label><input type="text" id="dmVendedor" readonly style="background:var(--surface2);opacity:.85;cursor:default"></div>
+        <div class="novaos-field" style="max-width:180px"><label>Numero da Proposta</label><input type="text" id="dmNumeroProposta" readonly style="background:var(--surface2);opacity:.85;cursor:default"></div>
       </div>
-      <div class="novaos-row">
-        <div class="novaos-field"><label>Municipio</label>
-          <select id="dmMunicipio">
-            <option value="">Selecione...</option>
-            <option value="São Paulo">Sao Paulo</option>
-            <option value="Sorocaba">Sorocaba</option>
-            <option value="Itapetininga">Itapetininga</option>
-            <option value="São Roque">Sao Roque</option>
-            <option value="Guarujá">Guaruja</option>
-            <option value="Santos">Santos</option>
-            <option value="Itú">Itu</option>
-            <option value="Campinas">Campinas</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </div>
-        <div class="novaos-field"><label>Valor Total (R$)</label><input type="text" id="dmValorTotal" placeholder="0,00" oninput="formatarValorDemais(this)"></div>
+    </div>
+
+    <!-- SECAO 3: Valor e Observacao -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Detalhes da Proposta
       </div>
+      <div class="novaos-field"><label>Valor Total (R$)</label><input type="text" id="dmValorTotal" placeholder="R$ 0,00" oninput="formatarValorDemais(this)"></div>
       <div class="novaos-field">
-        <label>Observacao</label>
-        <textarea id="dmObservacao" rows="5" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
+        <label>Observacao *</label>
+        <textarea id="dmObservacao" rows="4" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <!-- SECAO 4: Anexos -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        Anexos
       </div>
       <div class="novaos-field">
         <label>Link da Proposta</label>
@@ -1088,15 +1101,15 @@ body{
           </a>
         </div>
       </div>
-      <div class="novaos-field">
+      <div class="novaos-field" style="margin-bottom:0">
         <label>Proposta PDF</label>
         <input type="file" id="dmPdfFile" accept=".pdf" style="display:none" onchange="handleDemaisPdf(this)">
-        <div id="dmPdfEmpty" style="border:2px dashed #3a3225;border-radius:8px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s" onclick="document.getElementById('dmPdfFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" style="margin-bottom:8px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-          <div style="color:var(--text-dim);font-size:.85rem">Clique para anexar ou arraste o PDF aqui</div>
-          <div style="color:var(--text-dim);font-size:.72rem;margin-top:4px;opacity:.6">Maximo 5MB</div>
+        <div id="dmPdfEmpty" style="border:2px dashed #3a3225;border-radius:8px;padding:24px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s" onclick="document.getElementById('dmPdfFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" style="margin-bottom:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          <div style="color:var(--text-dim);font-size:.85rem">Clique para anexar PDF</div>
+          <div style="color:var(--text-dim);font-size:.72rem;margin-top:2px;opacity:.6">Maximo 5MB</div>
         </div>
-        <div id="dmPdfPreview" style="display:none;border:1px solid #3a3225;border-radius:8px;padding:14px 16px;background:var(--surface)">
+        <div id="dmPdfPreview" style="display:none;border:1px solid #3a3225;border-radius:8px;padding:14px 16px;background:var(--surface2)">
           <div style="display:flex;align-items:center;gap:12px">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <div style="flex:1;min-width:0">
@@ -1107,17 +1120,23 @@ body{
             <button onclick="removerDemaisPdf()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1rem;padding:4px 6px" title="Remover">✕</button>
           </div>
         </div>
-      <div class="novaos-field">
-        <label>Imagens</label>
-        <input type="file" id="dmImgFile" accept="image/*" multiple style="display:none" onchange="handleImagens(this,'dm')">
-        <div class="img-gallery" id="dmImgGallery"></div>
-        <div class="img-dropzone" onclick="document.getElementById('dmImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <span>Clique para adicionar imagens</span>
-        </div>
-      </div>
       </div>
     </div>
+
+    <!-- SECAO 5: Imagens -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Imagens
+      </div>
+      <input type="file" id="dmImgFile" accept="image/*" multiple style="display:none" onchange="handleImagens(this,'dm')">
+      <div class="img-gallery" id="dmImgGallery"></div>
+      <div class="img-dropzone" onclick="document.getElementById('dmImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'" style="padding:18px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Clique para adicionar imagens</span>
+      </div>
+    </div>
+
   </div>
   <!-- Comentarios sidebar for Demais -->
   <div class="comentarios-sidebar" id="comentariosSidebarDemais">
@@ -3242,10 +3261,8 @@ function abrirDemaisProposta(){
   document.getElementById('dmEmail').value='';
   document.getElementById('dmVendedor').value=window.currentUser?.name||'';
   document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
-  document.getElementById('dmMunicipio').value='';
   document.getElementById('dmValorTotal').value='';
   document.getElementById('dmObservacao').value='';
-  document.getElementById('dmComentario').value='';
   document.getElementById('dmLink').value='';
   document.getElementById('dmLinkBtn').style.display='none';
   document.getElementById('dmPdfEmpty').style.display='';
@@ -3266,7 +3283,6 @@ function abrirDemaisExistente(p){
   document.getElementById('dmEmail').value=p.email||'';
   document.getElementById('dmVendedor').value=p.vendedor||'';
   document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
-  document.getElementById('dmMunicipio').value=p.municipio||'';
   document.getElementById('dmValorTotal').value=p.valorTotal?fmtBRL(p.valorTotal):'';
   document.getElementById('dmObservacao').value=p.observacao||'';
   document.getElementById('dmLink').value=p.link||'';
@@ -3286,6 +3302,17 @@ function abrirDemaisExistente(p){
 }
 
 function fecharDemais(){
+  // Check if there are unsaved changes
+  const hasContent=document.getElementById('dmNome').value.trim()||
+    document.getElementById('dmEmpresa').value.trim()||
+    document.getElementById('dmEndereco').value.trim()||
+    document.getElementById('dmObservacao').value.trim();
+  if(hasContent){
+    if(confirm('Existem alteracoes nao salvas. Deseja salvar antes de voltar?')){
+      salvarDemais();
+      return;
+    }
+  }
   const sb=document.getElementById('comentariosSidebarDemais');
   if(sb) sb.classList.remove('open');
   stopDemaisComentarios();
@@ -3400,10 +3427,11 @@ function salvarDemais(){
   const endereco=document.getElementById('dmEndereco').value.trim();
   const responsavel=document.getElementById('dmResponsavel').value.trim();
   const email=document.getElementById('dmEmail').value.trim();
+  const observacao=document.getElementById('dmObservacao').value.trim();
 
   // Validar obrigatórios
   let ok=true;
-  [['dmNome',nome],['dmEmpresa',empresa],['dmEndereco',endereco],['dmResponsavel',responsavel],['dmEmail',email]].forEach(([id,v])=>{
+  [['dmNome',nome],['dmEmpresa',empresa],['dmEndereco',endereco],['dmResponsavel',responsavel],['dmEmail',email],['dmObservacao',observacao]].forEach(([id,v])=>{
     const el=document.getElementById(id);
     if(!v){el.classList.add('field-error');ok=false;}else{el.classList.remove('field-error');}
   });
@@ -3415,11 +3443,10 @@ function salvarDemais(){
     endereco:endereco,
     responsavel:responsavel,
     email:email,
-    municipio:document.getElementById('dmMunicipio').value,
     valorTotal:parseBRL(document.getElementById('dmValorTotal').value),
     vendedor:document.getElementById('dmVendedor').value,
     numeroProposta:document.getElementById('dmNumeroProposta').value,
-    observacao:document.getElementById('dmObservacao').value,
+    observacao:observacao,
     link:document.getElementById('dmLink').value,
     pdfFileName:demaisPdfFileName||null,
     pdfBase64:demaisPdfBase64||null,
