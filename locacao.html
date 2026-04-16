@@ -948,14 +948,61 @@ function deleteLocacao(id){
   render();
 }
 
+const HOLMES_TOKEN='eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNjdkYzJjMzUxNjk2YjgwYjc3ZjJlZTNlIiwiaWF0IjoxNzQyNDgyNDg1fQ.AYduCq4ode2wFUByBEWnWlkus6kBL9UmQA4SDtydjuo';
+const HOLMES_FLOW_ID='69e13d8122a80a2f575004f2';
+const HOLMES_FIELDS={
+  fornecedor:'930bd0a0-39cd-11f1-b017-3d7c97fba7e7',
+  itemLocado:'8b805b80-39cd-11f1-b017-3d7c97fba7e7',
+  projeto:'b3840a50-39cd-11f1-b017-3d7c97fba7e7',
+  linkFatura:'af382fd0-39cd-11f1-b017-3d7c97fba7e7'
+};
+
 function faturarLocacao(id){
   const l=locacoes.find(x=>x.id===id);
   if(!l)return;
   if(!l.arquivos||!l.arquivos.length){alert('Anexe uma NF antes de faturar.');return;}
-  if(!confirm('Faturar esta locação? A NF será bloqueada para edição.'))return;
-  l.faturado=true;
-  saveData();
-  render();
+  if(!confirm('Faturar esta locação? A NF será bloqueada e um processo será aberto no Holmes.'))return;
+
+  const nfUrl=(l.arquivos[0].url||l.arquivos[0].data||'');
+  const titulo='Faturamento - '+l.equipamento+' - '+l.fornecedor;
+
+  const body={
+    workflow:{
+      documents:[],
+      property_values:[
+        {id:HOLMES_FIELDS.fornecedor, value:l.fornecedor||''},
+        {id:HOLMES_FIELDS.itemLocado, value:l.equipamento||''},
+        {id:HOLMES_FIELDS.projeto, value:l.projeto||''},
+        {id:HOLMES_FIELDS.linkFatura, value:nfUrl}
+      ],
+      run_automations:true,
+      run_triggers:true,
+      start_event:'StartEvent_1',
+      test:false,
+      whats:titulo
+    }
+  };
+
+  fetch('https://app-api.holmesdoc.io/v1/workflows/'+HOLMES_FLOW_ID+'/start?minimal=true',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+HOLMES_TOKEN
+    },
+    body:JSON.stringify(body)
+  }).then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    l.faturado=true;
+    l.holmesProcessId=data._id||data.id||null;
+    saveData();
+    render();
+    alert('Faturado com sucesso! Processo aberto no Holmes.');
+  }).catch(err=>{
+    console.error('Erro ao abrir processo no Holmes:',err);
+    alert('Erro ao abrir processo no Holmes: '+err.message);
+  });
 }
 
 function finalizarLocacao(id){
