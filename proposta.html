@@ -479,6 +479,29 @@ body{
 .tag-revisao{background:rgba(245,132,31,.15);color:var(--orange)}
 .tag-tipo{background:rgba(255,255,255,.06);color:var(--text-dim)}
 .kanban-card-timer{font-size:.75rem;display:flex;align-items:center;gap:4px}
+.kanban-card-delete{
+  background:none;border:1px solid #3a2020;color:#e74c3c;padding:3px 6px;border-radius:5px;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:all .15s;margin-left:4px;
+}
+.kanban-card-delete:hover{background:rgba(231,76,60,.15);border-color:#e74c3c}
+.kanban-card-rev-btn{
+  margin-top:8px;width:100%;background:none;border:1px solid var(--orange);color:var(--orange);
+  padding:5px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;
+  justify-content:center;gap:5px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:.78rem;transition:all .15s;
+}
+.kanban-card-rev-btn:hover{background:rgba(245,132,31,.13)}
+.kanban-search{
+  display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #2e2818;
+  border-radius:8px;padding:8px 12px;margin-bottom:16px;
+}
+.kanban-search input{
+  flex:1;background:none;border:none;color:var(--text);font-family:'Barlow',sans-serif;
+  font-size:.9rem;outline:none;
+}
+.kanban-search input::placeholder{color:var(--text-dim)}
+.kanban-search svg{color:var(--text-dim);flex-shrink:0}
 .timer-ok{color:var(--green)}
 .timer-warn{color:#f1c40f}
 .timer-danger{color:#e74c3c}
@@ -610,6 +633,10 @@ body{
     </div>
   </div>
 
+  <div class="kanban-search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="kanbanSearchInput" placeholder="Filtrar por nome, numero, municipio, vendedor..." oninput="renderKanban()">
+  </div>
   <div class="kanban-board">
     <div class="kanban-col">
       <div class="kanban-col-header">Nova OS / Revisao <span class="kanban-col-count" id="countNovaOS">0</span></div>
@@ -2207,6 +2234,7 @@ async function gerarPDF(){
   const responsavel=existing?.responsavel||'';
   const email=existing?.email||'';
   const numProposta=existing?.numeroProposta||'';
+  const revisaoNumPdf=Number.isFinite(existing?.revisaoNum)?existing.revisaoNum:(existing?.revisao===true?1:0);
   const valorTotal=document.getElementById('resTotalBig').textContent||'R$ 0,00';
 
   const meses=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -2242,7 +2270,7 @@ async function gerarPDF(){
     // Proposta Nº
     doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     if(numProposta) doc.text('Proposta No: '+numProposta, W-116, 698, {align:'left'});
-    doc.text('REV 0', W-64, 714, {align:'left'});
+    doc.text('REV '+revisaoNumPdf, W-64, 714, {align:'left'});
 
     // ═══ PAGES 2-6: STATIC ═══
     for(let p=2;p<=6;p++){
@@ -2262,7 +2290,7 @@ async function gerarPDF(){
     // Title
     doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     doc.setTextColor(238,135,34);
-    const titleTxt='PROPOSTA No: '+(numProposta||'—')+' REV 0';
+    const titleTxt='PROPOSTA No: '+(numProposta||'—')+' REV '+revisaoNumPdf;
     doc.text(titleTxt, W/2, 72, {align:'center'});
 
     // Table header
@@ -2470,9 +2498,16 @@ function toggleNovaPropostaMenu(){
 
 function renderKanban(){
   const groups={nova_os:[],elaboracao:[],aprovacao:[],enviadas:[]};
+  const searchEl=document.getElementById('kanbanSearchInput');
+  const q=(searchEl?searchEl.value:'').toLowerCase().trim();
   propostas.forEach(p=>{
     const st=p.status||'nova_os';
-    if(groups[st]) groups[st].push(p);
+    if(!groups[st])return;
+    if(q){
+      const hay=[(p.nome||''),(p.numeroProposta||''),(p.municipio||''),(p.vendedor||''),(p.empresa||''),(p.endereco||''),(p.tipo||''),(p.responsavel||'')].join(' ').toLowerCase();
+      if(!hay.includes(q))return;
+    }
+    groups[st].push(p);
   });
   Object.keys(KANBAN_COLS).forEach(st=>{
     const col=KANBAN_COLS[st];
@@ -2487,16 +2522,22 @@ function renderKanban(){
       const valor=p.valorTotal?fmtBRL(p.valorTotal):'—';
       const timer=calcTimer(p.createdAt);
       const tipoTag=p.tipo||'Pintura Predial';
-      const isRevisao=p.revisao===true;
+      const rev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
+      const isRevisao=rev>0;
       const tagClass=isRevisao?'tag-revisao':'tag-nova';
-      const tagLabel=isRevisao?'Revisao':'Nova';
+      const tagLabel=isRevisao?('Revisao '+rev):'Nova';
       const vendedor=p.vendedor||'—';
-      const numProp=p.numeroProposta?'#'+p.numeroProposta:'';
+      const numProp=p.numeroProposta?('#'+p.numeroProposta+' REV'+rev):'';
+      const isNovaOs=st==='nova_os';
+      const isEnviada=st==='enviadas';
       return `<div class="kanban-card" draggable="true" data-id="${p.id}" onclick="abrirPropostaExistente('${p.id}')">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
           <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
           ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
+          ${isNovaOs?`<button class="kanban-card-delete" onclick="event.stopPropagation();deletarProposta('${p.id}')" title="Apagar proposta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+          </button>`:''}
         </div>
         <div class="kanban-card-title">${p.nome||'Sem nome'}</div>
         <div class="kanban-card-info">
@@ -2504,11 +2545,79 @@ function renderKanban(){
           <div class="kanban-card-row"><span style="font-weight:600;color:var(--orange)">${valor}</span>
             <span style="font-size:.75rem;color:var(--text-dim)">${vendedor}</span>
           </div>
+          ${isEnviada?`<button class="kanban-card-rev-btn" onclick="event.stopPropagation();abrirRevisao('${p.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Abrir Revisao
+          </button>`:''}
         </div>
       </div>`;
     }).join('');
   });
   bindDragAndDrop();
+}
+
+function deletarProposta(id){
+  const p=propostas.find(x=>x.id===id);
+  if(!p)return;
+  if(p.status!=='nova_os'){showToast('Somente propostas em Nova OS / Revisao podem ser apagadas.');return;}
+  const label=p.nome?`"${p.nome}"`:'esta proposta';
+  if(!confirm('Apagar '+label+'? Esta acao nao pode ser desfeita.'))return;
+  propostasRef.child(id).remove().then(()=>{
+    showToast('Proposta apagada.');
+  }).catch(err=>{
+    console.error('Erro ao apagar proposta:',err);
+    showToast('Erro ao apagar: '+err.message);
+  });
+}
+
+function abrirRevisao(id){
+  const p=propostas.find(x=>x.id===id);
+  if(!p){showToast('Proposta nao encontrada');return;}
+  if(p.status!=='enviadas'){showToast('Revisao so pode ser aberta de propostas enviadas.');return;}
+  const atualRev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
+  const novoRev=atualRev+1;
+  if(!confirm('Abrir Revisao '+novoRev+' desta proposta? Sera criada uma copia em Nova OS / Revisao.'))return;
+  const clone={...p};
+  delete clone.id;
+  clone.status='nova_os';
+  clone.revisao=true;
+  clone.revisaoNum=novoRev;
+  clone.revisaoOrigem=id;
+  clone.createdAt=new Date().toISOString();
+  clone.updatedAt=new Date().toISOString();
+  clone.updatedBy=window.currentUser?.name||'—';
+  // Limpar valor/total para recalculo na nova revisao (mantem dados base)
+  // Mantem tudo para facilitar edicao; usuario pode alterar
+  propostasRef.push(clone).then(()=>{
+    showToast('Revisao '+novoRev+' criada em Nova OS.');
+  }).catch(err=>{
+    console.error('Erro ao criar revisao:',err);
+    showToast('Erro ao criar revisao: '+err.message);
+  });
+}
+
+function aplicarModoLeitura(container,ativar){
+  if(!container)return;
+  container.querySelectorAll('input,textarea,select,button').forEach(el=>{
+    if(el.dataset.lockIgnore==='1')return;
+    if(ativar){
+      if(!el.dataset.lockOrig){
+        el.dataset.lockOrig=el.disabled?'1':'0';
+      }
+      if(el.tagName==='BUTTON'){
+        el.disabled=true;
+      } else {
+        el.readOnly=true;
+        if(el.tagName==='SELECT') el.disabled=true;
+      }
+    } else {
+      if(el.dataset.lockOrig==='0'){
+        if(el.tagName==='BUTTON') el.disabled=false;
+        else { el.readOnly=false; if(el.tagName==='SELECT') el.disabled=false; }
+      }
+      delete el.dataset.lockOrig;
+    }
+  });
 }
 
 /* ── DRAG & DROP ─────────────────────────────── */
@@ -2548,6 +2657,12 @@ function bindDragAndDrop(){
       const novoStatus=col.dataset.status;
       const p=propostas.find(x=>x.id===id);
       if(!p||p.status===novoStatus)return;
+
+      // Propostas enviadas sao travadas: nao podem ser arrastadas de volta
+      if(p.status==='enviadas'){
+        showToast('Propostas Enviadas sao somente visualizacao. Use "Abrir Revisao" para criar uma nova versao.');
+        return;
+      }
 
       // Validate nova_os -> elaboracao (only for Pintura Predial)
       if(p.status==='nova_os'&&novoStatus==='elaboracao'&&p.tipo!=='Demais Propostas'){
@@ -2796,6 +2911,11 @@ function gerarNumeroProposta(){
   return String(max+1).padStart(4,'0');
 }
 
+function stripRev(val){
+  // Remove "REV0", "REV1", etc. and any trailing whitespace
+  return (val||'').replace(/\s*REV\d+\s*$/i,'').trim();
+}
+
 function abrirNovaProposta(tipo){
   document.getElementById('novaPropostaMenu').style.display='none';
   propostaTipo=tipo||'Pintura Predial';
@@ -2812,7 +2932,7 @@ function abrirNovaProposta(tipo){
   document.getElementById('osResponsavel').value='';
   document.getElementById('osEmail').value='';
   document.getElementById('osVendedor').value=window.currentUser?.name||'';
-  document.getElementById('osNumeroProposta').value=gerarNumeroProposta();
+  document.getElementById('osNumeroProposta').value=gerarNumeroProposta()+' REV0';
   document.getElementById('osMunicipio').selectedIndex=0;
   document.getElementById('osObservacao').value='';
   // Clear error styling
@@ -2821,6 +2941,7 @@ function abrirNovaProposta(tipo){
   renderOsTabContent();
   renderImgGallery('os');
   document.getElementById('novaOsOverlay').classList.add('open');
+  aplicarModoLeitura(document.getElementById('novaOsOverlay'), false);
 }
 
 function fecharNovaOs(){
@@ -2867,7 +2988,7 @@ function salvarNovaOs(){
     vendedor:vendedor.value.trim(),
     responsavel:responsavel.value.trim(),
     email:email.value.trim(),
-    numeroProposta:numeroProposta.value,
+    numeroProposta:stripRev(numeroProposta.value),
     municipio:municipio.value,
     observacao:document.getElementById('osObservacao').value.trim(),
     tipo:propostaTipo,
@@ -2915,7 +3036,8 @@ function abrirPropostaExistente(id){
     document.getElementById('osResponsavel').value=p.responsavel||'';
     document.getElementById('osEmail').value=p.email||'';
     document.getElementById('osVendedor').value=p.vendedor||'';
-    document.getElementById('osNumeroProposta').value=p.numeroProposta||gerarNumeroProposta();
+    { const rev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
+      document.getElementById('osNumeroProposta').value=(p.numeroProposta||gerarNumeroProposta())+' REV'+rev; }
     document.getElementById('osMunicipio').value=p.municipio||'';
     document.getElementById('osObservacao').value=p.observacao||'';
     if(p.tabs&&p.tabs.length){
@@ -2933,6 +3055,7 @@ function abrirPropostaExistente(id){
     renderOsTabContent();
     renderImgGallery('os');
     document.getElementById('novaOsOverlay').classList.add('open');
+    aplicarModoLeitura(document.getElementById('novaOsOverlay'), p.status==='enviadas');
     return;
   }
 
@@ -2973,6 +3096,7 @@ function abrirPropostaExistente(id){
   renderImgGallery('pp');
   calcularProjeto();
   document.getElementById('propostaOverlay').classList.add('open');
+  aplicarModoLeitura(document.getElementById('propostaOverlay'), p.status==='enviadas');
 }
 
 function fecharProposta(){
@@ -3294,7 +3418,7 @@ function abrirDemaisProposta(){
   document.getElementById('dmResponsavel').value='';
   document.getElementById('dmEmail').value='';
   document.getElementById('dmVendedor').value=window.currentUser?.name||'';
-  document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
+  document.getElementById('dmNumeroProposta').value=gerarNumeroProposta()+' REV0';
   document.getElementById('dmValorTotal').value='';
   document.getElementById('dmObservacao').value='';
   document.getElementById('dmLink').value='';
@@ -3307,6 +3431,7 @@ function abrirDemaisProposta(){
   document.getElementById('dmSecaoValor').style.display='none';
   document.getElementById('dmSecaoAnexos').style.display='none';
   document.getElementById('demaisOverlay').classList.add('open');
+  aplicarModoLeitura(document.getElementById('demaisOverlay'), false);
   setTimeout(()=>{demaisDirty=false;},50);
 }
 
@@ -3322,7 +3447,8 @@ function abrirDemaisExistente(p){
   document.getElementById('dmResponsavel').value=p.responsavel||'';
   document.getElementById('dmEmail').value=p.email||'';
   document.getElementById('dmVendedor').value=p.vendedor||'';
-  document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
+  { const rev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
+    document.getElementById('dmNumeroProposta').value=(p.numeroProposta||'')+(p.numeroProposta?' REV'+rev:''); }
   document.getElementById('dmValorTotal').value=p.valorTotal?fmtBRL(p.valorTotal):'';
   document.getElementById('dmObservacao').value=p.observacao||'';
   document.getElementById('dmLink').value=p.link||'';
@@ -3343,6 +3469,7 @@ function abrirDemaisExistente(p){
   document.getElementById('dmSecaoValor').style.display=isNovaOs?'none':'';
   document.getElementById('dmSecaoAnexos').style.display=isNovaOs?'none':'';
   document.getElementById('demaisOverlay').classList.add('open');
+  aplicarModoLeitura(document.getElementById('demaisOverlay'), p.status==='enviadas');
   setTimeout(()=>{demaisDirty=false;},50);
 }
 
@@ -3503,7 +3630,7 @@ function salvarDemais(){
     email:email,
     valorTotal:parseBRL(document.getElementById('dmValorTotal').value),
     vendedor:document.getElementById('dmVendedor').value,
-    numeroProposta:document.getElementById('dmNumeroProposta').value,
+    numeroProposta:stripRev(document.getElementById('dmNumeroProposta').value),
     observacao:observacao,
     link:document.getElementById('dmLink').value,
     pdfFileName:demaisPdfFileName||null,
