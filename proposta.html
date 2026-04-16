@@ -571,6 +571,7 @@ body{
       </button>
       <div class="nova-proposta-menu" id="novaPropostaMenu" style="display:none">
         <div class="nova-proposta-opt" onclick="abrirNovaProposta('Pintura Predial')">Pintura Predial</div>
+        <div class="nova-proposta-opt" onclick="abrirDemaisProposta()">Demais Propostas</div>
       </div>
     </div>
   </div>
@@ -929,6 +930,53 @@ body{
   </div>
 </div><!-- /proposta-overlay -->
 
+<!-- DEMAIS PROPOSTAS OVERLAY -->
+<div class="proposta-overlay" id="demaisOverlay">
+  <div class="proposta-overlay-header">
+    <button class="btn-voltar" onclick="fecharDemais()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar
+    </button>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Demais Propostas</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-success" onclick="salvarDemais()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+    </div>
+  </div>
+  <div style="padding:28px;max-width:700px">
+    <div class="panel-section">
+      <div class="panel-section-title">Informacoes da Proposta</div>
+      <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="dmNome" placeholder="Ex: Residencial Aurora"></div>
+      <div class="novaos-field"><label>Nome da Empresa *</label><input type="text" id="dmEmpresa" placeholder="Nome da empresa"></div>
+      <div class="novaos-field"><label>Endereco *</label><input type="text" id="dmEndereco" placeholder="Rua, numero, bairro, cidade - UF"></div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Responsavel *</label><input type="text" id="dmResponsavel" placeholder="Nome do responsavel"></div>
+        <div class="novaos-field"><label>E-mail Responsavel *</label><input type="email" id="dmEmail" placeholder="email@exemplo.com"></div>
+      </div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Vendedor</label><input type="text" id="dmVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
+        <div class="novaos-field" style="max-width:180px"><label>Numero da Proposta</label><input type="text" id="dmNumeroProposta" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
+      </div>
+      <div class="novaos-field">
+        <label>Observacao</label>
+        <textarea id="dmObservacao" rows="5" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+      <div class="novaos-field">
+        <label>Link da Proposta</label>
+        <input type="url" id="dmLink" placeholder="https://..." style="width:100%">
+      </div>
+      <div class="novaos-field">
+        <label>Proposta PDF</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="file" id="dmPdfFile" accept=".pdf" style="display:none" onchange="handleDemaisPdf(this)">
+          <button class="btn btn-secondary" onclick="document.getElementById('dmPdfFile').click()" style="padding:6px 14px;font-size:.82rem">Anexar PDF</button>
+          <span id="dmPdfName" style="font-size:.82rem;color:var(--text-dim)">Nenhum arquivo</span>
+          <a id="dmPdfLink" href="#" target="_blank" style="display:none;font-size:.82rem;color:var(--orange)">Ver PDF</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /demais-overlay -->
+
 <!-- MOBILE MENU -->
 <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="mobile-menu-panel">
@@ -951,6 +999,7 @@ body{
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script>
 /* ── AUTH GUARD ─────────────────────────────── */
@@ -2628,6 +2677,12 @@ function abrirPropostaExistente(id){
   if(!p)return;
   propostaDirty=false;
 
+  // Demais Propostas — always opens the simple form
+  if(p.tipo==='Demais Propostas'){
+    abrirDemaisExistente(p);
+    return;
+  }
+
   // If status is nova_os, open the simplified Nova OS overlay for editing
   if(p.status==='nova_os'){
     editandoPropostaId=id;
@@ -2986,6 +3041,125 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderTabForm(0);
   initMentionAutocomplete();
 });
+
+/* ═══ DEMAIS PROPOSTAS ═══ */
+let editandoDemaisId=null;
+let demaisPdfBase64=null;
+let demaisPdfFileName=null;
+
+function abrirDemaisProposta(){
+  document.getElementById('novaPropostaMenu').style.display='none';
+  editandoDemaisId=null;
+  demaisPdfBase64=null;
+  demaisPdfFileName=null;
+  document.getElementById('dmNome').value='';
+  document.getElementById('dmEmpresa').value='';
+  document.getElementById('dmEndereco').value='';
+  document.getElementById('dmResponsavel').value='';
+  document.getElementById('dmEmail').value='';
+  document.getElementById('dmVendedor').value=window.currentUser?.name||'';
+  document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
+  document.getElementById('dmObservacao').value='';
+  document.getElementById('dmLink').value='';
+  document.getElementById('dmPdfName').textContent='Nenhum arquivo';
+  document.getElementById('dmPdfLink').style.display='none';
+  document.getElementById('demaisOverlay').classList.add('open');
+}
+
+function abrirDemaisExistente(p){
+  editandoDemaisId=p.id;
+  demaisPdfBase64=p.pdfBase64||null;
+  demaisPdfFileName=p.pdfFileName||null;
+  document.getElementById('dmNome').value=p.nome||'';
+  document.getElementById('dmEmpresa').value=p.empresa||'';
+  document.getElementById('dmEndereco').value=p.endereco||'';
+  document.getElementById('dmResponsavel').value=p.responsavel||'';
+  document.getElementById('dmEmail').value=p.email||'';
+  document.getElementById('dmVendedor').value=p.vendedor||'';
+  document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
+  document.getElementById('dmObservacao').value=p.observacao||'';
+  document.getElementById('dmLink').value=p.link||'';
+  if(p.pdfFileName){
+    document.getElementById('dmPdfName').textContent=p.pdfFileName;
+    if(p.pdfBase64){
+      document.getElementById('dmPdfLink').href=p.pdfBase64;
+      document.getElementById('dmPdfLink').style.display='inline';
+    }
+  } else {
+    document.getElementById('dmPdfName').textContent='Nenhum arquivo';
+    document.getElementById('dmPdfLink').style.display='none';
+  }
+  document.getElementById('demaisOverlay').classList.add('open');
+}
+
+function fecharDemais(){
+  document.getElementById('demaisOverlay').classList.remove('open');
+  editandoDemaisId=null;
+}
+
+function handleDemaisPdf(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){
+    showToast('Arquivo muito grande (max 5MB)');
+    input.value='';
+    return;
+  }
+  demaisPdfFileName=file.name;
+  document.getElementById('dmPdfName').textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    demaisPdfBase64=e.target.result;
+    document.getElementById('dmPdfLink').href=demaisPdfBase64;
+    document.getElementById('dmPdfLink').style.display='inline';
+  };
+  reader.readAsDataURL(file);
+}
+
+function salvarDemais(){
+  const nome=document.getElementById('dmNome').value.trim();
+  const empresa=document.getElementById('dmEmpresa').value.trim();
+  const endereco=document.getElementById('dmEndereco').value.trim();
+  const responsavel=document.getElementById('dmResponsavel').value.trim();
+  const email=document.getElementById('dmEmail').value.trim();
+
+  // Validar obrigatórios
+  let ok=true;
+  [['dmNome',nome],['dmEmpresa',empresa],['dmEndereco',endereco],['dmResponsavel',responsavel],['dmEmail',email]].forEach(([id,v])=>{
+    const el=document.getElementById(id);
+    if(!v){el.classList.add('field-error');ok=false;}else{el.classList.remove('field-error');}
+  });
+  if(!ok){showToast('Preencha os campos obrigatorios');return;}
+
+  const data={
+    nome:nome,
+    empresa:empresa,
+    endereco:endereco,
+    responsavel:responsavel,
+    email:email,
+    vendedor:document.getElementById('dmVendedor').value,
+    numeroProposta:document.getElementById('dmNumeroProposta').value,
+    observacao:document.getElementById('dmObservacao').value,
+    link:document.getElementById('dmLink').value,
+    pdfFileName:demaisPdfFileName||null,
+    pdfBase64:demaisPdfBase64||null,
+    tipo:'Demais Propostas',
+    updatedAt:new Date().toISOString(),
+    updatedBy:window.currentUser?.name||'—'
+  };
+
+  if(editandoDemaisId){
+    propostasRef.child(editandoDemaisId).update(data);
+    showToast('Proposta atualizada!');
+  } else {
+    data.status='nova_os';
+    data.createdAt=new Date().toISOString();
+    data.revisao=false;
+    propostasRef.push(data);
+    showToast('Proposta criada!');
+  }
+  fecharDemais();
+}
 </script>
 </body>
 </html>
