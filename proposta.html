@@ -3251,6 +3251,7 @@ let demaisPdfFileName=null;
 
 function abrirDemaisProposta(){
   document.getElementById('novaPropostaMenu').style.display='none';
+  demaisDirty=false;
   editandoDemaisId=null;
   demaisPdfBase64=null;
   demaisPdfFileName=null;
@@ -3270,9 +3271,11 @@ function abrirDemaisProposta(){
   dmImagens=[];
   renderImgGallery('dm');
   document.getElementById('demaisOverlay').classList.add('open');
+  setTimeout(()=>{demaisDirty=false;},50);
 }
 
 function abrirDemaisExistente(p){
+  demaisDirty=false;
   editandoDemaisId=p.id;
   demaisPdfBase64=p.pdfBase64||null;
   demaisPdfFileName=p.pdfFileName||null;
@@ -3299,20 +3302,22 @@ function abrirDemaisExistente(p){
   dmImagens=p.imagens||[];
   renderImgGallery('dm');
   document.getElementById('demaisOverlay').classList.add('open');
+  setTimeout(()=>{demaisDirty=false;},50);
 }
 
+let demaisDirty=false;
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('demaisOverlay');
+  if(ov) ov.addEventListener('input',()=>{demaisDirty=true;});
+});
 function fecharDemais(){
-  // Check if there are unsaved changes
-  const hasContent=document.getElementById('dmNome').value.trim()||
-    document.getElementById('dmEmpresa').value.trim()||
-    document.getElementById('dmEndereco').value.trim()||
-    document.getElementById('dmObservacao').value.trim();
-  if(hasContent){
+  if(demaisDirty){
     if(confirm('Existem alteracoes nao salvas. Deseja salvar antes de voltar?')){
       salvarDemais();
       return;
     }
   }
+  demaisDirty=false;
   const sb=document.getElementById('comentariosSidebarDemais');
   if(sb) sb.classList.remove('open');
   stopDemaisComentarios();
@@ -3467,6 +3472,7 @@ function salvarDemais(){
     editandoDemaisId=newRef.key;
     showToast('Proposta criada!');
   }
+  demaisDirty=false;
   fecharDemais();
 }
 
