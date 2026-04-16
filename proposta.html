@@ -673,6 +673,11 @@ body{
     <div class="novaos-tabs" id="osTabBar"></div>
     <div id="osTabContent"></div>
 
+    <div class="novaos-field">
+      <label>Observacao</label>
+      <textarea id="osObservacao" rows="4" placeholder="Observacoes sobre o projeto..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.92rem;resize:vertical"></textarea>
+    </div>
+
     <div class="novaos-section">Imagens</div>
     <div style="margin-bottom:12px">
       <label class="btn btn-secondary" style="padding:8px 16px;cursor:pointer;display:inline-block;font-size:.85rem">
@@ -991,6 +996,10 @@ body{
       <div class="info-field">
         <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Vendedor</label>
         <input type="text" id="infoVendedor" readonly style="width:100%;background:var(--surface);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem;opacity:.85;cursor:default">
+      </div>
+      <div class="info-field">
+        <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Observacao</label>
+        <textarea id="infoObservacao" readonly rows="3" style="width:100%;background:var(--surface);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.88rem;opacity:.85;cursor:default;resize:none"></textarea>
       </div>
       <div class="info-field">
         <label style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block">Imagens</label>
@@ -2755,6 +2764,7 @@ function abrirNovaProposta(tipo){
   document.getElementById('osVendedor').value=window.currentUser?.name||'';
   document.getElementById('osNumeroProposta').value=gerarNumeroProposta();
   document.getElementById('osMunicipio').selectedIndex=0;
+  document.getElementById('osObservacao').value='';
   // Clear error styling
   document.querySelectorAll('#novaOsOverlay .field-error').forEach(el=>el.classList.remove('field-error'));
   renderOsTabBar();
@@ -2809,6 +2819,7 @@ function salvarNovaOs(){
     email:email.value.trim(),
     numeroProposta:numeroProposta.value,
     municipio:municipio.value,
+    observacao:document.getElementById('osObservacao').value.trim(),
     tipo:propostaTipo,
     updatedAt:new Date().toISOString(),
     updatedBy:window.currentUser?.name||'—',
@@ -2856,6 +2867,7 @@ function abrirPropostaExistente(id){
     document.getElementById('osVendedor').value=p.vendedor||'';
     document.getElementById('osNumeroProposta').value=p.numeroProposta||gerarNumeroProposta();
     document.getElementById('osMunicipio').value=p.municipio||'';
+    document.getElementById('osObservacao').value=p.observacao||'';
     if(p.tabs&&p.tabs.length){
       osTabs=p.tabs.map(t=>({
         id:t.id,nome:t.nome||'',categoria:t.categoria||'Torre',m2:t.m2||0,torres:t.torres||1,
@@ -3447,6 +3459,7 @@ function loadInfoSidebar(p){
   document.getElementById('infoResponsavel').value=p.responsavel||'';
   document.getElementById('infoEmail').value=p.email||'';
   document.getElementById('infoVendedor').value=p.vendedor||'';
+  document.getElementById('infoObservacao').value=p.observacao||'';
   infoImagens=p.infoImagens||[];
   renderImgGallery('info');
 }
