@@ -886,21 +886,6 @@ body{
 
       </div><!-- /composicaoSection -->
 
-      <!-- Objeto da Proposta (toggle) -->
-      <div class="panel-section">
-        <button onclick="const s=document.getElementById('objetoPropostaContent');const a=document.getElementById('objetoToggleArrow');if(s.style.display==='none'){s.style.display='block';a.style.transform='rotate(90deg)';}else{s.style.display='none';a.style.transform='rotate(0)';}" style="
-          width:100%;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
-          padding:12px 16px;color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
-          font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;
-          display:flex;align-items:center;justify-content:space-between;transition:background .15s;
-        ">
-          <span>Objeto da Proposta</span>
-          <span id="objetoToggleArrow" style="transition:transform .2s">&#9654;</span>
-        </button>
-        <div id="objetoPropostaContent" style="display:none;margin-top:12px">
-          <div id="objetoPropostaList"></div>
-        </div>
-      </div>
 
 
     </div><!-- /panel-form -->
@@ -960,6 +945,21 @@ body{
         </div>
       </div>
 
+      <!-- Objeto da Proposta (toggle) -->
+      <div class="panel-section">
+        <button onclick="const s=document.getElementById('objetoPropostaContent');const a=document.getElementById('objetoToggleArrow');if(s.style.display==='none'){s.style.display='block';a.style.transform='rotate(90deg)';}else{s.style.display='none';a.style.transform='rotate(0)';}" style="
+          width:100%;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+          padding:12px 16px;color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+          font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;
+          display:flex;align-items:center;justify-content:space-between;transition:background .15s;
+        ">
+          <span>Objeto da Proposta</span>
+          <span id="objetoToggleArrow" style="transition:transform .2s">&#9654;</span>
+        </button>
+        <div id="objetoPropostaContent" style="display:none;margin-top:12px">
+          <div id="objetoPropostaList"></div>
+        </div>
+      </div>
 
     </div>
   </div>
