@@ -940,6 +940,7 @@ body{
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Demais Propostas</h2>
     <div style="display:flex;gap:8px">
       <button class="btn btn-success" onclick="salvarDemais()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+      <button class="btn btn-secondary" onclick="toggleComentariosDemais()" style="padding:6px 12px;font-size:.8rem">💬 Comentario</button>
     </div>
   </div>
   <div style="padding:28px;max-width:700px">
@@ -978,10 +979,6 @@ body{
         <textarea id="dmObservacao" rows="5" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
       </div>
       <div class="novaos-field">
-        <label>Comentario</label>
-        <textarea id="dmComentario" rows="3" placeholder="Adicione um comentario..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
-      </div>
-      <div class="novaos-field">
         <label>Link da Proposta</label>
         <div style="display:flex;align-items:center;gap:8px">
           <input type="url" id="dmLink" placeholder="https://..." style="flex:1" oninput="document.getElementById('dmLinkBtn').style.display=this.value.trim()?'inline-flex':'none'">
@@ -1011,6 +1008,18 @@ body{
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  <!-- Comentarios sidebar for Demais -->
+  <div class="comentarios-sidebar" id="comentariosSidebarDemais">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #2e2818">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text);margin:0">Comentarios</h3>
+      <button onclick="toggleComentariosDemais()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px">✕</button>
+    </div>
+    <div class="comentarios-list" id="comentariosListDemais"></div>
+    <div style="padding:12px;border-top:1px solid #2e2818">
+      <textarea id="comentarioInputDemais" rows="3" placeholder="Escreva um comentario... Use @ para mencionar" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:8px;font-family:'Barlow',sans-serif;font-size:.85rem;resize:none"></textarea>
+      <button class="btn" onclick="enviarComentarioDemais()" style="margin-top:6px;width:100%;padding:8px;font-size:.82rem">Enviar</button>
     </div>
   </div>
 </div><!-- /demais-overlay -->
@@ -3145,6 +3154,9 @@ function abrirDemaisExistente(p){
 }
 
 function fecharDemais(){
+  const sb=document.getElementById('comentariosSidebarDemais');
+  if(sb) sb.classList.remove('open');
+  stopDemaisComentarios();
   document.getElementById('demaisOverlay').classList.remove('open');
   editandoDemaisId=null;
 }
@@ -3191,6 +3203,65 @@ function removerDemaisPdf(){
   document.getElementById('dmPdfPreview').style.display='none';
 }
 
+/* ─── Comentarios Demais Propostas ─── */
+let demaisComentariosListener=null;
+
+function toggleComentariosDemais(){
+  const sb=document.getElementById('comentariosSidebarDemais');
+  if(sb.classList.contains('open')){
+    sb.classList.remove('open');
+    stopDemaisComentarios();
+  } else {
+    sb.classList.add('open');
+    startDemaisComentarios();
+  }
+}
+
+function startDemaisComentarios(){
+  const list=document.getElementById('comentariosListDemais');
+  list.innerHTML='';
+  if(!editandoDemaisId)return;
+  const ref=db.ref('propostaComentarios/'+editandoDemaisId);
+  demaisComentariosListener=ref.on('child_added',snap=>{
+    const c=snap.val();
+    if(!c)return;
+    const d=c.data?new Date(c.data):new Date();
+    const dt=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const div=document.createElement('div');
+    div.style.cssText='padding:10px 14px;border-bottom:1px solid #1e1a12';
+    if(c.tipo==='sistema'){
+      div.innerHTML=`<div style="display:flex;align-items:flex-start;gap:8px"><div style="width:3px;min-height:24px;background:var(--orange);border-radius:2px;margin-top:2px"></div><div><span style="font-size:.78rem;color:var(--text-dim)">${dt}</span> <strong style="color:var(--text)">${c.autor||''}</strong> <span style="color:var(--text-dim);font-size:.82rem">— ${c.texto||''}</span></div></div>`;
+    } else {
+      let texto=c.texto||'';
+      texto=texto.replace(/@([\w\s]+?)(?=\s|$|[.,!?])/g,'<span style="color:var(--orange);font-weight:600">@$1</span>');
+      div.innerHTML=`<div style="padding:4px 0"><strong style="color:var(--orange);font-size:.88rem">${c.autor||''}</strong><div style="font-size:.72rem;color:var(--text-dim);margin:2px 0">${dt}</div><div style="color:var(--text);font-size:.85rem;margin-top:4px">${texto}</div></div>`;
+    }
+    list.appendChild(div);
+    list.scrollTop=list.scrollHeight;
+  });
+}
+
+function stopDemaisComentarios(){
+  if(editandoDemaisId&&demaisComentariosListener){
+    db.ref('propostaComentarios/'+editandoDemaisId).off('child_added',demaisComentariosListener);
+    demaisComentariosListener=null;
+  }
+}
+
+function enviarComentarioDemais(){
+  const input=document.getElementById('comentarioInputDemais');
+  const texto=input.value.trim();
+  if(!texto||!editandoDemaisId)return;
+  db.ref('propostaComentarios/'+editandoDemaisId).push({
+    tipo:'comentario',
+    texto:texto,
+    autor:window.currentUser?.name||'—',
+    autorId:window.currentUser?.userId||'',
+    data:new Date().toISOString()
+  });
+  input.value='';
+}
+
 function salvarDemais(){
   const nome=document.getElementById('dmNome').value.trim();
   const empresa=document.getElementById('dmEmpresa').value.trim();
@@ -3217,7 +3288,6 @@ function salvarDemais(){
     vendedor:document.getElementById('dmVendedor').value,
     numeroProposta:document.getElementById('dmNumeroProposta').value,
     observacao:document.getElementById('dmObservacao').value,
-    comentarioTexto:document.getElementById('dmComentario').value,
     link:document.getElementById('dmLink').value,
     pdfFileName:demaisPdfFileName||null,
     pdfBase64:demaisPdfBase64||null,
@@ -3233,7 +3303,8 @@ function salvarDemais(){
     data.status='nova_os';
     data.createdAt=new Date().toISOString();
     data.revisao=false;
-    propostasRef.push(data);
+    const newRef=propostasRef.push(data);
+    editandoDemaisId=newRef.key;
     showToast('Proposta criada!');
   }
   fecharDemais();
