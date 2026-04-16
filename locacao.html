@@ -518,6 +518,7 @@ body{
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 /* ── AUTH GUARD ─────────────────────────────── */
 (function(){
@@ -567,6 +568,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 
 /* ── SYNC SESSION ─────────────────────────────── */
 (function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
@@ -797,7 +799,10 @@ function renderNfList(){
 
 function openArquivo(idx){
   const a=currentArquivos[idx];
-  if(a&&a.data){
+  if(!a)return;
+  if(a.url){
+    window.open(a.url,'_blank');
+  }else if(a.data){
     const w=window.open();
     if(w){
       w.document.write('<html><head><title>'+a.name+'</title></head><body style="margin:0">');
@@ -865,13 +870,16 @@ function saveLocacao(){
     let loaded=[];
     let count=0;
     newFiles.forEach((file,i)=>{
-      const reader=new FileReader();
-      reader.onload=function(e){
-        loaded.push({name:file.name,data:e.target.result});
+      const uniqueName=Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name;
+      const ref=storage.ref('locacao-nf/'+uniqueName);
+      ref.put(file).then(snapshot=>snapshot.ref.getDownloadURL()).then(downloadUrl=>{
+        loaded.push({name:file.name,url:downloadUrl});
         count++;
         if(count===newFiles.length) doSave(loaded);
-      };
-      reader.readAsDataURL(file);
+      }).catch(err=>{
+        console.error('Erro ao enviar arquivo:',err);
+        alert('Erro ao enviar arquivo: '+file.name);
+      });
     });
   }else{
     doSave([]);
@@ -914,7 +922,10 @@ function openNF(locId,fileIdx){
   const arquivos=l.arquivos||[];
   if(!arquivos.length&&l.nfData) arquivos.push({name:l.nfName,data:l.nfData});
   const a=arquivos[fileIdx];
-  if(a&&a.data){
+  if(!a)return;
+  if(a.url){
+    window.open(a.url,'_blank');
+  }else if(a.data){
     const w=window.open();
     if(w){
       w.document.write('<html><head><title>'+a.name+'</title></head><body style="margin:0">');

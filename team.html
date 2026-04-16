@@ -431,7 +431,7 @@ body{
         </div>
         <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
         <div class="photo-upload-info">
-          <div class="hint">Clique no círculo ou use o botão para enviar uma foto. Formatos aceitos: JPG, PNG. A imagem será armazenada localmente.</div>
+          <div class="hint">Clique no círculo ou use o botão para enviar uma foto. Formatos aceitos: JPG, PNG. A imagem será armazenada na nuvem.</div>
           <div class="photo-btns">
             <button type="button" onclick="document.getElementById('photoInput').click()">Escolher Arquivo</button>
             <button type="button" onclick="clearPhoto()">Limpar</button>
@@ -476,6 +476,7 @@ body{
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 /* ── AUTH GUARD ─────────────────────────────── */
 (function(){
@@ -512,6 +513,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 
 /* ── SYNC SESSION ─────────────────────────────── */
 (function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
@@ -680,12 +682,16 @@ function handlePhoto(e){
   const file=e.target.files[0];
   if(!file)return;
   if(file.size>2*1024*1024){alert('A imagem deve ter no máximo 2 MB.');return}
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    currentPhoto=ev.target.result;
+  const ref=storage.ref('team-fotos/'+Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name);
+  ref.put(file).then(function(snapshot){
+    return snapshot.ref.getDownloadURL();
+  }).then(function(url){
+    currentPhoto=url;
     updatePhotoPreview();
-  };
-  reader.readAsDataURL(file);
+  }).catch(function(err){
+    console.error('Erro ao enviar foto:',err);
+    alert('Erro ao enviar foto. Tente novamente.');
+  });
 }
 function clearPhoto(){
   currentPhoto="";

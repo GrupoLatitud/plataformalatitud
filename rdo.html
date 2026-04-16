@@ -827,6 +827,7 @@ body{
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 /* ── AUTH GUARD ─────────────────────────────── */
 (function(){
@@ -862,6 +863,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 
 /* ── SYNC SESSION ─────────────────────────────── */
 (function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
@@ -1867,33 +1869,40 @@ function renderPhotos(){
     grid.innerHTML='';
     return;
   }
-  grid.innerHTML=currentRdo.photos.map((p,i)=>`
+  grid.innerHTML=currentRdo.photos.map((p,i)=>{
+    const src=(p.url||p.dataUrl||'').replace(/'/g,"\\'");
+    return `
     <div class="photo-item">
-      <div class="photo-item-thumb" onclick="openLightbox('${p.dataUrl.replace(/'/g,"\\'")}')">
-        <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      <div class="photo-item-thumb" onclick="openLightbox('${src}')">
+        <img src="${src}" alt="Foto ${i+1}">
       </div>
       <div class="photo-item-info">
         <textarea placeholder="Descrição da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
         <div class="photo-time">${p.timestamp||''}</div>
       </div>
       <button class="photo-delete" onclick="removePhoto(${i})">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function handlePhotos(event){
   const files=event.target.files;
   if(!files.length) return;
+  const maxSize=10*1024*1024; // 10MB
   Array.from(files).forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=function(e){
+    if(file.size>maxSize){alert('Arquivo "'+file.name+'" excede 10MB e não será enviado.');return;}
+    const ts=Date.now();
+    const rid=Math.random().toString(36).substr(2,9);
+    const ref=storage.ref('rdo-fotos/'+ts+'_'+rid+'_'+file.name);
+    ref.put(file).then(snapshot=>snapshot.ref.getDownloadURL()).then(url=>{
       currentRdo.photos.push({
-        dataUrl:e.target.result,
+        name:file.name,
+        url:url,
         description:'',
         timestamp:new Date().toLocaleString('pt-BR')
       });
       renderPhotos();
-    };
-    reader.readAsDataURL(file);
+    }).catch(err=>{console.error('Erro upload foto:',err);alert('Erro ao enviar foto: '+file.name);});
   });
   event.target.value='';
 }
@@ -1912,14 +1921,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   area.addEventListener('drop',e=>{
     e.preventDefault();area.style.borderColor='#3a3020';
     const files=e.dataTransfer.files;
+    const maxSize=10*1024*1024; // 10MB
     Array.from(files).forEach(file=>{
       if(!file.type.startsWith('image/')) return;
-      const reader=new FileReader();
-      reader.onload=function(ev){
-        currentRdo.photos.push({dataUrl:ev.target.result,description:'',timestamp:new Date().toLocaleString('pt-BR')});
+      if(file.size>maxSize){alert('Arquivo "'+file.name+'" excede 10MB e não será enviado.');return;}
+      const ts=Date.now();
+      const rid=Math.random().toString(36).substr(2,9);
+      const ref=storage.ref('rdo-fotos/'+ts+'_'+rid+'_'+file.name);
+      ref.put(file).then(snapshot=>snapshot.ref.getDownloadURL()).then(url=>{
+        currentRdo.photos.push({name:file.name,url:url,description:'',timestamp:new Date().toLocaleString('pt-BR')});
         renderPhotos();
-      };
-      reader.readAsDataURL(file);
+      }).catch(err=>{console.error('Erro upload foto:',err);alert('Erro ao enviar foto: '+file.name);});
     });
   });
 });

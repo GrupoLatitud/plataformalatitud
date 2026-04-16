@@ -1091,6 +1091,7 @@ body{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 console.log('[Overview] Script iniciado');
 /* ── AUTH GUARD ─────────────────────────────── */
@@ -1141,6 +1142,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 console.log('[Overview] Firebase OK, user:', window.currentUser?.name, 'role:', window.currentUser?.role, 'allowedProjects:', window.currentUser?.allowedProjects);
 
 /* ── SYNC SESSION FROM FIREBASE ────────────────── */
@@ -2484,8 +2486,8 @@ function renderPhotos(){
   }
   grid.innerHTML=currentRdo.photos.map((p,i)=>`
     <div class="photo-item">
-      <div class="photo-item-thumb" onclick="openLightbox('${p.dataUrl.replace(/'/g,"\\'")}')">
-        <img src="${p.dataUrl}" alt="Foto ${i+1}">
+      <div class="photo-item-thumb" onclick="openLightbox('${(p.url||p.dataUrl||'').replace(/'/g,"\\'")}')">
+        <img src="${p.url||p.dataUrl||''}" alt="Foto ${i+1}">
       </div>
       <div class="photo-item-info">
         <textarea placeholder="Descrição da foto..." onchange="currentRdo.photos[${i}].description=this.value">${p.description||''}</textarea>
@@ -2499,16 +2501,21 @@ function handlePhotos(event){
   const files=event.target.files;
   if(!files.length) return;
   Array.from(files).forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=function(e){
+    if(!file.type.startsWith('image/')) return;
+    const uniqueName=Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name;
+    const ref=storage.ref('rdo-fotos/'+uniqueName);
+    ref.put(file).then(snapshot=>snapshot.ref.getDownloadURL()).then(url=>{
       currentRdo.photos.push({
-        dataUrl:e.target.result,
+        name:file.name,
+        url:url,
         description:'',
         timestamp:new Date().toLocaleString('pt-BR')
       });
       renderPhotos();
-    };
-    reader.readAsDataURL(file);
+    }).catch(err=>{
+      console.error('Erro ao enviar foto:',err);
+      alert('Erro ao enviar foto: '+err.message);
+    });
   });
   event.target.value='';
 }
@@ -2538,12 +2545,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     const files=e.dataTransfer.files;
     Array.from(files).forEach(file=>{
       if(!file.type.startsWith('image/')) return;
-      const reader=new FileReader();
-      reader.onload=function(ev){
-        currentRdo.photos.push({dataUrl:ev.target.result,description:'',timestamp:new Date().toLocaleString('pt-BR')});
+      const uniqueName=Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name;
+      const ref=storage.ref('rdo-fotos/'+uniqueName);
+      ref.put(file).then(snapshot=>snapshot.ref.getDownloadURL()).then(url=>{
+        currentRdo.photos.push({name:file.name,url:url,description:'',timestamp:new Date().toLocaleString('pt-BR')});
         renderPhotos();
-      };
-      reader.readAsDataURL(file);
+      }).catch(err=>{
+        console.error('Erro ao enviar foto:',err);
+        alert('Erro ao enviar foto: '+err.message);
+      });
     });
   });
 });
@@ -2923,12 +2933,13 @@ function generatePdf(){
       const photoH=60;
       let col=0;
       photos.forEach((photo,idx)=>{
-        if(!photo.dataUrl) return;
+        const photoSrc=photo.url||photo.dataUrl;
+        if(!photoSrc) return;
         checkPage(photoH+18);
         const px=margin+(col*(photoW+6));
         try{
-          const format=photo.dataUrl.indexOf('image/png')>=0?'PNG':'JPEG';
-          doc.addImage(photo.dataUrl,format,px,y,photoW,photoH);
+          const format=(photoSrc.indexOf('image/png')>=0||photoSrc.indexOf('.png')>=0)?'PNG':'JPEG';
+          doc.addImage(photoSrc,format,px,y,photoW,photoH);
         }catch(e){
           doc.setFillColor(220,220,220);
           doc.rect(px,y,photoW,photoH,'F');
