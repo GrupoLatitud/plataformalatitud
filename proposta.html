@@ -3138,7 +3138,6 @@ function abrirDemaisExistente(p){
   document.getElementById('dmMunicipio').value=p.municipio||'';
   document.getElementById('dmValorTotal').value=p.valorTotal?fmtBRL(p.valorTotal):'';
   document.getElementById('dmObservacao').value=p.observacao||'';
-  document.getElementById('dmComentario').value=p.comentarioTexto||'';
   document.getElementById('dmLink').value=p.link||'';
   document.getElementById('dmLinkBtn').style.display=(p.link?'inline-flex':'none');
   if(p.pdfFileName&&p.pdfBase64){
