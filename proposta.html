@@ -962,7 +962,13 @@ body{
       </div>
       <div class="novaos-field">
         <label>Link da Proposta</label>
-        <input type="url" id="dmLink" placeholder="https://..." style="width:100%">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="url" id="dmLink" placeholder="https://..." style="flex:1" oninput="document.getElementById('dmLinkBtn').style.display=this.value.trim()?'inline-flex':'none'">
+          <a id="dmLinkBtn" href="#" target="_blank" onclick="this.href=document.getElementById('dmLink').value" style="display:none;align-items:center;gap:4px;background:none;border:1px solid var(--orange);color:var(--orange);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;white-space:nowrap;text-decoration:none;transition:background .15s" onmouseenter="this.style.background='rgba(245,132,31,.1)'" onmouseleave="this.style.background='none'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Abrir
+          </a>
+        </div>
       </div>
       <div class="novaos-field">
         <label>Proposta PDF</label>
@@ -3072,6 +3078,7 @@ function abrirDemaisProposta(){
   document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
   document.getElementById('dmObservacao').value='';
   document.getElementById('dmLink').value='';
+  document.getElementById('dmLinkBtn').style.display='none';
   document.getElementById('dmPdfEmpty').style.display='';
   document.getElementById('dmPdfPreview').style.display='none';
   document.getElementById('demaisOverlay').classList.add('open');
@@ -3090,6 +3097,7 @@ function abrirDemaisExistente(p){
   document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
   document.getElementById('dmObservacao').value=p.observacao||'';
   document.getElementById('dmLink').value=p.link||'';
+  document.getElementById('dmLinkBtn').style.display=(p.link?'inline-flex':'none');
   if(p.pdfFileName&&p.pdfBase64){
     document.getElementById('dmPdfEmpty').style.display='none';
     document.getElementById('dmPdfPreview').style.display='';
