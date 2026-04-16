@@ -333,11 +333,19 @@ body{
 .section-toggle.collapsed{transform:rotate(-90deg)}
 .row-finalizada td{color:var(--text-dim)!important;font-weight:400!important}
 .btn-finalizar{
-  background:none;border:none;cursor:pointer;font-size:1rem;
-  padding:4px 6px;border-radius:4px;transition:background .15s;
-  color:#2ecc71;
+  background:none;border:1px solid #e74c3c;color:#e74c3c;
+  padding:3px 10px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  white-space:nowrap;transition:all .15s;
 }
-.btn-finalizar:hover{background:rgba(46,204,113,.15)}
+.btn-finalizar:hover{background:#e74c3c22}
+.btn-editar{
+  background:none;border:1px solid var(--text-dim);color:var(--text-dim);
+  padding:3px 10px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  white-space:nowrap;transition:all .15s;
+}
+.btn-editar:hover{background:rgba(255,255,255,.08);color:var(--text);border-color:var(--text)}
 
 @media(max-width:600px){
   .page-body{padding:16px}
@@ -698,8 +706,8 @@ function render(){
         </td>
         <td>
           <div class="row-actions">
-            <button onclick="editLocacao(${l.id})" title="Editar">✏️</button>
-            <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})" title="Finalizar locação">✅</button>
+            <button class="btn-editar" onclick="editLocacao(${l.id})">Editar</button>
+            <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})">Finalizar</button>
           </div>
         </td>
       </tr>`;
