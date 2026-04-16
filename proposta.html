@@ -863,6 +863,17 @@ body{
           </table>
         </div>
 
+      <!-- Imagens -->
+      <div class="panel-section">
+        <div class="panel-section-title">Imagens</div>
+        <input type="file" id="ppImgFile" accept="image/*" multiple style="display:none" onchange="handleImagens(this,'pp')">
+        <div class="img-gallery" id="ppImgGallery"></div>
+        <div class="img-dropzone" onclick="document.getElementById('ppImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Clique para adicionar imagens</span>
+        </div>
+      </div>
+
       </div>
     </div>
 
@@ -937,16 +948,6 @@ body{
         </div>
       </div>
 
-      <!-- Imagens -->
-      <div class="panel-section">
-        <div class="panel-section-title">Imagens</div>
-        <input type="file" id="ppImgFile" accept="image/*" multiple style="display:none" onchange="handleImagens(this,'pp')">
-        <div class="img-gallery" id="ppImgGallery"></div>
-        <div class="img-dropzone" onclick="document.getElementById('ppImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <span>Clique para adicionar imagens</span>
-        </div>
-      </div>
     </div>
   </div>
   </div><!-- /padding -->
