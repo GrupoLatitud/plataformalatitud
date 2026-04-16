@@ -1240,6 +1240,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 
 /* ── SYNC SESSION ─────────────────────────────── */
 (function(){const u=window.currentUser;if(!u||!u.userId)return;db.ref('users/'+u.userId).once('value').then(s=>{const d=s.val();if(!d||d.active===false){localStorage.removeItem('loggedUser');window.location.href='login.html';return;}const up={userId:u.userId,name:d.name,username:d.username,role:d.role,pages:d.pages||{},allowedProjects:d.allowedProjects||'all',loginAt:u.loginAt};localStorage.setItem('loggedUser',JSON.stringify(up));window.currentUser=up}).catch(()=>{})})();
@@ -3277,6 +3278,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* ═══ DEMAIS PROPOSTAS ═══ */
 let editandoDemaisId=null;
 let demaisPdfBase64=null;
+let demaisPdfUrl=null;
 let demaisPdfFileName=null;
 
 function abrirDemaisProposta(){
@@ -3284,6 +3286,7 @@ function abrirDemaisProposta(){
   demaisDirty=false;
   editandoDemaisId=null;
   demaisPdfBase64=null;
+  demaisPdfUrl=null;
   demaisPdfFileName=null;
   document.getElementById('dmNome').value='';
   document.getElementById('dmEmpresa').value='';
@@ -3308,6 +3311,7 @@ function abrirDemaisExistente(p){
   demaisDirty=false;
   editandoDemaisId=p.id;
   demaisPdfBase64=p.pdfBase64||null;
+  demaisPdfUrl=p.pdfUrl||null;
   demaisPdfFileName=p.pdfFileName||null;
   document.getElementById('dmNome').value=p.nome||'';
   document.getElementById('dmEmpresa').value=p.empresa||'';
@@ -3320,7 +3324,7 @@ function abrirDemaisExistente(p){
   document.getElementById('dmObservacao').value=p.observacao||'';
   document.getElementById('dmLink').value=p.link||'';
   document.getElementById('dmLinkBtn').style.display=(p.link?'inline-flex':'none');
-  if(p.pdfFileName&&p.pdfBase64){
+  if(p.pdfFileName&&(p.pdfBase64||p.pdfUrl)){
     document.getElementById('dmPdfEmpty').style.display='none';
     document.getElementById('dmPdfPreview').style.display='';
     document.getElementById('dmPdfName').textContent=p.pdfFileName;
@@ -3365,20 +3369,30 @@ function handleDemaisPdf(input){
   }
   demaisPdfFileName=file.name;
   const sizeTxt=file.size<1024*1024?(file.size/1024).toFixed(0)+' KB':(file.size/(1024*1024)).toFixed(1)+' MB';
-  const reader=new FileReader();
-  reader.onload=function(e){
-    demaisPdfBase64=e.target.result;
-    document.getElementById('dmPdfEmpty').style.display='none';
-    document.getElementById('dmPdfPreview').style.display='';
-    document.getElementById('dmPdfName').textContent=file.name;
+  document.getElementById('dmPdfEmpty').style.display='none';
+  document.getElementById('dmPdfPreview').style.display='';
+  document.getElementById('dmPdfName').textContent=file.name;
+  document.getElementById('dmPdfSize').textContent='Enviando...';
+  const ts=Date.now()+'_'+Math.random().toString(36).substr(2,6);
+  const ref=storage.ref('pdfs/'+ts+'_'+file.name);
+  ref.put(file).then(snap=>snap.ref.getDownloadURL()).then(url=>{
+    demaisPdfUrl=url;
+    demaisPdfBase64=null;
     document.getElementById('dmPdfSize').textContent=sizeTxt;
-  };
-  reader.readAsDataURL(file);
+    demaisDirty=true;
+  }).catch(()=>{
+    showToast('Erro ao enviar PDF');
+    document.getElementById('dmPdfEmpty').style.display='';
+    document.getElementById('dmPdfPreview').style.display='none';
+  });
 }
 
 function visualizarDemaisPdf(){
+  if(demaisPdfUrl){
+    window.open(demaisPdfUrl,'_blank');
+    return;
+  }
   if(!demaisPdfBase64)return;
-  // Convert base64 data URL to Blob for reliable viewing
   const parts=demaisPdfBase64.split(',');
   const mime=parts[0].match(/:(.*?);/)[1];
   const bstr=atob(parts[1]);
@@ -3391,6 +3405,7 @@ function visualizarDemaisPdf(){
 
 function removerDemaisPdf(){
   demaisPdfBase64=null;
+  demaisPdfUrl=null;
   demaisPdfFileName=null;
   document.getElementById('dmPdfFile').value='';
   document.getElementById('dmPdfEmpty').style.display='';
@@ -3485,6 +3500,7 @@ function salvarDemais(){
     link:document.getElementById('dmLink').value,
     pdfFileName:demaisPdfFileName||null,
     pdfBase64:demaisPdfBase64||null,
+    pdfUrl:demaisPdfUrl||null,
     imagens:dmImagens,
     tipo:'Demais Propostas',
     updatedAt:new Date().toISOString(),
@@ -3539,49 +3555,52 @@ function saveInfoSidebar(){
 }
 let dmImagens=[];  // Demais Propostas
 
+function getImgArr(prefix){
+  return prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
+}
+function getImgSrc(img){return img.url||img.data||'';}
+
 function handleImagens(input, prefix){
   const files=Array.from(input.files);
   if(!files.length)return;
-  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
-  let remaining=files.length;
+  const arr=getImgArr(prefix);
   files.forEach(file=>{
-    if(file.size>3*1024*1024){showToast('Imagem '+file.name+' muito grande (max 3MB)');remaining--;return;}
-    const reader=new FileReader();
-    reader.onload=function(e){
-      arr.push({name:file.name,data:e.target.result});
-      remaining--;
-      if(remaining<=0) renderImgGallery(prefix);
-    };
-    reader.readAsDataURL(file);
+    if(file.size>3*1024*1024){showToast('Imagem '+file.name+' muito grande (max 3MB)');return;}
+    const ts=Date.now()+'_'+Math.random().toString(36).substr(2,6);
+    const ref=storage.ref('imagens/'+ts+'_'+file.name);
+    ref.put(file).then(snap=>snap.ref.getDownloadURL()).then(url=>{
+      arr.push({name:file.name,url:url});
+      renderImgGallery(prefix);
+    }).catch(()=>showToast('Erro ao enviar '+file.name));
   });
   input.value='';
 }
 
 function renderImgGallery(prefix){
-  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
+  const arr=getImgArr(prefix);
   const gallery=document.getElementById(prefix+'ImgGallery');
   if(!gallery)return;
   gallery.innerHTML=arr.map((img,i)=>`
     <div class="img-thumb" onclick="abrirLightbox('${prefix}',${i})">
-      <img src="${img.data}" alt="${img.name}">
+      <img src="${getImgSrc(img)}" alt="${img.name}">
       <button class="img-thumb-remove" onclick="event.stopPropagation();removerImagem('${prefix}',${i})" title="Remover">✕</button>
     </div>
   `).join('');
 }
 
 function removerImagem(prefix,idx){
-  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
+  const arr=getImgArr(prefix);
   arr.splice(idx,1);
   renderImgGallery(prefix);
 }
 
 function abrirLightbox(prefix,idx){
-  const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
+  const arr=getImgArr(prefix);
   if(!arr[idx])return;
   const lb=document.createElement('div');
   lb.className='img-lightbox';
   lb.onclick=()=>lb.remove();
-  lb.innerHTML='<img src="'+arr[idx].data+'">';
+  lb.innerHTML='<img src="'+getImgSrc(arr[idx])+'">';
   document.body.appendChild(lb);
 }
 </script>
