@@ -269,6 +269,18 @@ body{
 }
 .btn-save:hover{background:#e0750f}
 
+.btn-faturar{
+  background:none;border:1px solid #2ecc71;color:#2ecc71;
+  padding:3px 10px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  white-space:nowrap;transition:all .15s;
+}
+.btn-faturar:hover{background:#2ecc7122}
+.badge-faturado{
+  background:#2ecc7122;color:#2ecc71;font-size:.7rem;font-weight:700;
+  padding:3px 8px;border-radius:4px;white-space:nowrap;
+}
+
 /* DATE PICKER POPUP */
 .date-popup{
   position:fixed;z-index:600;background:var(--surface);border:1px solid #2e2818;
@@ -394,6 +406,7 @@ body{
           <th>Código</th>
           <th>Observação</th>
           <th>NF</th>
+          <th>Faturar</th>
           <th></th>
         </tr>
       </thead>
@@ -479,6 +492,7 @@ body{
       <div class="nf-files-list" id="nfFilesList"></div>
       <input type="file" id="fNF" accept=".pdf,.jpg,.jpeg,.png,.xml" multiple>
       <div class="hint">Aceita PDF, JPG, PNG ou XML — pode selecionar vários arquivos</div>
+      <div id="nfFaturadoMsg" style="display:none;color:#2ecc71;font-size:.78rem;margin-top:4px;font-weight:600">NF bloqueada — locação já faturada.</div>
     </div>
 
     <div class="modal-actions">
@@ -678,6 +692,11 @@ function render(){
         <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.obs||''}">${l.obs||'—'}</td>
         <td>${buildNfHTML(l)}</td>
         <td>
+          ${l.faturado
+            ?'<span class="badge-faturado">Faturado</span>'
+            :`<button class="btn-faturar" onclick="faturarLocacao(${l.id})">Faturar</button>`}
+        </td>
+        <td>
           <div class="row-actions">
             <button onclick="editLocacao(${l.id})" title="Editar">✏️</button>
             <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})" title="Finalizar locação">✅</button>
@@ -777,13 +796,17 @@ function openModal(loc){
     }
   }
 
-  renderNfList();
+  const isFaturado=loc&&loc.faturado;
+  document.getElementById('fNF').disabled=!!isFaturado;
+  document.getElementById('nfFaturadoMsg').style.display=isFaturado?'':'none';
+
+  renderNfList(isFaturado);
   populateProjectSelect();
   if(loc) document.getElementById('fProjeto').value=loc.projeto;
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function renderNfList(){
+function renderNfList(bloqueado){
   const container=document.getElementById('nfFilesList');
   if(!currentArquivos.length){
     container.innerHTML='';
@@ -792,7 +815,7 @@ function renderNfList(){
   container.innerHTML=currentArquivos.map((a,i)=>`
     <div class="nf-file-item">
       <span class="nf-file-name" onclick="openArquivo(${i})" title="${a.name}">📎 ${a.name}</span>
-      <button class="nf-file-remove" onclick="removeArquivo(${i})" title="Remover">✕</button>
+      ${bloqueado?'':'<button class="nf-file-remove" onclick="removeArquivo('+i+')" title="Remover">✕</button>'}
     </div>
   `).join('');
 }
@@ -855,6 +878,8 @@ function saveLocacao(){
       const idx=locacoes.findIndex(l=>l.id===editingId);
       if(idx>=0){
         data.id=editingId;
+        if(locacoes[idx].faturado) data.faturado=true;
+        if(locacoes[idx].finalizado){data.finalizado=true;data.dataFinalizacao=locacoes[idx].dataFinalizacao;}
         locacoes[idx]=data;
       }
     }else{
@@ -894,6 +919,16 @@ function editLocacao(id){
 function deleteLocacao(id){
   if(!confirm('Remover esta locação?'))return;
   locacoes=locacoes.filter(l=>l.id!==id);
+  saveData();
+  render();
+}
+
+function faturarLocacao(id){
+  const l=locacoes.find(x=>x.id===id);
+  if(!l)return;
+  if(!l.arquivos||!l.arquivos.length){alert('Anexe uma NF antes de faturar.');return;}
+  if(!confirm('Faturar esta locação? A NF será bloqueada para edição.'))return;
+  l.faturado=true;
   saveData();
   render();
 }
