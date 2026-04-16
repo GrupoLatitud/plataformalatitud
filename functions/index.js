@@ -1,5 +1,4 @@
-// Cloudflare Pages Function - proxy para abrir processo no Holmes
-// Evita problema de CORS fazendo a chamada pelo servidor
+const { onRequest } = require('firebase-functions/v2/https');
 
 const HOLMES_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNjdkYzJjMzUxNjk2YjgwYjc3ZjJlZTNlIiwiaWF0IjoxNzQyNDgyNDg1fQ.AYduCq4ode2wFUByBEWnWlkus6kBL9UmQA4SDtydjuo';
 const HOLMES_FLOW_ID = '69e13d8122a80a2f575004f2';
@@ -8,10 +7,14 @@ const FIELD_ITEM_LOCADO = '8b805b80-39cd-11f1-b017-3d7c97fba7e7';
 const FIELD_PROJETO = 'b3840a50-39cd-11f1-b017-3d7c97fba7e7';
 const FIELD_LINK_FATURA = 'af382fd0-39cd-11f1-b017-3d7c97fba7e7';
 
-export async function onRequestPost(context) {
+exports.faturar = onRequest({ cors: true, region: 'us-central1' }, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+    return;
+  }
+
   try {
-    const payload = await context.request.json();
-    const { fornecedor, itemLocado, projeto, linkFatura, titulo } = payload;
+    const { fornecedor, itemLocado, projeto, linkFatura, titulo } = req.body || {};
 
     const body = {
       workflow: {
@@ -30,7 +33,7 @@ export async function onRequestPost(context) {
       }
     };
 
-    const resp = await fetch(
+    const holmesResp = await fetch(
       `https://app-api.holmesdoc.io/v1/workflows/${HOLMES_FLOW_ID}/start?minimal=true`,
       {
         method: 'POST',
@@ -42,53 +45,17 @@ export async function onRequestPost(context) {
       }
     );
 
-    const text = await resp.text();
+    const text = await holmesResp.text();
     let data;
     try { data = JSON.parse(text); } catch (e) { data = { raw: text }; }
 
-    return new Response(JSON.stringify({
-      ok: resp.ok,
-      status: resp.status,
+    res.status(holmesResp.ok ? 200 : 502).json({
+      ok: holmesResp.ok,
+      status: holmesResp.status,
       data
-    }), {
-      status: resp.ok ? 200 : 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
     });
   } catch (err) {
-    return new Response(JSON.stringify({
-      ok: false,
-      error: err.message
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    console.error('Erro no proxy Holmes:', err);
+    res.status(500).json({ ok: false, error: err.message });
   }
-}
-
-export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
-}
-
-export async function onRequestGet() {
-  return new Response(JSON.stringify({
-    ok: true,
-    message: 'Cloudflare Function ativa. Use POST para faturar.'
-  }), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  });
-}
+});

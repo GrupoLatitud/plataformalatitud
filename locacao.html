@@ -957,7 +957,7 @@ function faturarLocacao(id){
   const nfUrl=(l.arquivos[0].url||l.arquivos[0].data||'');
   const titulo='Faturamento - '+l.equipamento+' - '+l.fornecedor;
 
-  fetch('/api/faturar',{
+  fetch('https://faturar-df4ooe2psq-uc.a.run.app',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({

@@ -3,3 +3,5 @@ serve.sh
 serve.py
 .claude/
 .DS_Store
+functions/node_modules/
+firebase-debug.log
