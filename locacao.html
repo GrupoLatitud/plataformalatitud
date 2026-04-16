@@ -350,12 +350,12 @@ body{
 }
 .btn-finalizar:hover{background:#e74c3c22}
 .btn-editar{
-  background:none;border:1px solid var(--orange);color:var(--orange);
+  background:none;border:1px solid #888;color:#888;
   padding:3px 10px;border-radius:6px;cursor:pointer;
   font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
   white-space:nowrap;transition:all .15s;
 }
-.btn-editar:hover{background:rgba(245,132,31,.13)}
+.btn-editar:hover{background:rgba(255,255,255,.08);color:#bbb;border-color:#bbb}
 
 @media(max-width:600px){
   .page-body{padding:16px}
@@ -659,15 +659,17 @@ function buildNfHTML(l){
   const arquivos=l.arquivos?[...l.arquivos]:[];
   if(!arquivos.length&&l.nfData&&l.nfName) arquivos.push({name:l.nfName,data:l.nfData});
   if(!arquivos.length) return `<span class="nf-empty">—</span>`;
-  return `<div class="nf-thumbs">${arquivos.map((a,i)=>{
-    const src=a.url||a.data||'';
-    if(isImageFile(a.name)&&src){
-      return `<img class="nf-thumb" src="${src}" title="${a.name}" onclick="openNF(${l.id},${i})">`;
-    }
-    return `<div class="nf-thumb-icon" title="${a.name}" onclick="openNF(${l.id},${i})">
+  const a=arquivos[0];const src=a.url||a.data||'';
+  const extra=arquivos.length>1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px">+${arquivos.length-1}</span>`:'';
+  let thumb='';
+  if(isImageFile(a.name)&&src){
+    thumb=`<img class="nf-thumb" src="${src}" title="${a.name}" onclick="openNF(${l.id},0)">`;
+  }else{
+    thumb=`<div class="nf-thumb-icon" title="${a.name}" onclick="openNF(${l.id},0)">
       <span style="font-size:1rem">📄</span><span>${getFileExt(a.name)}</span>
     </div>`;
-  }).join('')}</div>`;
+  }
+  return `<div class="nf-thumbs">${thumb}${extra}</div>`;
 }
 
 function render(){
