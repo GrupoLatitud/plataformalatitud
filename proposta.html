@@ -639,60 +639,90 @@ body{
     </button>
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Nova Ordem de Servico — Pintura Predial</h2>
   </div>
-  <div class="novaos-content">
-    <div class="novaos-section">Informacoes do Projeto</div>
-    <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
-    <div class="novaos-field"><label>Nome da Empresa *</label><input type="text" id="osEmpresa" placeholder="Nome da empresa"></div>
-    <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
-    <div class="novaos-row">
-      <div class="novaos-field"><label>Responsavel *</label><input type="text" id="osResponsavel" placeholder="Nome do responsavel"></div>
-      <div class="novaos-field"><label>E-mail Responsavel *</label><input type="email" id="osEmail" placeholder="email@exemplo.com"></div>
+  <div style="padding:28px;max-width:800px;margin:0 auto">
+
+    <!-- SECAO 1: Dados do Projeto -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dados do Projeto
+      </div>
+      <div class="novaos-field"><label>Nome do Projeto *</label><input type="text" id="osNome" placeholder="Ex: Residencial Aurora"></div>
+      <div class="novaos-field"><label>Nome da Empresa *</label><input type="text" id="osEmpresa" placeholder="Nome da empresa"></div>
+      <div class="novaos-field"><label>Endereco *</label><input type="text" id="osEndereco" placeholder="Rua, numero, bairro"></div>
     </div>
-    <div class="novaos-row">
-      <div class="novaos-field"><label>Vendedor</label><input type="text" id="osVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
-      <div class="novaos-field" style="max-width:160px"><label>Numero da Proposta</label><input type="text" id="osNumeroProposta" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
-      <div class="novaos-field"><label>Municipio *</label>
-        <select id="osMunicipio">
-          <option value="">Selecione...</option>
-          <option value="São Paulo">Sao Paulo</option>
-          <option value="Sorocaba">Sorocaba</option>
-          <option value="Itapetininga">Itapetininga</option>
-          <option value="São Roque">Sao Roque</option>
-          <option value="Guarujá">Guaruja</option>
-          <option value="Santos">Santos</option>
-          <option value="Itú">Itu</option>
-          <option value="Campinas">Campinas</option>
-          <option value="Outro">Outro</option>
-        </select>
+
+    <!-- SECAO 2: Contato -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Contato
+      </div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Responsavel *</label><input type="text" id="osResponsavel" placeholder="Nome do responsavel"></div>
+        <div class="novaos-field"><label>E-mail Responsavel *</label><input type="email" id="osEmail" placeholder="email@exemplo.com"></div>
+      </div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Vendedor</label><input type="text" id="osVendedor" readonly style="background:var(--surface2);opacity:.85;cursor:default"></div>
+        <div class="novaos-field" style="max-width:160px"><label>Numero da Proposta</label><input type="text" id="osNumeroProposta" readonly style="background:var(--surface2);opacity:.85;cursor:default"></div>
+        <div class="novaos-field"><label>Municipio *</label>
+          <select id="osMunicipio">
+            <option value="">Selecione...</option>
+            <option value="São Paulo">Sao Paulo</option>
+            <option value="Sorocaba">Sorocaba</option>
+            <option value="Itapetininga">Itapetininga</option>
+            <option value="São Roque">Sao Roque</option>
+            <option value="Guarujá">Guaruja</option>
+            <option value="Santos">Santos</option>
+            <option value="Itú">Itu</option>
+            <option value="Campinas">Campinas</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <div class="novaos-section" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Abas</span>
+    <!-- SECAO 3: Abas (Torres / Itens) -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Abas
+      </div>
+      <div class="novaos-tabs" id="osTabBar"></div>
+      <div id="osTabContent"></div>
     </div>
-    <div class="novaos-tabs" id="osTabBar"></div>
-    <div id="osTabContent"></div>
 
-    <div class="novaos-field">
-      <label>Observacao</label>
-      <textarea id="osObservacao" rows="4" placeholder="Observacoes sobre o projeto..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.92rem;resize:vertical"></textarea>
+    <!-- SECAO 4: Observacao -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Observacao
+      </div>
+      <div class="novaos-field" style="margin-bottom:0">
+        <textarea id="osObservacao" rows="4" placeholder="Observacoes sobre o projeto..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid #2e2818;border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.92rem;resize:vertical"></textarea>
+      </div>
     </div>
 
-    <div class="novaos-section">Imagens</div>
-    <div style="margin-bottom:12px">
-      <label class="btn btn-secondary" style="padding:8px 16px;cursor:pointer;display:inline-block;font-size:.85rem">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        Adicionar Imagens
-        <input type="file" accept="image/*" multiple onchange="handleImagens(this,'os')" style="display:none">
-      </label>
-      <span style="color:var(--text-dim);font-size:.75rem;margin-left:8px">Max 3MB por imagem</span>
+    <!-- SECAO 5: Imagens -->
+    <div style="background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:20px 24px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Imagens
+      </div>
+      <input type="file" accept="image/*" multiple onchange="handleImagens(this,'os')" style="display:none" id="osImgFile">
+      <div id="osImgGallery" class="img-gallery"></div>
+      <div class="img-dropzone" onclick="document.getElementById('osImgFile').click()" onmouseenter="this.style.borderColor='var(--orange)';this.style.background='rgba(245,132,31,.04)'" onmouseleave="this.style.borderColor='#3a3225';this.style.background='none'" style="padding:18px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Clique para adicionar imagens</span>
+      </div>
     </div>
-    <div id="osImgGallery" class="img-gallery"></div>
 
-    <div class="novaos-actions">
+    <!-- Acoes -->
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;margin-bottom:28px">
       <button class="btn btn-secondary" onclick="fecharNovaOs()" style="padding:10px 24px">Cancelar</button>
       <button class="btn" onclick="salvarNovaOs()" style="padding:10px 24px">Criar Ordem de Servico</button>
     </div>
+
   </div>
 </div>
 
