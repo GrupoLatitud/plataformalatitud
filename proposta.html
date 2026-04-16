@@ -956,9 +956,30 @@ body{
         <div class="novaos-field"><label>Vendedor</label><input type="text" id="dmVendedor" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
         <div class="novaos-field" style="max-width:180px"><label>Numero da Proposta</label><input type="text" id="dmNumeroProposta" readonly style="background:var(--surface);opacity:.85;cursor:default"></div>
       </div>
+      <div class="novaos-row">
+        <div class="novaos-field"><label>Municipio</label>
+          <select id="dmMunicipio">
+            <option value="">Selecione...</option>
+            <option value="São Paulo">Sao Paulo</option>
+            <option value="Sorocaba">Sorocaba</option>
+            <option value="Itapetininga">Itapetininga</option>
+            <option value="São Roque">Sao Roque</option>
+            <option value="Guarujá">Guaruja</option>
+            <option value="Santos">Santos</option>
+            <option value="Itú">Itu</option>
+            <option value="Campinas">Campinas</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="novaos-field"><label>Valor Total (R$)</label><input type="text" id="dmValorTotal" placeholder="0,00" oninput="formatarValorDemais(this)"></div>
+      </div>
       <div class="novaos-field">
         <label>Observacao</label>
         <textarea id="dmObservacao" rows="5" placeholder="Descreva detalhes da proposta..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+      <div class="novaos-field">
+        <label>Comentario</label>
+        <textarea id="dmComentario" rows="3" placeholder="Adicione um comentario..." style="width:100%;background:var(--surface2);color:var(--text);border:1px solid #2e2818;border-radius:6px;padding:10px;font-family:'Barlow',sans-serif;font-size:.9rem;resize:vertical"></textarea>
       </div>
       <div class="novaos-field">
         <label>Link da Proposta</label>
@@ -1165,6 +1186,13 @@ let tabs = [createTab('001')];
 function fmtBRL(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtPct(v){return (v*100).toFixed(1)+'%';}
 function fmtNum(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function parseBRL(s){if(!s)return 0;return parseFloat(s.replace(/[R$\s.]/g,'').replace(',','.'))||0;}
+function formatarValorDemais(el){
+  let v=el.value.replace(/[^\d]/g,'');
+  if(!v){el.value='';return;}
+  v=(parseInt(v)/100).toFixed(2);
+  el.value='R$ '+v.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
 
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;
@@ -3076,7 +3104,10 @@ function abrirDemaisProposta(){
   document.getElementById('dmEmail').value='';
   document.getElementById('dmVendedor').value=window.currentUser?.name||'';
   document.getElementById('dmNumeroProposta').value=gerarNumeroProposta();
+  document.getElementById('dmMunicipio').value='';
+  document.getElementById('dmValorTotal').value='';
   document.getElementById('dmObservacao').value='';
+  document.getElementById('dmComentario').value='';
   document.getElementById('dmLink').value='';
   document.getElementById('dmLinkBtn').style.display='none';
   document.getElementById('dmPdfEmpty').style.display='';
@@ -3095,7 +3126,10 @@ function abrirDemaisExistente(p){
   document.getElementById('dmEmail').value=p.email||'';
   document.getElementById('dmVendedor').value=p.vendedor||'';
   document.getElementById('dmNumeroProposta').value=p.numeroProposta||'';
+  document.getElementById('dmMunicipio').value=p.municipio||'';
+  document.getElementById('dmValorTotal').value=p.valorTotal?fmtBRL(p.valorTotal):'';
   document.getElementById('dmObservacao').value=p.observacao||'';
+  document.getElementById('dmComentario').value=p.comentarioTexto||'';
   document.getElementById('dmLink').value=p.link||'';
   document.getElementById('dmLinkBtn').style.display=(p.link?'inline-flex':'none');
   if(p.pdfFileName&&p.pdfBase64){
@@ -3178,9 +3212,12 @@ function salvarDemais(){
     endereco:endereco,
     responsavel:responsavel,
     email:email,
+    municipio:document.getElementById('dmMunicipio').value,
+    valorTotal:parseBRL(document.getElementById('dmValorTotal').value),
     vendedor:document.getElementById('dmVendedor').value,
     numeroProposta:document.getElementById('dmNumeroProposta').value,
     observacao:document.getElementById('dmObservacao').value,
+    comentarioTexto:document.getElementById('dmComentario').value,
     link:document.getElementById('dmLink').value,
     pdfFileName:demaisPdfFileName||null,
     pdfBase64:demaisPdfBase64||null,
