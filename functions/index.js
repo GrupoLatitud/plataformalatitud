@@ -7,7 +7,7 @@ const FIELD_ITEM_LOCADO = '8b805b80-39cd-11f1-b017-3d7c97fba7e7';
 const FIELD_PROJETO = 'b3840a50-39cd-11f1-b017-3d7c97fba7e7';
 const FIELD_LINK_FATURA = 'af382fd0-39cd-11f1-b017-3d7c97fba7e7';
 
-exports.faturar = onRequest({ cors: true, region: 'us-central1' }, async (req, res) => {
+exports.faturar = onRequest({ cors: true, region: 'us-central1', invoker: 'public' }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, error: 'Method Not Allowed' });
     return;
