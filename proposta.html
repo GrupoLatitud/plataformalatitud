@@ -3484,6 +3484,7 @@ function handleImagens(input, prefix){
 function renderImgGallery(prefix){
   const arr=prefix==='pp'?ppImagens:prefix==='info'?infoImagens:prefix==='os'?osImagens:dmImagens;
   const gallery=document.getElementById(prefix+'ImgGallery');
+  if(!gallery)return;
   gallery.innerHTML=arr.map((img,i)=>`
     <div class="img-thumb" onclick="abrirLightbox('${prefix}',${i})">
       <img src="${img.data}" alt="${img.name}">
