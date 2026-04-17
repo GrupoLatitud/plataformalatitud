@@ -687,6 +687,9 @@ body{
       Voltar
     </button>
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Nova Ordem de Servico — Pintura Predial</h2>
+    <div style="margin-left:auto">
+      <button class="btn btn-secondary" onclick="toggleComentariosNovaOs()" style="padding:6px 12px;font-size:.8rem">Comentario</button>
+    </div>
   </div>
   <div style="padding:28px;max-width:800px;margin:0 auto">
 
@@ -1092,22 +1095,24 @@ body{
     </div>
   </div>
 
-  <!-- COMENTARIOS SIDEBAR -->
-  <div class="comentarios-sidebar" id="comentariosSidebar">
-    <div class="comentarios-header">
-      <h3 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--text)">Comentarios</h3>
-      <button onclick="toggleComentarios()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px">✕</button>
-    </div>
-    <div class="comentarios-list" id="comentariosList"></div>
-    <div class="comentarios-input-wrap">
-      <div class="comentarios-input-container" style="position:relative">
-        <textarea id="comentarioInput" placeholder="Escreva um comentario... Use @ para mencionar" rows="2" style="width:100%;resize:none;background:var(--surface);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.82rem"></textarea>
-        <div class="mention-dropdown" id="mentionDropdown" style="display:none"></div>
-      </div>
-      <button class="btn" onclick="enviarComentario()" style="margin-top:6px;width:100%;padding:8px;font-size:.82rem">Enviar</button>
-    </div>
-  </div>
+
 </div><!-- /proposta-overlay -->
+
+<!-- COMENTARIOS SIDEBAR (compartilhada por Nova OS e propostaOverlay) -->
+<div class="comentarios-sidebar" id="comentariosSidebar">
+  <div class="comentarios-header">
+    <h3 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--text)">Comentarios</h3>
+    <button onclick="toggleComentarios()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px">✕</button>
+  </div>
+  <div class="comentarios-list" id="comentariosList"></div>
+  <div class="comentarios-input-wrap">
+    <div class="comentarios-input-container" style="position:relative">
+      <textarea id="comentarioInput" placeholder="Escreva um comentario... Use @ para mencionar" rows="2" style="width:100%;resize:none;background:var(--surface);border:1px solid #2e2818;border-radius:6px;padding:8px 10px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.82rem"></textarea>
+      <div class="mention-dropdown" id="mentionDropdown" style="display:none"></div>
+    </div>
+    <button class="btn" onclick="enviarComentario()" style="margin-top:6px;width:100%;padding:8px;font-size:.82rem">Enviar</button>
+  </div>
+</div>
 
 <!-- DEMAIS PROPOSTAS OVERLAY -->
 <div class="proposta-overlay" id="demaisOverlay">
@@ -3025,6 +3030,11 @@ function abrirNovaProposta(tipo){
 
 function fecharNovaOs(){
   document.getElementById('novaOsOverlay').classList.remove('open');
+  const sb=document.getElementById('comentariosSidebar');
+  if(sb&&sb.classList.contains('open')){
+    sb.classList.remove('open');
+    stopComentariosListener();
+  }
 }
 
 function salvarNovaOs(){
@@ -3313,6 +3323,12 @@ function toggleComentarios(){
     sb.classList.add('open');
     carregarComentarios();
   }
+}
+
+// Alias usado pelo overlay Nova OS (compartilha o mesmo sidebar)
+function toggleComentariosNovaOs(){
+  if(!editandoPropostaId){showToast('Salve a Ordem de Servico antes de adicionar comentarios.');return;}
+  toggleComentarios();
 }
 
 let comentariosCache=[];
