@@ -1219,7 +1219,7 @@ body{
     <!-- Acoes -->
     <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;margin-bottom:28px">
       <button class="btn btn-secondary" onclick="fecharDemais()" style="padding:10px 24px">Cancelar</button>
-      <button class="btn save-btn-lockable" onclick="salvarDemais()" style="padding:10px 24px">Criar Proposta</button>
+      <button class="btn save-btn-lockable" onclick="salvarDemais()" style="padding:10px 24px">Criar Ordem de Servico</button>
     </div>
 
   </div>
@@ -3729,16 +3729,19 @@ function salvarDemais(){
   };
 
   if(editandoDemaisId){
+    const wasNovaOs=propostas.find(x=>x.id===editandoDemaisId)?.status==='nova_os';
+    data.status='elaboracao';
     propostasRef.child(editandoDemaisId).update(data);
-    showToast('Proposta atualizada!');
+    if(wasNovaOs) logStatusChange(editandoDemaisId,'nova_os','elaboracao');
+    showToast('Proposta movida para Elaboracao!');
   } else {
-    data.status='nova_os';
+    data.status='elaboracao';
     data.createdAt=new Date().toISOString();
     data.revisao=false;
     const newRef=propostasRef.push(data);
     editandoDemaisId=newRef.key;
     logPropostaCriada(newRef.key, 'Demais Propostas');
-    showToast('Proposta criada!');
+    showToast('Proposta criada e enviada para Elaboracao!');
   }
   demaisDirty=false;
   fecharDemais();
