@@ -172,6 +172,14 @@ body{
 .cal-day.pagamento .cal-num{color:#f5c242}
 .cal-day.pagamento .cal-tag{color:#f5c242}
 
+.quinzena-btn{
+  background:var(--surface2);border:1px solid #2e2818;color:var(--text-dim);
+  padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.72rem;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .15s;
+}
+.quinzena-btn:hover{border-color:var(--orange);color:var(--text)}
+.quinzena-btn.active{background:var(--orange);border-color:var(--orange);color:#fff}
+
 .cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2e2818;font-size:.72rem;color:var(--text-dim)}
 .cal-legend-item{display:flex;align-items:center;gap:6px}
 .cal-legend-dot{width:10px;height:10px;border-radius:3px}
@@ -335,6 +343,19 @@ body{
       </div>
       <div id="calDayList" class="apontamentos-list"></div>
     </div>
+
+    <div style="margin-top:20px;border-top:1px solid #2e2818;padding-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <strong style="font-family:'Barlow Condensed',sans-serif;font-size:1rem">Apontamentos do mês</strong>
+        <div style="display:flex;gap:6px">
+          <button class="quinzena-btn active" data-q="all" onclick="setQuinzena('all')">Mês todo</button>
+          <button class="quinzena-btn" data-q="1" onclick="setQuinzena('1')">1ª Quinzena</button>
+          <button class="quinzena-btn" data-q="2" onclick="setQuinzena('2')">2ª Quinzena</button>
+        </div>
+      </div>
+      <div id="apontamentosListMes" class="apontamentos-list" style="max-height:260px"></div>
+      <div id="apontamentosTotal" style="margin-top:8px;font-size:.82rem;color:var(--text-dim);text-align:right"></div>
+    </div>
   </div>
 </div>
 
@@ -392,6 +413,7 @@ let calColabId=null;
 let calMonth=new Date().getMonth();
 let calYear=new Date().getFullYear();
 let calSelectedDate=null;
+let calQuinzena='all';
 
 db.ref('colaboradores').on('value',snap=>{
   const d=snap.val();
@@ -670,7 +692,54 @@ function renderCalendar(){
     </div>`;
   }
   document.getElementById('calGrid').innerHTML=html;
+  renderApontamentosMes();
 }
+
+function setQuinzena(q){
+  calQuinzena=q;
+  document.querySelectorAll('.quinzena-btn').forEach(b=>b.classList.toggle('active',b.dataset.q===q));
+  renderApontamentosMes();
+}
+
+function renderApontamentosMes(){
+  if(!calColabId)return;
+  const list=document.getElementById('apontamentosListMes');
+  const totEl=document.getElementById('apontamentosTotal');
+  const mm=String(calMonth+1).padStart(2,'0');
+  const items=apontamentos.filter(a=>{
+    if(a.colaboradorId!==calColabId)return false;
+    if(!a.data||!a.data.startsWith(`${calYear}-${mm}-`))return false;
+    const day=parseInt(a.data.slice(-2),10);
+    if(calQuinzena==='1'&&day>15)return false;
+    if(calQuinzena==='2'&&day<=15)return false;
+    return true;
+  }).sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.entrada||'').localeCompare(b.entrada||''));
+
+  if(!items.length){
+    list.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:14px;font-size:.85rem">Nenhum apontamento.</div>';
+    totEl.textContent='';
+    return;
+  }
+  let totalMin=0;
+  list.innerHTML=items.map(a=>{
+    const [y,m,d]=a.data.split('-');
+    const horas=calcHoras(a.entrada,a.saida);
+    const [h1,m1]=(a.entrada||'00:00').split(':').map(Number);
+    const [h2,m2]=(a.saida||'00:00').split(':').map(Number);
+    const mins=(h2*60+m2)-(h1*60+m1);
+    if(mins>0)totalMin+=mins;
+    return `<div class="apontamento-item">
+      <div>
+        <div style="font-weight:600">${d}/${m} • ${a.entrada} → ${a.saida}</div>
+        <div class="ap-time">${horas} • por ${escHtml(a.criadoPor||'—')}</div>
+      </div>
+      <button class="ap-del" onclick="deleteApontamento(${a.id})" title="Excluir">×</button>
+    </div>`;
+  }).join('');
+  const th=Math.floor(totalMin/60),tm=totalMin%60;
+  totEl.textContent=`${items.length} apontamento(s) — Total: ${th}h${String(tm).padStart(2,'0')}`;
+}
+
 function showDayDetail(dateStr){
   calSelectedDate=dateStr;
   const [y,m,d]=dateStr.split('-');
@@ -712,6 +781,7 @@ function deleteApontamento(id){
   saveApontamentos();
   renderCalendar();
   if(calSelectedDate)showDayDetail(calSelectedDate);
+  renderApontamentosMes();
 }
 </script>
 </body>
