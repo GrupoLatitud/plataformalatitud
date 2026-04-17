@@ -167,6 +167,10 @@ body{
 .cal-day.feriado{background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.30)}
 .cal-day.feriado .cal-num{color:#e74c3c}
 .cal-day.feriado .cal-tag{color:#e74c3c}
+/* dia de pagamento - amarelo/dourado */
+.cal-day.pagamento{background:rgba(245,194,66,.16);border-color:rgba(245,194,66,.45)}
+.cal-day.pagamento .cal-num{color:#f5c242}
+.cal-day.pagamento .cal-tag{color:#f5c242}
 
 .cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2e2818;font-size:.72rem;color:var(--text-dim)}
 .cal-legend-item{display:flex;align-items:center;gap:6px}
@@ -317,6 +321,7 @@ body{
       <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(143,207,106,.5)"></span>Dia útil</div>
       <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(107,175,212,.5)"></span>Fim de semana</div>
       <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(231,76,60,.5)"></span>Feriado</div>
+      <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(245,194,66,.7)"></span>Pagamento</div>
       <div class="cal-legend-item"><span class="cal-legend-dot" style="background:var(--orange)"></span>Apontamento</div>
     </div>
     <div id="calDayDetail" style="display:none;margin-top:18px;border-top:1px solid #2e2818;padding-top:14px">
@@ -587,6 +592,29 @@ function feriadosDoAno(year){
   return fixos;
 }
 
+function isDiaUtil(year,month,day,feriados){
+  const dt=new Date(year,month,day);
+  const dow=dt.getDay();
+  if(dow===0||dow===6)return false;
+  const key=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  if(feriados[key])return false;
+  return true;
+}
+function quintoDiaUtil(year,month,feriados){
+  const days=new Date(year,month+1,0).getDate();
+  let count=0;
+  for(let d=1;d<=days;d++){
+    if(isDiaUtil(year,month,d,feriados)){count++;if(count===5)return d;}
+  }
+  return null;
+}
+function dia20Ajustado(year,month,feriados){
+  const days=new Date(year,month+1,0).getDate();
+  let d=Math.min(20,days);
+  while(d<=days&&!isDiaUtil(year,month,d,feriados))d++;
+  return d<=days?d:null;
+}
+
 function renderCalendar(){
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   document.getElementById('calMonthLabel').textContent=meses[calMonth]+' '+calYear;
@@ -597,6 +625,11 @@ function renderCalendar(){
     apontamentos.filter(a=>a.colaboradorId===calColabId).map(a=>a.data)
   );
   const feriados=feriadosDoAno(calYear);
+  const diasPagamento={};
+  const q5=quintoDiaUtil(calYear,calMonth,feriados);
+  const d20=dia20Ajustado(calYear,calMonth,feriados);
+  if(q5)diasPagamento[q5]='5º dia útil';
+  if(d20)diasPagamento[d20]=diasPagamento[d20]?diasPagamento[d20]+' / Dia 20':'Pagto. Dia 20';
   let html='';
   for(let i=0;i<firstDay;i++)html+='<div class="cal-day empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
@@ -606,14 +639,17 @@ function renderCalendar(){
     const isToday=dateStr===todayStr;
     const has=datasComApontamento.has(dateStr);
     const feriado=feriados[dateStr];
+    const pagto=diasPagamento[d];
     let cls='cal-day';
-    if(feriado)cls+=' feriado';
+    if(pagto)cls+=' pagamento';
+    else if(feriado)cls+=' feriado';
     else if(dow===0||dow===6)cls+=' fim-semana';
     else cls+=' dia-util';
     if(isToday)cls+=' today';
-    html+=`<div class="${cls}" onclick="showDayDetail('${dateStr}')" title="${feriado||''}">
+    const tag=pagto||feriado||'';
+    html+=`<div class="${cls}" onclick="showDayDetail('${dateStr}')" title="${tag}">
       <span class="cal-num">${d}</span>
-      ${feriado?`<span class="cal-tag">${feriado}</span>`:''}
+      ${tag?`<span class="cal-tag">${tag}</span>`:''}
       ${has?'<span class="cal-dot"></span>':''}
     </div>`;
   }
