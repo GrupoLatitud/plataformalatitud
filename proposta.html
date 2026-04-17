@@ -688,7 +688,7 @@ body{
     </button>
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Nova Ordem de Servico — Pintura Predial</h2>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn btn-success save-btn-lockable" onclick="salvarNovaOs()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+      <button class="btn btn-success save-btn-lockable" onclick="salvarNovaOs(false)" style="padding:6px 12px;font-size:.8rem">Salvar</button>
       <button class="btn btn-secondary" onclick="toggleComentariosNovaOs()" style="padding:6px 12px;font-size:.8rem">Comentario</button>
     </div>
   </div>
@@ -3038,7 +3038,10 @@ function fecharNovaOs(){
   }
 }
 
-function salvarNovaOs(){
+function salvarNovaOs(moverElaboracao){
+  // moverElaboracao=true (padrao): salva e move p/ Elaboracao (botao "Criar Ordem de Servico")
+  // moverElaboracao=false: apenas salva, mantem em Nova OS (botao "Salvar" no header)
+  if(typeof moverElaboracao==='undefined') moverElaboracao=true;
   if(isOverlayReadonly('novaOsOverlay')){showToast('Proposta enviada: somente visualizacao.');return;}
   saveOsActiveTab();
   // Validate required fields
@@ -3093,22 +3096,35 @@ function salvarNovaOs(){
   };
 
   if(editandoPropostaId){
-    // Mover sempre para Elaboracao ao clicar em Criar Ordem de Servico
-    const wasNovaOs=propostas.find(x=>x.id===editandoPropostaId)?.status==='nova_os';
-    data.status='elaboracao';
-    propostasRef.child(editandoPropostaId).update(data);
-    if(wasNovaOs) logStatusChange(editandoPropostaId,'nova_os','elaboracao');
-    showToast('Ordem de Servico movida para Elaboracao!');
+    const atual=propostas.find(x=>x.id===editandoPropostaId);
+    const statusAtual=atual?.status||'nova_os';
+    if(moverElaboracao){
+      data.status='elaboracao';
+      propostasRef.child(editandoPropostaId).update(data);
+      if(statusAtual==='nova_os') logStatusChange(editandoPropostaId,'nova_os','elaboracao');
+      showToast('Ordem de Servico movida para Elaboracao!');
+      editandoPropostaId=null;
+      fecharNovaOs();
+    } else {
+      // Apenas salva mantendo o status atual
+      propostasRef.child(editandoPropostaId).update(data);
+      showToast('Alteracoes salvas!');
+    }
   } else {
-    data.status='elaboracao';
+    data.status=moverElaboracao?'elaboracao':'nova_os';
     data.revisao=false;
     data.createdAt=new Date().toISOString();
     const newRef=propostasRef.push(data);
+    editandoPropostaId=newRef.key;
     logPropostaCriada(newRef.key, propostaTipo);
-    showToast('Ordem de Servico criada e enviada para Elaboracao!');
+    if(moverElaboracao){
+      showToast('Ordem de Servico criada e enviada para Elaboracao!');
+      editandoPropostaId=null;
+      fecharNovaOs();
+    } else {
+      showToast('Ordem de Servico salva em Nova OS!');
+    }
   }
-  editandoPropostaId=null;
-  fecharNovaOs();
 }
 
 function abrirPropostaExistente(id){
