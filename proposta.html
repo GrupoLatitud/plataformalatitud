@@ -1430,10 +1430,11 @@ function getDesplacValor(comp,tipo){return comp.deplacValor[tipo]??DESPLAC_VALOR
    TAB BAR RENDERING
    ══════════════════════════════════════════════ */
 function renderTabBar(){
+  const isAdmin=window.currentUser?.role==='admin';
   let h='<div class="tab-bar">';
   tabs.forEach((tab,i)=>{
     const act=i===activeTabIndex?' active':'';
-    const rm=tabs.length>1?`<span class="tab-remove" onclick="event.stopPropagation();removeTab(${i})">&times;</span>`:'';
+    const rm=(isAdmin&&tabs.length>1)?`<span class="tab-remove" onclick="event.stopPropagation();removeTab(${i})">&times;</span>`:'';
     h+=`<button class="tab-btn${act}" onclick="switchTab(${i})">${tab.id} - ${tab.nome}${rm}</button>`;
   });
   if(tabs.length<MAX_TABS) h+=`<button class="tab-btn-add" onclick="addTab()">+</button>`;
@@ -1514,12 +1515,15 @@ function renderTabForm(idx){
 
   <div class="panel-section">
     <div class="panel-section-title">Equipamentos Locacao</div>
-    <div id="equipContainer">${tab.equipamentos.map((eq,i)=>`
-      <div class="form-row equip-row" data-equip-idx="${i}">
+    <div id="equipContainer">${tab.equipamentos.map((eq,i)=>{
+      const isAdmin=window.currentUser?.role==='admin';
+      const removeBtn=isAdmin?`<button type="button" class="btn-remove-equip" onclick="removeEquip(${i})" style="align-self:flex-end;background:none;border:none;color:var(--orange);cursor:pointer;font-size:18px;padding:4px 8px" title="Remover">✕</button>`:'';
+      return `<div class="form-row equip-row" data-equip-idx="${i}">
         <div class="form-group"><label>Equipamento</label><select class="eqNome">${equipOptionsHTML(eq.nome)}</select></div>
         <div class="form-group" style="max-width:60px"><label>Qtd</label><input type="number" class="eqQty" value="${eq.qty}" min="0"></div>
-        <button type="button" class="btn-remove-equip" onclick="removeEquip(${i})" style="align-self:flex-end;background:none;border:none;color:var(--orange);cursor:pointer;font-size:18px;padding:4px 8px" title="Remover">✕</button>
-      </div>`).join('')}
+        ${removeBtn}
+      </div>`;
+    }).join('')}
     </div>
     <button type="button" class="btn-add-wall" onclick="addEquip()">+ Adicionar Equipamento</button>
   </div>
@@ -2558,12 +2562,15 @@ function renderKanban(){
       const numProp=p.numeroProposta?('#'+p.numeroProposta+' REV'+rev):'';
       const isNovaOs=st==='nova_os';
       const isEnviada=st==='enviadas';
+      const isAdmin=window.currentUser?.role==='admin';
+      // Menu de 3 pontos: nova_os para todos, demais colunas somente admin
+      const showMenu=isNovaOs||isAdmin;
       return `<div class="kanban-card" draggable="true" data-id="${p.id}" onclick="abrirPropostaExistente('${p.id}')">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
           <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
-          ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);${isNovaOs?'':'margin-left:auto;'}font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
-          ${isNovaOs?`<div class="kanban-card-menu-wrap">
+          ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);${showMenu?'':'margin-left:auto;'}font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
+          ${showMenu?`<div class="kanban-card-menu-wrap">
             <button class="kanban-card-menu" onclick="event.stopPropagation();toggleCardMenu(event,'${p.id}')" title="Opcoes">⋮</button>
             <div class="kanban-card-menu-dropdown" id="cardMenu-${p.id}">
               <div class="kanban-card-menu-item danger" onclick="event.stopPropagation();deletarProposta('${p.id}')">Apagar</div>
@@ -2608,7 +2615,11 @@ function toggleCardMenu(e,id){
 function deletarProposta(id){
   const p=propostas.find(x=>x.id===id);
   if(!p)return;
-  if(p.status!=='nova_os'){showToast('Somente propostas em Nova OS / Revisao podem ser apagadas.');return;}
+  const isAdmin=window.currentUser?.role==='admin';
+  // Nova OS: qualquer usuario pode apagar. Demais colunas: somente admin
+  if(p.status!=='nova_os'&&!isAdmin){
+    showToast('Somente admin pode apagar propostas fora de Nova OS / Revisao.');return;
+  }
   const label=p.nome?`"${p.nome}"`:'esta proposta';
   if(!confirm('Apagar '+label+'? Esta acao nao pode ser desfeita.'))return;
   propostasRef.child(id).remove().then(()=>{
