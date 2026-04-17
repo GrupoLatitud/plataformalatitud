@@ -86,27 +86,27 @@ body{
 .search-bar input:focus{outline:none;border-color:var(--orange)}
 
 /* CARDS */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
 .colab-card{
-  background:var(--surface);border:1px solid #2e2818;border-radius:14px;
-  padding:18px;cursor:pointer;transition:border-color .15s,transform .1s;
-  display:flex;flex-direction:column;gap:10px;
+  background:var(--surface);border:1px solid #2e2818;border-radius:10px;
+  padding:12px;cursor:pointer;transition:border-color .15s,transform .1s;
+  display:flex;flex-direction:column;gap:6px;
 }
 .colab-card:hover{border-color:var(--orange)}
 .colab-card:active{transform:scale(.99)}
-.colab-card .colab-nome{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:var(--text)}
-.colab-card .colab-cargo{font-size:.82rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;font-weight:600;font-family:'Barlow Condensed',sans-serif}
-.colab-card .colab-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.colab-card .colab-tag{background:var(--surface2);color:var(--text-dim);padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:600}
+.colab-card .colab-nome{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--text);line-height:1.1}
+.colab-card .colab-cargo{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-weight:600;font-family:'Barlow Condensed',sans-serif}
+.colab-card .colab-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.colab-card .colab-tag{background:var(--surface2);color:var(--text-dim);padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
 .colab-card .colab-tag.tipo{background:rgba(107,175,212,.15);color:var(--blue)}
-.colab-card .colab-valor{color:var(--green);font-weight:700;font-size:1.05rem;font-family:'Barlow Condensed',sans-serif}
-.colab-card .colab-actions{display:flex;gap:8px;margin-top:8px;border-top:1px solid #2e2818;padding-top:12px}
-.btn-apontar{flex:1;background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;transition:background .2s}
+.colab-card .colab-valor{color:var(--green);font-weight:700;font-size:.9rem;font-family:'Barlow Condensed',sans-serif}
+.colab-card .colab-actions{display:flex;gap:6px;margin-top:4px;border-top:1px solid #2e2818;padding-top:8px}
+.btn-apontar{flex:1;background:var(--orange);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;transition:background .2s}
 .btn-apontar:hover{background:#e0750f}
 .btn-apontar:disabled{background:#444;cursor:not-allowed}
 .btn-edit-colab,.btn-del-colab{
   background:none;border:1px solid #3a3020;color:var(--text-dim);
-  padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem;
+  padding:5px 8px;border-radius:6px;cursor:pointer;font-size:.72rem;
   font-family:'Barlow Condensed',sans-serif;font-weight:600;
 }
 .btn-edit-colab:hover{border-color:var(--blue);color:var(--blue)}
@@ -149,13 +149,28 @@ body{
 }
 .cal-day:hover{border-color:var(--orange)}
 .cal-day.empty{background:transparent;border:none;cursor:default}
-.cal-day.today{border-color:var(--blue)}
+.cal-day.today{border-color:var(--orange);border-width:2px}
 .cal-day .cal-num{font-weight:700;color:var(--text)}
 .cal-day .cal-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--green);
+  width:8px;height:8px;border-radius:50%;background:var(--orange);
   position:absolute;bottom:6px;right:6px;
+  box-shadow:0 0 0 2px var(--surface2);
 }
-.cal-day.has-apontamento{background:rgba(143,207,106,.08)}
+.cal-day .cal-tag{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;line-height:1}
+/* dia util - verde */
+.cal-day.dia-util{background:rgba(143,207,106,.10);border-color:rgba(143,207,106,.25)}
+.cal-day.dia-util .cal-num{color:var(--green)}
+/* fim de semana - azul */
+.cal-day.fim-semana{background:rgba(107,175,212,.10);border-color:rgba(107,175,212,.25)}
+.cal-day.fim-semana .cal-num{color:var(--blue)}
+/* feriado - vermelho */
+.cal-day.feriado{background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.30)}
+.cal-day.feriado .cal-num{color:#e74c3c}
+.cal-day.feriado .cal-tag{color:#e74c3c}
+
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2e2818;font-size:.72rem;color:var(--text-dim)}
+.cal-legend-item{display:flex;align-items:center;gap:6px}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px}
 
 .apontamentos-list{margin-top:14px;max-height:200px;overflow-y:auto}
 .apontamento-item{
@@ -243,7 +258,9 @@ body{
     <div class="field"><label>Regime de Contratação *</label>
       <select id="cRegime">
         <option value="">Selecione...</option>
-        <option>CLT</option><option>PJ</option><option>Autônomo</option><option>Temporário</option><option>Estágio</option>
+        <option>CLT Intermitente</option>
+        <option>CLT Integral</option>
+        <option>PJ (Pessoa Jurídica)</option>
       </select>
     </div>
     <div class="field-row">
@@ -296,6 +313,12 @@ body{
       <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
     </div>
     <div class="cal-grid" id="calGrid" style="margin-top:4px"></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(143,207,106,.5)"></span>Dia útil</div>
+      <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(107,175,212,.5)"></span>Fim de semana</div>
+      <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(231,76,60,.5)"></span>Feriado</div>
+      <div class="cal-legend-item"><span class="cal-legend-dot" style="background:var(--orange)"></span>Apontamento</div>
+    </div>
     <div id="calDayDetail" style="display:none;margin-top:18px;border-top:1px solid #2e2818;padding-top:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <strong id="calDayLabel" style="font-family:'Barlow Condensed',sans-serif"></strong>
@@ -480,8 +503,12 @@ function openApontarModal(colabId,prefilledDate){
   apontandoColabId=colabId;
   document.getElementById('apontarColabInfo').innerHTML=`<strong>${escHtml(c.nome)}</strong> — ${escHtml(c.cargo)}`;
   document.getElementById('aData').value=prefilledDate||new Date().toISOString().slice(0,10);
-  document.getElementById('aEntrada').value='';
-  document.getElementById('aSaida').value='';
+  // pre-preencher entrada/saida com base no ultimo apontamento desse colab
+  const meus=apontamentos.filter(a=>a.colaboradorId===colabId)
+    .sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.criadoEm||'').localeCompare(a.criadoEm||''));
+  const ultimo=meus[0];
+  document.getElementById('aEntrada').value=ultimo?ultimo.entrada||'':'';
+  document.getElementById('aSaida').value=ultimo?ultimo.saida||'':'';
   document.getElementById('apontarOverlay').classList.add('open');
 }
 function closeApontarModal(){document.getElementById('apontarOverlay').classList.remove('open');}
@@ -525,6 +552,41 @@ function changeCalMonth(delta){
   if(calMonth>11){calMonth=0;calYear++;}
   renderCalendar();
 }
+/* Feriados Nacionais Brasileiros (calculados por ano) */
+function easterDate(year){
+  const a=year%19,b=Math.floor(year/100),c=year%100;
+  const d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31);
+  const day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+function addDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function feriadosDoAno(year){
+  const easter=easterDate(year);
+  const fixos={
+    [`${year}-01-01`]:'Confraternização',
+    [`${year}-04-21`]:'Tiradentes',
+    [`${year}-05-01`]:'Trabalho',
+    [`${year}-09-07`]:'Independência',
+    [`${year}-10-12`]:'N. Sra. Aparecida',
+    [`${year}-11-02`]:'Finados',
+    [`${year}-11-15`]:'Proclamação',
+    [`${year}-11-20`]:'Consc. Negra',
+    [`${year}-12-25`]:'Natal',
+  };
+  fixos[dateKey(addDays(easter,-48))]='Carnaval';
+  fixos[dateKey(addDays(easter,-47))]='Carnaval';
+  fixos[dateKey(addDays(easter,-2))]='Sexta Santa';
+  fixos[dateKey(addDays(easter,60))]='Corpus Christi';
+  return fixos;
+}
+
 function renderCalendar(){
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   document.getElementById('calMonthLabel').textContent=meses[calMonth]+' '+calYear;
@@ -534,14 +596,24 @@ function renderCalendar(){
   const datasComApontamento=new Set(
     apontamentos.filter(a=>a.colaboradorId===calColabId).map(a=>a.data)
   );
+  const feriados=feriadosDoAno(calYear);
   let html='';
   for(let i=0;i<firstDay;i++)html+='<div class="cal-day empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
     const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt=new Date(calYear,calMonth,d);
+    const dow=dt.getDay();
     const isToday=dateStr===todayStr;
     const has=datasComApontamento.has(dateStr);
-    html+=`<div class="cal-day${isToday?' today':''}${has?' has-apontamento':''}" onclick="showDayDetail('${dateStr}')">
+    const feriado=feriados[dateStr];
+    let cls='cal-day';
+    if(feriado)cls+=' feriado';
+    else if(dow===0||dow===6)cls+=' fim-semana';
+    else cls+=' dia-util';
+    if(isToday)cls+=' today';
+    html+=`<div class="${cls}" onclick="showDayDetail('${dateStr}')" title="${feriado||''}">
       <span class="cal-num">${d}</span>
+      ${feriado?`<span class="cal-tag">${feriado}</span>`:''}
       ${has?'<span class="cal-dot"></span>':''}
     </div>`;
   }
