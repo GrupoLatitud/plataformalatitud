@@ -293,6 +293,10 @@ body{
       <div class="field"><label>Entrada *</label><input type="time" id="aEntrada"></div>
       <div class="field"><label>Saída *</label><input type="time" id="aSaida"></div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-dim);cursor:pointer;margin-top:8px">
+      <input type="checkbox" id="aManterAberto" style="width:auto;cursor:pointer">
+      Manter aberto após salvar (apontar mais dias)
+    </label>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeApontarModal()">Cancelar</button>
       <button class="btn-save" onclick="saveApontamento()">Salvar Apontamento</button>
@@ -521,10 +525,16 @@ function saveApontamento(){
   const data=document.getElementById('aData').value;
   const entrada=document.getElementById('aEntrada').value;
   const saida=document.getElementById('aSaida').value;
+  const manter=document.getElementById('aManterAberto').checked;
   if(!data){alert('Informe a data.');return;}
   if(!entrada){alert('Informe horário de entrada.');return;}
   if(!saida){alert('Informe horário de saída.');return;}
   if(saida<=entrada){alert('Saída deve ser posterior à entrada.');return;}
+  // verifica se ja existe apontamento nesse dia para esse colab
+  const jaExiste=apontamentos.some(a=>a.colaboradorId===apontandoColabId&&a.data===data);
+  if(jaExiste){
+    if(!confirm('Já existe apontamento para este dia. Deseja registrar mesmo assim?'))return;
+  }
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   apontamentos.push({
     id:nextApontId++,
@@ -534,8 +544,14 @@ function saveApontamento(){
     criadoPor:user
   });
   saveApontamentos();
-  closeApontarModal();
   if(calColabId===apontandoColabId){renderCalendar();if(calSelectedDate)showDayDetail(calSelectedDate);}
+  if(manter){
+    // limpa data para o usuario digitar a proxima, mantem horarios
+    document.getElementById('aData').value='';
+    document.getElementById('aData').focus();
+  } else {
+    closeApontarModal();
+  }
 }
 
 /* ── CALENDARIO ──────────────────────────────── */
