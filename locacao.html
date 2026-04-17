@@ -453,6 +453,7 @@ body{
     <table class="loc-table">
       <thead>
         <tr>
+          <th>Nº</th>
           <th>Equipamento</th>
           <th>Fornecedor</th>
           <th>Projeto</th>
@@ -484,6 +485,7 @@ body{
       <table class="loc-table">
         <thead>
           <tr>
+            <th>Nº</th>
             <th>Equipamento</th>
             <th>Fornecedor</th>
             <th>Projeto</th>
@@ -682,6 +684,7 @@ const storage=firebase.storage();
 let locacoes=[];
 let projects=[];
 let nextLocId=1;
+let nextNumeroInterno=1;
 let editingId=null;
 let dateEditId=null;
 let currentArquivos=[];
@@ -703,6 +706,23 @@ db.ref('locacoes').on('value',snap=>{
     const arr=Array.isArray(d)?d:Object.values(d);
     locacoes=arr.filter(l=>l!=null);
     if(locacoes.length) nextLocId=Math.max(...locacoes.map(l=>l.id||0))+1;
+    // calcular proximo numero interno
+    const nums=locacoes.map(l=>l.numeroInterno||0);
+    nextNumeroInterno=nums.length?Math.max(...nums)+1:1;
+    // migracao: atribuir numeroInterno a itens sem numero
+    let needSave=false;
+    // agrupar itens por "cadeia de renovacao" para manter mesmo numero
+    locacoes.sort((a,b)=>(a.id||0)-(b.id||0)).forEach(l=>{
+      if(!l.numeroInterno){
+        if(l.renovadaDe){
+          const pai=locacoes.find(x=>x.id===l.renovadaDe);
+          if(pai&&pai.numeroInterno){l.numeroInterno=pai.numeroInterno;needSave=true;return;}
+        }
+        l.numeroInterno=nextNumeroInterno++;
+        needSave=true;
+      }
+    });
+    if(needSave) saveData();
   }else{
     locacoes=[];
   }
@@ -754,7 +774,8 @@ function render(){
     return (l.equipamento||'').toLowerCase().includes(q)||
            (l.fornecedor||'').toLowerCase().includes(q)||
            (l.projeto||'').toLowerCase().includes(q)||
-           (l.codigo||'').toLowerCase().includes(q);
+           (l.codigo||'').toLowerCase().includes(q)||
+           String(l.numeroInterno||'').includes(q);
   }
   function matchDate(l){
     if(!dFrom&&!dTo)return true;
@@ -784,7 +805,9 @@ function render(){
       const pct=calcTempo(l.dataInicio,l.dataFinal);
       const cor=tempoColor(pct);
       const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
+      const numInt=l.numeroInterno?String(l.numeroInterno).padStart(4,'0'):'—';
       return `<tr>
+        <td style="font-weight:700;color:var(--orange);font-family:'Barlow Condensed',sans-serif">#${numInt}</td>
         <td style="font-weight:600">${l.equipamento}</td>
         <td>${l.fornecedor}</td>
         <td>${l.projeto}</td>
@@ -826,7 +849,9 @@ function render(){
     const tbodyFin=document.getElementById('tableBodyFin');
     tbodyFin.innerHTML=finalizados.map(l=>{
       const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
+      const numInt=l.numeroInterno?String(l.numeroInterno).padStart(4,'0'):'—';
       return `<tr class="row-finalizada">
+        <td style="font-weight:700;font-family:'Barlow Condensed',sans-serif">#${numInt}</td>
         <td>${l.equipamento}</td>
         <td>${l.fornecedor}</td>
         <td>${l.projeto}</td>
@@ -995,6 +1020,7 @@ function saveLocacao(){
       }
     }else{
       data.id=nextLocId++;
+      data.numeroInterno=nextNumeroInterno++;
       locacoes.push(data);
     }
     closeModal();
@@ -1106,9 +1132,10 @@ function confirmarRenovacao(){
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const agora=new Date().toISOString();
 
-  // novo item — copia tudo exceto NF e flags
+  // novo item — copia tudo exceto NF e flags; mantem o mesmo numero interno
   const nova={
     id:nextLocId++,
+    numeroInterno:original.numeroInterno,
     equipamento:original.equipamento,
     fornecedor:original.fornecedor,
     projeto:original.projeto,
