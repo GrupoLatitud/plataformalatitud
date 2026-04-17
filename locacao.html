@@ -368,6 +368,23 @@ body{
   white-space:nowrap;transition:all .15s;
 }
 .btn-editar:hover{background:rgba(255,255,255,.08);color:#bbb;border-color:#bbb}
+.btn-renovar{
+  background:none;border:1px solid #3498db;color:#3498db;
+  padding:3px 10px;border-radius:6px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.75rem;
+  white-space:nowrap;transition:all .15s;
+}
+.btn-renovar:hover{background:#3498db22}
+.btn-hist{
+  background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:.7rem;padding:2px 6px;border-radius:4px;
+}
+.btn-hist:hover{color:var(--orange);background:rgba(245,132,31,.08)}
+.hist-badge{
+  display:inline-block;background:var(--orange);color:#fff;
+  font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;
+  margin-left:4px;vertical-align:middle;
+}
 
 @media(max-width:600px){
   .page-body{padding:16px}
@@ -535,6 +552,43 @@ body{
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="btn-save" onclick="saveLocacao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENOVAR MODAL -->
+<div class="modal-overlay" id="renovarOverlay">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h2 class="modal-title">Renovar Locação</h2>
+      <button class="modal-close" onclick="document.getElementById('renovarOverlay').classList.remove('open')">&times;</button>
+    </div>
+    <div id="renovarInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem;color:var(--text-dim)"></div>
+    <div class="field">
+      <label>Nova Data Início *</label>
+      <input type="date" id="renDataInicio">
+    </div>
+    <div class="field">
+      <label>Nova Data Final *</label>
+      <input type="date" id="renDataFinal">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="document.getElementById('renovarOverlay').classList.remove('open')">Cancelar</button>
+      <button class="btn-save" onclick="confirmarRenovacao()">Renovar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORICO MODAL -->
+<div class="modal-overlay" id="historicoOverlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2 class="modal-title">Histórico de Renovações</h2>
+      <button class="modal-close" onclick="document.getElementById('historicoOverlay').classList.remove('open')">&times;</button>
+    </div>
+    <div id="historicoBody" style="max-height:400px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="document.getElementById('historicoOverlay').classList.remove('open')">Fechar</button>
     </div>
   </div>
 </div>
@@ -753,8 +807,10 @@ function render(){
         </td>
         <td>
           <div class="row-actions">
+            <button class="btn-renovar" onclick="openRenovar(${l.id})">Renovar</button>
             <button class="btn-editar" onclick="editLocacao(${l.id})">Editar</button>
             <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})">Finalizar</button>
+            ${(l.renovacoes&&l.renovacoes.length)||l.renovadaDe?`<button class="btn-hist" onclick="openHistorico(${l.id})" title="Histórico de renovações">📜${l.renovacoes&&l.renovacoes.length?`<span class="hist-badge">${l.renovacoes.length}</span>`:''}</button>`:''}
           </div>
         </td>
       </tr>`;
@@ -1022,6 +1078,110 @@ function finalizarLocacao(id){
     saveData();
     render();
   }
+}
+
+let renovandoId=null;
+function openRenovar(id){
+  const l=locacoes.find(x=>x.id===id);
+  if(!l)return;
+  renovandoId=id;
+  document.getElementById('renovarInfo').innerHTML=
+    `<strong>${l.equipamento}</strong> — ${l.fornecedor}<br>`+
+    `Período atual: ${formatDateBR(l.dataInicio)} - ${formatDateBR(l.dataFinal)}`;
+  // nova data inicial = data final da locacao atual
+  document.getElementById('renDataInicio').value=l.dataFinal||'';
+  document.getElementById('renDataFinal').value='';
+  document.getElementById('renovarOverlay').classList.add('open');
+}
+
+function confirmarRenovacao(){
+  const ini=document.getElementById('renDataInicio').value;
+  const fim=document.getElementById('renDataFinal').value;
+  if(!ini){alert('Informe a nova data de início.');return;}
+  if(!fim){alert('Informe a nova data final.');return;}
+  if(fim<ini){alert('Data final deve ser posterior à data inicial.');return;}
+  const original=locacoes.find(x=>x.id===renovandoId);
+  if(!original)return;
+
+  const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
+  const agora=new Date().toISOString();
+
+  // novo item — copia tudo exceto NF e flags
+  const nova={
+    id:nextLocId++,
+    equipamento:original.equipamento,
+    fornecedor:original.fornecedor,
+    projeto:original.projeto,
+    dataInicio:ini,
+    dataFinal:fim,
+    codigo:original.codigo||'',
+    obs:original.obs||'',
+    arquivos:[],
+    renovadaDe:original.id,
+    criadaEm:agora,
+    criadaPor:user
+  };
+  locacoes.push(nova);
+
+  // registrar renovacao no item original
+  if(!original.renovacoes)original.renovacoes=[];
+  original.renovacoes.push({
+    novaId:nova.id,
+    dataInicioAnterior:original.dataInicio,
+    dataFinalAnterior:original.dataFinal,
+    novaDataInicio:ini,
+    novaDataFinal:fim,
+    renovadaEm:agora,
+    renovadaPor:user
+  });
+
+  saveData();
+  render();
+  document.getElementById('renovarOverlay').classList.remove('open');
+  showToast&&showToast('Locação renovada com sucesso');
+}
+
+function openHistorico(id){
+  const l=locacoes.find(x=>x.id===id);
+  if(!l)return;
+  const body=document.getElementById('historicoBody');
+  let html='';
+
+  if(l.renovadaDe){
+    const pai=locacoes.find(x=>x.id===l.renovadaDe);
+    html+=`<div style="background:var(--surface2);padding:10px;border-radius:6px;margin-bottom:12px;font-size:.82rem">
+      <strong style="color:var(--orange)">Esta locação é uma renovação</strong><br>
+      Origem: <a href="#" onclick="document.getElementById('historicoOverlay').classList.remove('open');openHistorico(${l.renovadaDe});return false" style="color:#3498db">#${l.renovadaDe}</a>
+      ${pai?` — ${formatDateBR(pai.dataInicio)} a ${formatDateBR(pai.dataFinal)}`:''}
+    </div>`;
+  }
+
+  if(l.renovacoes&&l.renovacoes.length){
+    html+='<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Renovações</div>';
+    l.renovacoes.forEach((r,i)=>{
+      const d=new Date(r.renovadaEm);
+      const dStr=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      html+=`<div style="border-left:3px solid var(--orange);padding:8px 12px;margin-bottom:8px;background:var(--surface2);border-radius:0 6px 6px 0">
+        <div style="font-size:.72rem;color:var(--text-dim)">${dStr} — ${r.renovadaPor||'—'}</div>
+        <div style="font-size:.85rem;margin-top:4px">
+          ${formatDateBR(r.dataInicioAnterior)} - ${formatDateBR(r.dataFinalAnterior)}
+          → <strong>${formatDateBR(r.novaDataInicio)} - ${formatDateBR(r.novaDataFinal)}</strong>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(!html)html='<div style="text-align:center;color:var(--text-dim);padding:20px">Sem renovações registradas.</div>';
+  body.innerHTML=html;
+  document.getElementById('historicoOverlay').classList.add('open');
+}
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:10px 20px;border-radius:8px;font-size:.9rem;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
 }
 
 function clearDateFilter(){
