@@ -2497,7 +2497,9 @@ const KANBAN_COLS={
   'enviadas':{bodyId:'colEnviadas',countId:'countEnviadas'}
 };
 
-function calcTimer(createdAt){
+function calcTimer(createdAt,status){
+  // Propostas enviadas zeram o timer automaticamente
+  if(status==='enviadas') return {text:'Enviada',cls:'timer-ok'};
   if(!createdAt) return {text:'—',cls:'timer-ok'};
   const created=new Date(createdAt);
   const now=new Date();
@@ -2552,7 +2554,7 @@ function renderKanban(){
     }
     body.innerHTML=items.map(p=>{
       const valor=p.valorTotal?fmtBRL(p.valorTotal):'—';
-      const timer=calcTimer(p.createdAt);
+      const timer=calcTimer(p.createdAt,st);
       const tipoTag=p.tipo||'Pintura Predial';
       const rev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
       const isRevisao=rev>0;
