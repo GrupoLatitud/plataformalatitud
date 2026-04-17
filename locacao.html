@@ -446,6 +446,7 @@ body{
       <span>até</span>
       <input type="date" id="dateTo" onchange="render()">
       <button class="btn-clear-dates" onclick="clearDateFilter()">Limpar</button>
+      <button class="btn-clear-dates" onclick="filtroSemana()" style="border-color:var(--orange);color:var(--orange)">Filtro Personalizado</button>
     </div>
   </div>
 
@@ -861,7 +862,6 @@ function render(){
             <button class="btn-renovar" onclick="openRenovar(${l.id})">Renovar</button>
             <button class="btn-editar" onclick="editLocacao(${l.id})">Editar</button>
             <button class="btn-finalizar" onclick="finalizarLocacao(${l.id})">Finalizar</button>
-            ${(l.renovacoes&&l.renovacoes.length)||l.renovadaDe?`<button class="btn-hist" onclick="openHistorico(${l.id})" title="Histórico de renovações">📜${l.renovacoes&&l.renovacoes.length?`<span class="hist-badge">${l.renovacoes.length}</span>`:''}</button>`:''}
           </div>
         </td>
       </tr>`;
@@ -1247,6 +1247,20 @@ function showToast(msg){
 function clearDateFilter(){
   document.getElementById('dateFrom').value='';
   document.getElementById('dateTo').value='';
+  render();
+}
+
+function filtroSemana(){
+  const hoje=new Date();
+  const dow=hoje.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+  const diff=dow===0?-6:1-dow;
+  const segAtual=new Date(hoje);
+  segAtual.setDate(hoje.getDate()+diff);
+  const segProxima=new Date(segAtual);
+  segProxima.setDate(segAtual.getDate()+7);
+  const fmt=d=>d.toISOString().slice(0,10);
+  document.getElementById('dateFrom').value=fmt(segAtual);
+  document.getElementById('dateTo').value=fmt(segProxima);
   render();
 }
 
