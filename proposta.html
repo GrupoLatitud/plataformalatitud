@@ -508,6 +508,12 @@ body{
 }
 .kanban-card-rev-btn:hover{background:rgba(245,132,31,.13)}
 .kanban-card-rev-row{display:flex;justify-content:flex-end;margin-top:6px}
+
+/* Modo somente leitura: esconde elementos de edicao/remocao */
+[data-readonly="1"] .img-thumb-remove,
+[data-readonly="1"] .img-dropzone,
+[data-readonly="1"] .save-btn-lockable,
+[data-readonly="1"] [data-hide-readonly]{display:none!important}
 .kanban-search{
   display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid #2e2818;
   border-radius:7px;padding:6px 10px;margin-bottom:16px;max-width:320px;
@@ -763,7 +769,7 @@ body{
     <!-- Acoes -->
     <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;margin-bottom:28px">
       <button class="btn btn-secondary" onclick="fecharNovaOs()" style="padding:10px 24px">Cancelar</button>
-      <button class="btn" onclick="salvarNovaOs()" style="padding:10px 24px">Criar Ordem de Servico</button>
+      <button class="btn save-btn-lockable" onclick="salvarNovaOs()" style="padding:10px 24px">Criar Ordem de Servico</button>
     </div>
 
   </div>
@@ -794,7 +800,7 @@ body{
           Dados do Projeto
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-success" onclick="salvarProposta()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+          <button class="btn btn-success save-btn-lockable" onclick="salvarProposta()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
           <button class="btn btn-secondary" onclick="gerarPDF()" style="padding:6px 12px;font-size:.8rem">PDF</button>
           <button class="btn btn-secondary" onclick="toggleInfoSidebar()" style="padding:6px 12px;font-size:.8rem">Informações</button>
           <button class="btn btn-secondary" onclick="toggleComentarios()" style="padding:6px 12px;font-size:.8rem">💬 Comentario</button>
@@ -1112,7 +1118,7 @@ body{
     </button>
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text)">Demais Propostas</h2>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-success" onclick="salvarDemais()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
+      <button class="btn btn-success save-btn-lockable" onclick="salvarDemais()" style="padding:6px 12px;font-size:.8rem">Salvar</button>
       <button class="btn btn-secondary" onclick="toggleComentariosDemais()" style="padding:6px 12px;font-size:.8rem">Comentario</button>
     </div>
   </div>
@@ -1190,7 +1196,7 @@ body{
               <div id="dmPdfSize" style="font-size:.72rem;color:var(--text-dim);margin-top:2px">—</div>
             </div>
             <button onclick="visualizarDemaisPdf()" style="background:none;border:1px solid var(--orange);color:var(--orange);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;white-space:nowrap;transition:background .15s" onmouseenter="this.style.background='rgba(245,132,31,.1)'" onmouseleave="this.style.background='none'">Visualizar</button>
-            <button onclick="removerDemaisPdf()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1rem;padding:4px 6px" title="Remover">✕</button>
+            <button onclick="removerDemaisPdf()" data-hide-readonly style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1rem;padding:4px 6px" title="Remover">✕</button>
           </div>
         </div>
       </div>
@@ -3057,14 +3063,19 @@ function salvarNovaOs(){
   };
 
   if(editandoPropostaId){
+    // Mover sempre para Elaboracao ao clicar em Criar Ordem de Servico
+    const wasNovaOs=propostas.find(x=>x.id===editandoPropostaId)?.status==='nova_os';
+    data.status='elaboracao';
     propostasRef.child(editandoPropostaId).update(data);
-    showToast('Ordem de Servico atualizada!');
+    if(wasNovaOs) logStatusChange(editandoPropostaId,'nova_os','elaboracao');
+    showToast('Ordem de Servico movida para Elaboracao!');
   } else {
-    data.status='nova_os';
+    data.status='elaboracao';
     data.revisao=false;
     data.createdAt=new Date().toISOString();
-    propostasRef.push(data);
-    showToast('Ordem de Servico criada!');
+    const newRef=propostasRef.push(data);
+    logPropostaCriada(newRef.key, propostaTipo);
+    showToast('Ordem de Servico criada e enviada para Elaboracao!');
   }
   editandoPropostaId=null;
   fecharNovaOs();
@@ -3223,6 +3234,7 @@ function salvarPropostaKanban(){
     const newRef=propostasRef.push(data);
     editandoPropostaId=newRef.key;
     propostaDirty=false;
+    logPropostaCriada(newRef.key, propostaTipo);
     showToast('Proposta criada!');
   }
 }
@@ -3256,6 +3268,17 @@ function logStatusChange(propostaId, statusAnterior, statusNovo){
   db.ref('propostaComentarios/'+propostaId).push({
     tipo:'sistema',
     texto:`Moveu de "${STATUS_LABELS[statusAnterior]||statusAnterior}" para "${STATUS_LABELS[statusNovo]||statusNovo}"`,
+    autor:userName,
+    createdAt:new Date().toISOString()
+  });
+}
+
+function logPropostaCriada(propostaId, tipo){
+  if(!propostaId) return;
+  const userName=window.currentUser?.name||'Sistema';
+  db.ref('propostaComentarios/'+propostaId).push({
+    tipo:'sistema',
+    texto:`Proposta criada (${tipo||'Pintura Predial'})`,
     autor:userName,
     createdAt:new Date().toISOString()
   });
@@ -3708,6 +3731,7 @@ function salvarDemais(){
     data.revisao=false;
     const newRef=propostasRef.push(data);
     editandoDemaisId=newRef.key;
+    logPropostaCriada(newRef.key, 'Demais Propostas');
     showToast('Proposta criada!');
   }
   demaisDirty=false;
