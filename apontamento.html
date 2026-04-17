@@ -345,14 +345,15 @@ body{
     </div>
 
     <div style="margin-top:20px;border-top:1px solid #2e2818;padding-top:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-        <strong style="font-family:'Barlow Condensed',sans-serif;font-size:1rem">Apontamentos do mês</strong>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <strong style="font-family:'Barlow Condensed',sans-serif;font-size:1rem">Apontamentos</strong>
         <div style="display:flex;gap:6px">
           <button class="quinzena-btn active" data-q="all" onclick="setQuinzena('all')">Mês todo</button>
           <button class="quinzena-btn" data-q="1" onclick="setQuinzena('1')">1ª Quinzena</button>
           <button class="quinzena-btn" data-q="2" onclick="setQuinzena('2')">2ª Quinzena</button>
         </div>
       </div>
+      <div id="quinzenaInfo" style="font-size:.74rem;color:var(--text-dim);margin-bottom:8px"></div>
       <div id="apontamentosListMes" class="apontamentos-list" style="max-height:260px"></div>
       <div id="apontamentosTotal" style="margin-top:8px;font-size:.82rem;color:var(--text-dim);text-align:right"></div>
     </div>
@@ -705,14 +706,42 @@ function renderApontamentosMes(){
   if(!calColabId)return;
   const list=document.getElementById('apontamentosListMes');
   const totEl=document.getElementById('apontamentosTotal');
+  const infoEl=document.getElementById('quinzenaInfo');
   const mm=String(calMonth+1).padStart(2,'0');
+  const feriados=feriadosDoAno(calYear);
+  const prevMonth=calMonth===0?11:calMonth-1;
+  const prevYear=calMonth===0?calYear-1:calYear;
+  const feriadosPrev=feriadosDoAno(prevYear);
+
+  let startDate=null,endDate=null;
+  if(calQuinzena==='1'){
+    // 1a quinzena: do dia 21 do mes anterior ao dia anterior ao 5 dia util do mes atual
+    const q5=quintoDiaUtil(calYear,calMonth,feriados);
+    startDate=`${prevYear}-${String(prevMonth+1).padStart(2,'0')}-21`;
+    endDate=q5?`${calYear}-${mm}-${String(q5-1).padStart(2,'0')}`:`${calYear}-${mm}-04`;
+  } else if(calQuinzena==='2'){
+    // 2a quinzena: do 5 dia util ate o dia anterior ao dia 20 (ajustado)
+    const q5=quintoDiaUtil(calYear,calMonth,feriados);
+    const d20=dia20Ajustado(calYear,calMonth,feriados);
+    startDate=q5?`${calYear}-${mm}-${String(q5).padStart(2,'0')}`:`${calYear}-${mm}-05`;
+    endDate=d20?`${calYear}-${mm}-${String(d20-1).padStart(2,'0')}`:`${calYear}-${mm}-19`;
+  }
+
+  if(infoEl){
+    if(calQuinzena==='all'){
+      infoEl.textContent='';
+    } else {
+      const fmt=s=>s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4);
+      const titulo=calQuinzena==='1'?'1ª Quinzena (paga no 5º dia útil)':'2ª Quinzena (paga no dia 20)';
+      infoEl.textContent=`${titulo} — ${fmt(startDate)} a ${fmt(endDate)}`;
+    }
+  }
+
   const items=apontamentos.filter(a=>{
     if(a.colaboradorId!==calColabId)return false;
-    if(!a.data||!a.data.startsWith(`${calYear}-${mm}-`))return false;
-    const day=parseInt(a.data.slice(-2),10);
-    if(calQuinzena==='1'&&day>15)return false;
-    if(calQuinzena==='2'&&day<=15)return false;
-    return true;
+    if(!a.data)return false;
+    if(calQuinzena==='all')return a.data.startsWith(`${calYear}-${mm}-`);
+    return a.data>=startDate&&a.data<=endDate;
   }).sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.entrada||'').localeCompare(b.entrada||''));
 
   if(!items.length){
