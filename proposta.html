@@ -3731,7 +3731,9 @@ function loadInfoSidebar(p){
   document.getElementById('infoEmail').value=p.email||'';
   document.getElementById('infoVendedor').value=p.vendedor||'';
   document.getElementById('infoObservacao').value=p.observacao||'';
-  infoImagens=p.infoImagens||[];
+  // Sidebar exibe as mesmas imagens da Pintura Predial / Nova OS
+  // (ppImagens ja foi carregado em abrirPropostaExistente a partir de p.imagens||p.osImagens)
+  infoImagens=ppImagens;
   renderImgGallery('info');
 }
 
@@ -3741,8 +3743,8 @@ function saveInfoSidebar(){
     endereco:document.getElementById('infoEndereco').value,
     responsavel:document.getElementById('infoResponsavel').value,
     email:document.getElementById('infoEmail').value,
-    vendedor:document.getElementById('infoVendedor').value,
-    infoImagens:infoImagens
+    vendedor:document.getElementById('infoVendedor').value
+    // infoImagens removido: as imagens sao as mesmas de ppImagens (campo 'imagens')
   };
 }
 let dmImagens=[];  // Demais Propostas
