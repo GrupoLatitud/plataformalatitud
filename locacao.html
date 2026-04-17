@@ -162,6 +162,18 @@ body{
   background-repeat:no-repeat;background-position:12px center;
 }
 .search-bar input:focus{outline:none;border-color:var(--orange)}
+.search-bar .date-filter{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:.82rem}
+.search-bar .date-filter input[type="date"]{
+  background:var(--surface);border:1px solid #2e2818;color:var(--text);
+  padding:8px 10px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.82rem;
+  color-scheme:dark;
+}
+.search-bar .date-filter input[type="date"]:focus{outline:none;border-color:var(--orange)}
+.search-bar .btn-clear-dates{
+  background:transparent;border:1px solid #2e2818;color:var(--text-dim);
+  padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem;
+}
+.search-bar .btn-clear-dates:hover{color:var(--text);border-color:var(--orange)}
 
 /* TABLE */
 .loc-table-wrap{
@@ -411,6 +423,13 @@ body{
 
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Buscar por equipamento, fornecedor ou projeto..." oninput="render()">
+    <div class="date-filter">
+      <span>De</span>
+      <input type="date" id="dateFrom" onchange="render()">
+      <span>até</span>
+      <input type="date" id="dateTo" onchange="render()">
+      <button class="btn-clear-dates" onclick="clearDateFilter()">Limpar</button>
+    </div>
   </div>
 
   <div class="loc-table-wrap">
@@ -442,9 +461,9 @@ body{
     <div class="section-header" onclick="toggleFinalizadas()">
       <h2 class="section-title">Locações Finalizadas</h2>
       <span class="section-count" id="finCount">0</span>
-      <span class="section-toggle" id="finToggle">▼</span>
+      <span class="section-toggle collapsed" id="finToggle">▼</span>
     </div>
-    <div id="finalizadasWrap" class="loc-table-wrap" style="opacity:.6">
+    <div id="finalizadasWrap" class="loc-table-wrap" style="opacity:.6;display:none">
       <table class="loc-table">
         <thead>
           <tr>
@@ -674,6 +693,8 @@ function buildNfHTML(l){
 
 function render(){
   const q=document.getElementById('searchInput').value.toLowerCase();
+  const dFrom=document.getElementById('dateFrom').value;
+  const dTo=document.getElementById('dateTo').value;
   function matchQ(l){
     if(!q)return true;
     return (l.equipamento||'').toLowerCase().includes(q)||
@@ -681,9 +702,18 @@ function render(){
            (l.projeto||'').toLowerCase().includes(q)||
            (l.codigo||'').toLowerCase().includes(q);
   }
+  function matchDate(l){
+    if(!dFrom&&!dTo)return true;
+    const ini=l.dataInicio||'';
+    const fim=l.dataFinal||'';
+    if(dFrom&&fim&&fim<dFrom)return false;
+    if(dTo&&ini&&ini>dTo)return false;
+    if(!ini&&!fim)return false;
+    return true;
+  }
 
-  const ativos=locacoes.filter(l=>!l.finalizado&&matchQ(l));
-  const finalizados=locacoes.filter(l=>l.finalizado&&matchQ(l));
+  const ativos=locacoes.filter(l=>!l.finalizado&&matchQ(l)&&matchDate(l));
+  const finalizados=locacoes.filter(l=>l.finalizado&&matchQ(l)&&matchDate(l));
 
   const totalAtivos=locacoes.filter(l=>!l.finalizado).length;
   document.getElementById('totalCount').textContent=totalAtivos;
@@ -994,7 +1024,13 @@ function finalizarLocacao(id){
   }
 }
 
-let finalizadasVisible=true;
+function clearDateFilter(){
+  document.getElementById('dateFrom').value='';
+  document.getElementById('dateTo').value='';
+  render();
+}
+
+let finalizadasVisible=false;
 function toggleFinalizadas(){
   finalizadasVisible=!finalizadasVisible;
   document.getElementById('finalizadasWrap').style.display=finalizadasVisible?'':'none';
