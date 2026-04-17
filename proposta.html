@@ -479,26 +479,41 @@ body{
 .tag-revisao{background:rgba(245,132,31,.15);color:var(--orange)}
 .tag-tipo{background:rgba(255,255,255,.06);color:var(--text-dim)}
 .kanban-card-timer{font-size:.75rem;display:flex;align-items:center;gap:4px}
-.kanban-card-delete{
-  background:none;border:1px solid #3a2020;color:#e74c3c;padding:3px 6px;border-radius:5px;
-  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  transition:all .15s;margin-left:4px;
+.kanban-card-menu-wrap{position:relative;display:inline-block;margin-left:auto}
+.kanban-card-menu{
+  background:none;border:none;color:var(--text-dim);padding:2px 4px;border-radius:4px;
+  cursor:pointer;line-height:1;font-size:1.1rem;font-weight:700;letter-spacing:1px;
+  transition:all .15s;
 }
-.kanban-card-delete:hover{background:rgba(231,76,60,.15);border-color:#e74c3c}
+.kanban-card-menu:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.kanban-card-menu-dropdown{
+  position:absolute;top:100%;right:0;margin-top:2px;background:var(--surface2);
+  border:1px solid #2e2818;border-radius:6px;padding:4px;min-width:110px;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:100;display:none;
+}
+.kanban-card-menu-dropdown.open{display:block}
+.kanban-card-menu-item{
+  padding:6px 10px;border-radius:4px;cursor:pointer;font-size:.8rem;
+  color:var(--text);font-family:'Barlow',sans-serif;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+}
+.kanban-card-menu-item:hover{background:rgba(255,255,255,.06)}
+.kanban-card-menu-item.danger{color:#e74c3c}
+.kanban-card-menu-item.danger:hover{background:rgba(231,76,60,.1)}
 .kanban-card-rev-btn{
-  margin-top:8px;width:100%;background:none;border:1px solid var(--orange);color:var(--orange);
-  padding:5px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;
-  justify-content:center;gap:5px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
-  font-size:.78rem;transition:all .15s;
+  margin-top:6px;background:none;border:1px solid var(--orange);color:var(--orange);
+  padding:3px 8px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:4px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:.7rem;transition:all .15s;
 }
 .kanban-card-rev-btn:hover{background:rgba(245,132,31,.13)}
 .kanban-search{
-  display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #2e2818;
-  border-radius:8px;padding:8px 12px;margin-bottom:16px;
+  display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid #2e2818;
+  border-radius:7px;padding:6px 10px;margin-bottom:16px;max-width:320px;
 }
 .kanban-search input{
   flex:1;background:none;border:none;color:var(--text);font-family:'Barlow',sans-serif;
-  font-size:.9rem;outline:none;
+  font-size:.82rem;outline:none;
 }
 .kanban-search input::placeholder{color:var(--text-dim)}
 .kanban-search svg{color:var(--text-dim);flex-shrink:0}
@@ -2534,10 +2549,13 @@ function renderKanban(){
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <span class="kanban-card-tag ${tagClass}">${tagLabel}</span>
           <span class="kanban-card-tag tag-tipo">${tipoTag}</span>
-          ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
-          ${isNovaOs?`<button class="kanban-card-delete" onclick="event.stopPropagation();deletarProposta('${p.id}')" title="Apagar proposta">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
-          </button>`:''}
+          ${numProp?`<span style="font-size:.7rem;color:var(--text-dim);${isNovaOs?'':'margin-left:auto;'}font-family:'Barlow Condensed',sans-serif;font-weight:600">${numProp}</span>`:''}
+          ${isNovaOs?`<div class="kanban-card-menu-wrap">
+            <button class="kanban-card-menu" onclick="event.stopPropagation();toggleCardMenu(event,'${p.id}')" title="Opcoes">⋮</button>
+            <div class="kanban-card-menu-dropdown" id="cardMenu-${p.id}">
+              <div class="kanban-card-menu-item danger" onclick="event.stopPropagation();deletarProposta('${p.id}')">Apagar</div>
+            </div>
+          </div>`:''}
         </div>
         <div class="kanban-card-title">${p.nome||'Sem nome'}</div>
         <div class="kanban-card-info">
@@ -2546,14 +2564,32 @@ function renderKanban(){
             <span style="font-size:.75rem;color:var(--text-dim)">${vendedor}</span>
           </div>
           ${isEnviada?`<button class="kanban-card-rev-btn" onclick="event.stopPropagation();abrirRevisao('${p.id}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            Abrir Revisao
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Revisao
           </button>`:''}
         </div>
       </div>`;
     }).join('');
   });
   bindDragAndDrop();
+}
+
+function toggleCardMenu(e,id){
+  document.querySelectorAll('.kanban-card-menu-dropdown.open').forEach(m=>{
+    if(m.id!=='cardMenu-'+id) m.classList.remove('open');
+  });
+  const menu=document.getElementById('cardMenu-'+id);
+  if(!menu)return;
+  menu.classList.toggle('open');
+  if(menu.classList.contains('open')){
+    const close=(ev)=>{
+      if(!menu.contains(ev.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('mousedown',close);
+      }
+    };
+    setTimeout(()=>document.addEventListener('mousedown',close),0);
+  }
 }
 
 function deletarProposta(id){
@@ -2598,26 +2634,36 @@ function abrirRevisao(id){
 
 function aplicarModoLeitura(container,ativar){
   if(!container)return;
-  container.querySelectorAll('input,textarea,select,button').forEach(el=>{
+  // Somente inputs/textarea/select sao bloqueados. Botoes continuam funcionando
+  // para permitir navegacao (voltar, sidebars, tabs, abrir PDF/imagens, etc).
+  container.querySelectorAll('input,textarea,select').forEach(el=>{
     if(el.dataset.lockIgnore==='1')return;
     if(ativar){
       if(!el.dataset.lockOrig){
-        el.dataset.lockOrig=el.disabled?'1':'0';
+        el.dataset.lockOrig=(el.readOnly||el.disabled)?'1':'0';
       }
-      if(el.tagName==='BUTTON'){
+      el.readOnly=true;
+      if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='radio'||el.type==='file'||el.type==='range'){
         el.disabled=true;
-      } else {
-        el.readOnly=true;
-        if(el.tagName==='SELECT') el.disabled=true;
       }
     } else {
       if(el.dataset.lockOrig==='0'){
-        if(el.tagName==='BUTTON') el.disabled=false;
-        else { el.readOnly=false; if(el.tagName==='SELECT') el.disabled=false; }
+        el.readOnly=false;
+        if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='radio'||el.type==='file'||el.type==='range'){
+          el.disabled=false;
+        }
       }
       delete el.dataset.lockOrig;
     }
   });
+  // Marcar container para que funcoes de salvar possam checar
+  if(ativar) container.dataset.readonly='1';
+  else delete container.dataset.readonly;
+}
+
+function isOverlayReadonly(overlayId){
+  const el=document.getElementById(overlayId);
+  return !!(el&&el.dataset.readonly==='1');
 }
 
 /* ── DRAG & DROP ─────────────────────────────── */
@@ -2949,6 +2995,7 @@ function fecharNovaOs(){
 }
 
 function salvarNovaOs(){
+  if(isOverlayReadonly('novaOsOverlay')){showToast('Proposta enviada: somente visualizacao.');return;}
   saveOsActiveTab();
   // Validate required fields
   let valid=true;
@@ -3100,7 +3147,7 @@ function abrirPropostaExistente(id){
 }
 
 function fecharProposta(){
-  if(propostaDirty){
+  if(propostaDirty&&!isOverlayReadonly('propostaOverlay')){
     if(confirm('Existem alteracoes nao salvas. Deseja salvar antes de voltar?')){
       salvarProposta();
     }
@@ -3118,6 +3165,7 @@ function fecharProposta(){
 const _salvarPropostaOriginal=typeof salvarProposta==='function'?salvarProposta:null;
 
 function salvarPropostaKanban(){
+  if(isOverlayReadonly('propostaOverlay')){showToast('Proposta enviada: somente visualizacao.');return;}
   saveActiveTab();
   calcularProjeto();
   const nome=document.getElementById('nomeProjeto').value||'Sem nome';
@@ -3479,7 +3527,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(ov) ov.addEventListener('input',()=>{demaisDirty=true;});
 });
 function fecharDemais(){
-  if(demaisDirty){
+  if(demaisDirty&&!isOverlayReadonly('demaisOverlay')){
     if(confirm('Existem alteracoes nao salvas. Deseja salvar antes de voltar?')){
       salvarDemais();
       return;
@@ -3607,6 +3655,7 @@ function enviarComentarioDemais(){
 }
 
 function salvarDemais(){
+  if(isOverlayReadonly('demaisOverlay')){showToast('Proposta enviada: somente visualizacao.');return;}
   const nome=document.getElementById('dmNome').value.trim();
   const empresa=document.getElementById('dmEmpresa').value.trim();
   const endereco=document.getElementById('dmEndereco').value.trim();
