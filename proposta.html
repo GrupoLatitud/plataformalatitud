@@ -501,12 +501,13 @@ body{
 .kanban-card-menu-item.danger{color:#e74c3c}
 .kanban-card-menu-item.danger:hover{background:rgba(231,76,60,.1)}
 .kanban-card-rev-btn{
-  margin-top:6px;background:none;border:1px solid var(--orange);color:var(--orange);
-  padding:3px 8px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;
-  gap:4px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
-  font-size:.7rem;transition:all .15s;
+  background:none;border:1px solid var(--orange);color:var(--orange);
+  padding:2px 6px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:3px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:.65rem;line-height:1;transition:all .15s;
 }
 .kanban-card-rev-btn:hover{background:rgba(245,132,31,.13)}
+.kanban-card-rev-row{display:flex;justify-content:flex-end;margin-top:6px}
 .kanban-search{
   display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid #2e2818;
   border-radius:7px;padding:6px 10px;margin-bottom:16px;max-width:320px;
@@ -2563,10 +2564,10 @@ function renderKanban(){
           <div class="kanban-card-row"><span style="font-weight:600;color:var(--orange)">${valor}</span>
             <span style="font-size:.75rem;color:var(--text-dim)">${vendedor}</span>
           </div>
-          ${isEnviada?`<button class="kanban-card-rev-btn" onclick="event.stopPropagation();abrirRevisao('${p.id}')">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          ${isEnviada?`<div class="kanban-card-rev-row"><button class="kanban-card-rev-btn" onclick="event.stopPropagation();abrirRevisao('${p.id}')" title="Abrir Revisao">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             Revisao
-          </button>`:''}
+          </button></div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -2610,8 +2611,15 @@ function abrirRevisao(id){
   const p=propostas.find(x=>x.id===id);
   if(!p){showToast('Proposta nao encontrada');return;}
   if(p.status!=='enviadas'){showToast('Revisao so pode ser aberta de propostas enviadas.');return;}
-  const atualRev=Number.isFinite(p.revisaoNum)?p.revisaoNum:(p.revisao===true?1:0);
-  const novoRev=atualRev+1;
+  // Buscar a maior revisao existente deste mesmo numero de proposta
+  const numProp=(p.numeroProposta||'').trim();
+  let maxRev=0;
+  propostas.forEach(x=>{
+    if((x.numeroProposta||'').trim()!==numProp||!numProp)return;
+    const r=Number.isFinite(x.revisaoNum)?x.revisaoNum:(x.revisao===true?1:0);
+    if(r>maxRev) maxRev=r;
+  });
+  const novoRev=maxRev+1;
   if(!confirm('Abrir Revisao '+novoRev+' desta proposta? Sera criada uma copia em Nova OS / Revisao.'))return;
   const clone={...p};
   delete clone.id;
