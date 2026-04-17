@@ -706,13 +706,12 @@ db.ref('locacoes').on('value',snap=>{
     const arr=Array.isArray(d)?d:Object.values(d);
     locacoes=arr.filter(l=>l!=null);
     if(locacoes.length) nextLocId=Math.max(...locacoes.map(l=>l.id||0))+1;
-    // calcular proximo numero interno
     const nums=locacoes.map(l=>l.numeroInterno||0);
     nextNumeroInterno=nums.length?Math.max(...nums)+1:1;
-    // migracao: atribuir numeroInterno a itens sem numero
     let needSave=false;
-    // agrupar itens por "cadeia de renovacao" para manter mesmo numero
-    locacoes.sort((a,b)=>(a.id||0)-(b.id||0)).forEach(l=>{
+    // Passo 1: atribuir numeroInterno onde faltar
+    locacoes.sort((a,b)=>(a.id||0)-(b.id||0));
+    locacoes.forEach(l=>{
       if(!l.numeroInterno){
         if(l.renovadaDe){
           const pai=locacoes.find(x=>x.id===l.renovadaDe);
@@ -722,12 +721,38 @@ db.ref('locacoes').on('value',snap=>{
         needSave=true;
       }
     });
+    // Passo 2: atribuir numeroRevisao por cadeia (ordenado por id)
+    const groups={};
+    locacoes.forEach(l=>{
+      if(!groups[l.numeroInterno])groups[l.numeroInterno]=[];
+      groups[l.numeroInterno].push(l);
+    });
+    Object.values(groups).forEach(items=>{
+      items.sort((a,b)=>(a.id||0)-(b.id||0));
+      const used=new Set();
+      items.forEach(i=>{if(typeof i.numeroRevisao==='number')used.add(i.numeroRevisao);});
+      let next=0;
+      items.forEach(item=>{
+        if(typeof item.numeroRevisao!=='number'){
+          while(used.has(next))next++;
+          item.numeroRevisao=next;
+          used.add(next);
+          needSave=true;
+        }
+      });
+    });
     if(needSave) saveData();
   }else{
     locacoes=[];
   }
   render();
 });
+
+function formatNumInterno(l){
+  if(!l||!l.numeroInterno)return '—';
+  const base='#'+String(l.numeroInterno).padStart(4,'0');
+  return (l.numeroRevisao&&l.numeroRevisao>0)?base+'.'+l.numeroRevisao:base;
+}
 
 function saveData(){
   const clean=locacoes.filter(l=>l!=null);
@@ -771,11 +796,15 @@ function render(){
   const dTo=document.getElementById('dateTo').value;
   function matchQ(l){
     if(!q)return true;
+    const displayNum=formatNumInterno(l).toLowerCase();
+    const qNum=q.replace(/^#/,'');
     return (l.equipamento||'').toLowerCase().includes(q)||
            (l.fornecedor||'').toLowerCase().includes(q)||
            (l.projeto||'').toLowerCase().includes(q)||
            (l.codigo||'').toLowerCase().includes(q)||
-           String(l.numeroInterno||'').includes(q);
+           displayNum.includes(q)||
+           displayNum.includes(qNum)||
+           String(l.numeroInterno||'').includes(qNum);
   }
   function matchDate(l){
     if(!dFrom&&!dTo)return true;
@@ -805,9 +834,8 @@ function render(){
       const pct=calcTempo(l.dataInicio,l.dataFinal);
       const cor=tempoColor(pct);
       const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
-      const numInt=l.numeroInterno?String(l.numeroInterno).padStart(4,'0'):'—';
       return `<tr>
-        <td style="font-weight:700;color:var(--orange);font-family:'Barlow Condensed',sans-serif">#${numInt}</td>
+        <td style="font-weight:700;color:var(--orange);font-family:'Barlow Condensed',sans-serif">${formatNumInterno(l)}</td>
         <td style="font-weight:600">${l.equipamento}</td>
         <td>${l.fornecedor}</td>
         <td>${l.projeto}</td>
@@ -849,9 +877,8 @@ function render(){
     const tbodyFin=document.getElementById('tableBodyFin');
     tbodyFin.innerHTML=finalizados.map(l=>{
       const dateLabel=formatDateBR(l.dataInicio)+' - '+formatDateBR(l.dataFinal);
-      const numInt=l.numeroInterno?String(l.numeroInterno).padStart(4,'0'):'—';
       return `<tr class="row-finalizada">
-        <td style="font-weight:700;font-family:'Barlow Condensed',sans-serif">#${numInt}</td>
+        <td style="font-weight:700;font-family:'Barlow Condensed',sans-serif">${formatNumInterno(l)}</td>
         <td>${l.equipamento}</td>
         <td>${l.fornecedor}</td>
         <td>${l.projeto}</td>
@@ -1021,6 +1048,7 @@ function saveLocacao(){
     }else{
       data.id=nextLocId++;
       data.numeroInterno=nextNumeroInterno++;
+      data.numeroRevisao=0;
       locacoes.push(data);
     }
     closeModal();
@@ -1132,10 +1160,15 @@ function confirmarRenovacao(){
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const agora=new Date().toISOString();
 
+  // calcular proxima revisao no grupo
+  const doGrupo=locacoes.filter(x=>x.numeroInterno===original.numeroInterno);
+  const maxRev=doGrupo.reduce((m,x)=>Math.max(m,typeof x.numeroRevisao==='number'?x.numeroRevisao:0),0);
+
   // novo item — copia tudo exceto NF e flags; mantem o mesmo numero interno
   const nova={
     id:nextLocId++,
     numeroInterno:original.numeroInterno,
+    numeroRevisao:maxRev+1,
     equipamento:original.equipamento,
     fornecedor:original.fornecedor,
     projeto:original.projeto,
