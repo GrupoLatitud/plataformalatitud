@@ -652,11 +652,12 @@ body{
     }
     // DP: ocultar links de outras páginas na sidebar e mobile menu
     if(u.role==='dp'){
+      const allow=['locacao.html','team.html','apontamento.html'];
       document.querySelectorAll('.sidebar-link:not(.active)').forEach(el=>{
-        if(!el.href.includes('locacao.html')&&!el.href.includes('team.html')) el.style.display='none';
+        if(!allow.some(p=>el.href.includes(p))) el.style.display='none';
       });
       document.querySelectorAll('.mobile-menu-panel a:not(.active)').forEach(el=>{
-        if(!el.href.includes('locacao.html')&&!el.href.includes('team.html')) el.style.display='none';
+        if(!allow.some(p=>el.href.includes(p))) el.style.display='none';
       });
     }
     const ub=document.getElementById('userBadge');

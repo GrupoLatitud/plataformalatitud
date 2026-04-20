@@ -587,12 +587,29 @@ body{
 <script>
 /* ── AUTH ────────────────────────────────────── */
 (function(){
-  const u=localStorage.getItem('loggedUser');
-  if(!u){window.location.href='login.html';return;}
-  window.currentUser=JSON.parse(u);
+  const s=localStorage.getItem('loggedUser');
+  if(!s){window.location.href='login.html';return;}
+  const u=JSON.parse(s);
+  if(u.role==='encarregado'){window.location.href='overview.html';return;}
+  if(u.role==='orcamentista'){window.location.href='proposta.html';return;}
+  window.currentUser=u;
   document.addEventListener('DOMContentLoaded',()=>{
+    // Ocultar Proposta para dp e encarregado (só admin e gestao veem)
+    if(u.role==='dp'||u.role==='encarregado'){
+      document.querySelectorAll('a[href="proposta.html"]').forEach(el=>el.style.display='none');
+    }
+    // DP: ocultar links exceto locacao, team e apontamento
+    if(u.role==='dp'){
+      const allow=['locacao.html','team.html','apontamento.html'];
+      document.querySelectorAll('.sidebar-link:not(.active)').forEach(el=>{
+        if(!allow.some(p=>el.href.includes(p)))el.style.display='none';
+      });
+      document.querySelectorAll('.mobile-menu-panel a:not(.active)').forEach(el=>{
+        if(!allow.some(p=>el.href.includes(p)))el.style.display='none';
+      });
+    }
     const ub=document.getElementById('userBadge');
-    if(ub) ub.textContent=window.currentUser.name||window.currentUser.username;
+    if(ub) ub.textContent=u.name||u.username;
   });
 })();
 function doLogout(){localStorage.removeItem('loggedUser');window.location.href='login.html';}
