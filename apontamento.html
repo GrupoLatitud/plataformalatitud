@@ -300,6 +300,7 @@ body{
       <button class="modal-close" onclick="closeApontarModal()">&times;</button>
     </div>
     <div id="apontarColabInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem"></div>
+    <div class="field"><label>Projeto</label><select id="aProjeto"><option value="">— Selecione (opcional) —</option></select></div>
     <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
     <div class="field-row">
       <div class="field"><label>Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
@@ -444,6 +445,7 @@ let calMonth=new Date().getMonth();
 let calYear=new Date().getFullYear();
 let calSelectedDate=null;
 let calQuinzena='all';
+let projects=[];
 
 db.ref('colaboradores').on('value',snap=>{
   const d=snap.val();
@@ -464,6 +466,24 @@ db.ref('apontamentos').on('value',snap=>{
   } else apontamentos=[];
   if(calColabId) renderCalendar();
 });
+
+db.ref('projects').on('value',snap=>{
+  const d=snap.val();
+  if(d){
+    const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null);
+    projects=arr;
+  } else projects=[];
+  popularProjetosSelect();
+});
+function popularProjetosSelect(){
+  const sel=document.getElementById('aProjeto');
+  if(!sel)return;
+  const atual=sel.value;
+  const opts=['<option value="">— Selecione (opcional) —</option>']
+    .concat(projects.map(p=>`<option value="${escHtml(p.name||'')}">${escHtml(p.name||'')}</option>`));
+  sel.innerHTML=opts.join('');
+  if(atual)sel.value=atual;
+}
 
 function saveColabs(){db.ref('colaboradores').set(colaboradores.filter(c=>c!=null));}
 function saveApontamentos(){db.ref('apontamentos').set(apontamentos.filter(a=>a!=null));}
@@ -696,6 +716,8 @@ function openApontarModal(colabId,prefilledDate){
   const ultimo=meus[0];
   document.getElementById('aEntrada').value=ultimo?ultimo.entrada||'':'';
   document.getElementById('aSaida').value=ultimo?ultimo.saida||'':'';
+  popularProjetosSelect();
+  document.getElementById('aProjeto').value='';
   document.getElementById('aValorExtra').value='';
   document.getElementById('aExtraInfo').textContent='';
   document.getElementById('aDiariaInfo').textContent='';
@@ -727,12 +749,14 @@ function saveApontamento(){
   const valorTotal=valorDiaria+valorExtra;
   const viagemOn=document.getElementById('aViagem').checked;
   const viagemTipo=viagemOn?document.getElementById('aViagemTipo').value:null;
+  const projeto=document.getElementById('aProjeto').value||null;
   apontamentos.push({
     id:nextApontId++,
     colaboradorId:apontandoColabId,
     data,entrada,saida,
     valorDiaria,valorExtra,valorTotal,
     viagem:viagemOn,viagemTipo,
+    projeto,
     criadoEm:new Date().toISOString(),
     criadoPor:user
   });
