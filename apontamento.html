@@ -102,7 +102,13 @@ body{
 }
 
 /* HISTORY */
-.history-card{background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:18px;margin-top:24px}
+.subtabs{display:flex;gap:4px;border-bottom:1px solid #2e2818;margin:6px 0 18px}
+.subtab{padding:10px 18px;background:none;border:none;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:.88rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.subtab:hover{color:var(--text)}
+.subtab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.subpage{display:none}
+.subpage.active{display:block}
+.history-card{background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:18px}
 .history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px}
 .history-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
 .history-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -304,53 +310,62 @@ body{
   </div>
 
 <main class="page-body">
-  <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px;flex-wrap:wrap">
     <h1 class="page-title" style="margin-bottom:0">Apontamento</h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <div id="apontHeaderActions" style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <span style="font-size:.85rem;color:var(--text-dim)">Total: <strong id="totalCount" style="color:var(--text)">0</strong></span>
       <button class="btn-new" onclick="openColabModal()">+ Novo Colaborador</button>
     </div>
   </div>
-  <p class="page-sub">Gerencie colaboradores e registre apontamentos diários.</p>
+  <p class="page-sub">Gerencie colaboradores, registre apontamentos e consulte o histórico.</p>
 
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Buscar por nome ou cargo..." oninput="renderCards()">
+  <div class="subtabs" role="tablist">
+    <button class="subtab active" data-tab="colabs" onclick="setSubtab('colabs')">Colaboradores</button>
+    <button class="subtab" data-tab="historico" onclick="setSubtab('historico')">Histórico</button>
   </div>
 
-  <div id="cardsGrid" class="colab-list"></div>
-  <div id="emptyState" class="empty" style="display:none">Nenhum colaborador cadastrado. Clique em <strong>+ Novo Colaborador</strong> para começar.</div>
+  <!-- SUB-PAGE: COLABORADORES -->
+  <div class="subpage active" id="subColabs">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar por nome ou cargo..." oninput="renderCards()">
+    </div>
+    <div id="cardsGrid" class="colab-list"></div>
+    <div id="emptyState" class="empty" style="display:none">Nenhum colaborador cadastrado. Clique em <strong>+ Novo Colaborador</strong> para começar.</div>
+  </div>
 
-  <!-- HISTORICO -->
-  <div class="history-card">
-    <div class="history-head">
-      <div class="history-title">Histórico de Apontamentos</div>
-      <div class="history-controls">
-        <input type="text" id="histSearch" placeholder="Buscar por nome, cargo, projeto..." oninput="renderHistorico()">
-        <input type="date" id="histFrom" onchange="renderHistorico()" title="Data inicial">
-        <input type="date" id="histTo" onchange="renderHistorico()" title="Data final">
-        <select id="histColab" onchange="renderHistorico()">
-          <option value="">Todos os colaboradores</option>
-        </select>
+  <!-- SUB-PAGE: HISTORICO -->
+  <div class="subpage" id="subHistorico">
+    <div class="history-card">
+      <div class="history-head">
+        <div class="history-title">Histórico de Apontamentos</div>
+        <div class="history-controls">
+          <input type="text" id="histSearch" placeholder="Buscar por nome, cargo, projeto..." oninput="renderHistorico()">
+          <input type="date" id="histFrom" onchange="renderHistorico()" title="Data inicial">
+          <input type="date" id="histTo" onchange="renderHistorico()" title="Data final">
+          <select id="histColab" onchange="renderHistorico()">
+            <option value="">Todos os colaboradores</option>
+          </select>
+        </div>
       </div>
+      <div style="overflow-x:auto">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th class="sortable" onclick="setHistSort('data')">Data <span id="sortDataArrow"></span></th>
+              <th class="col-horario">Horário</th>
+              <th class="sortable" onclick="setHistSort('nome')">Colaborador <span id="sortNomeArrow"></span></th>
+              <th>Projeto</th>
+              <th style="text-align:right">Valor Diária</th>
+              <th class="col-extra" style="text-align:right">Valor Extra</th>
+              <th style="text-align:right">Valor Total</th>
+            </tr>
+          </thead>
+          <tbody id="histBody"></tbody>
+        </table>
+      </div>
+      <div id="histEmpty" class="history-empty" style="display:none">Nenhum apontamento encontrado.</div>
+      <div id="histTotals" style="margin-top:12px;padding-top:10px;border-top:1px dashed #2e2818;text-align:right;font-size:.85rem;color:var(--text-dim)"></div>
     </div>
-    <div style="overflow-x:auto">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th class="sortable" onclick="setHistSort('data')">Data <span id="sortDataArrow"></span></th>
-            <th class="col-horario">Horário</th>
-            <th class="sortable" onclick="setHistSort('nome')">Colaborador <span id="sortNomeArrow"></span></th>
-            <th>Projeto</th>
-            <th style="text-align:right">Valor Diária</th>
-            <th class="col-extra" style="text-align:right">Valor Extra</th>
-            <th style="text-align:right">Valor Total</th>
-          </tr>
-        </thead>
-        <tbody id="histBody"></tbody>
-      </table>
-    </div>
-    <div id="histEmpty" class="history-empty" style="display:none">Nenhum apontamento encontrado.</div>
-    <div id="histTotals" style="margin-top:12px;padding-top:10px;border-top:1px dashed #2e2818;text-align:right;font-size:.85rem;color:var(--text-dim)"></div>
   </div>
 </main>
 </div>
@@ -704,6 +719,17 @@ function renderCards(){
   }).join('');
   popularHistColabSelect();
   renderHistorico();
+}
+
+/* ── SUBTABS ─────────────────────────────────── */
+function setSubtab(tab){
+  document.querySelectorAll('.subtab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.getElementById('subColabs').classList.toggle('active',tab==='colabs');
+  document.getElementById('subHistorico').classList.toggle('active',tab==='historico');
+  // Header actions (Total / Novo Colaborador) só em Colaboradores
+  const h=document.getElementById('apontHeaderActions');
+  if(h)h.style.display=tab==='colabs'?'flex':'none';
+  if(tab==='historico'){popularHistColabSelect();renderHistorico();}
 }
 
 /* ── HISTORICO ───────────────────────────────── */
