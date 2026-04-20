@@ -268,7 +268,7 @@ body{
     <div class="field"><label>Nome *</label><input type="text" id="cNome" placeholder="Nome completo"></div>
     <div class="field"><label>Cargo *</label><input type="text" id="cCargo" placeholder="Ex: Pintor, Encarregado"></div>
     <div class="field"><label>Regime de Contratação *</label>
-      <select id="cRegime">
+      <select id="cRegime" onchange="atualizarValorDiaria()">
         <option value="">Selecione...</option>
         <option>CLT Intermitente</option>
         <option>CLT Integral</option>
@@ -279,8 +279,9 @@ body{
       <div class="field"><label>Tipo *</label>
         <select id="cTipo"><option value="">Selecione...</option><option value="fixo">Salário Fixo</option><option value="diaria">Diária</option></select>
       </div>
-      <div class="field"><label>Valor (R$) *</label><input type="number" id="cValor" step="0.01" min="0" placeholder="0,00"></div>
+      <div class="field"><label>Valor (R$) *</label><input type="number" id="cValor" step="0.01" min="0" placeholder="0,00" oninput="atualizarValorDiaria()"></div>
     </div>
+    <div class="field"><label>Valor Diária (R$)</label><input type="text" id="cValorDiaria" readonly placeholder="Preenchido automaticamente para PJ" style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeColabModal()">Cancelar</button>
       <button class="btn-save" onclick="saveColab()">Salvar</button>
@@ -474,6 +475,17 @@ function renderCards(){
 function escHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 /* ── COLAB MODAL ─────────────────────────────── */
+function atualizarValorDiaria(){
+  const regime=document.getElementById('cRegime').value;
+  const valor=parseFloat(document.getElementById('cValor').value||0);
+  const out=document.getElementById('cValorDiaria');
+  if(regime==='PJ (Pessoa Jurídica)'&&valor>0){
+    const diaria=valor/30;
+    out.value='R$ '+diaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else {
+    out.value='';
+  }
+}
 function openColabModal(){
   editingColabId=null;
   document.getElementById('colabModalTitle').textContent='Novo Colaborador';
@@ -482,6 +494,7 @@ function openColabModal(){
   document.getElementById('cRegime').value='';
   document.getElementById('cTipo').value='';
   document.getElementById('cValor').value='';
+  document.getElementById('cValorDiaria').value='';
   document.getElementById('colabOverlay').classList.add('open');
 }
 function editColab(id){
@@ -494,6 +507,7 @@ function editColab(id){
   document.getElementById('cRegime').value=c.regime||'';
   document.getElementById('cTipo').value=c.tipo||'';
   document.getElementById('cValor').value=c.valor||'';
+  atualizarValorDiaria();
   document.getElementById('colabOverlay').classList.add('open');
 }
 function closeColabModal(){document.getElementById('colabOverlay').classList.remove('open');}
