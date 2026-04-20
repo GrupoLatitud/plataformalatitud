@@ -300,14 +300,17 @@ body{
       <button class="modal-close" onclick="closeApontarModal()">&times;</button>
     </div>
     <div id="apontarColabInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem"></div>
-    <div class="field"><label>Data *</label><input type="date" id="aData"></div>
+    <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
     <div class="field-row">
-      <div class="field"><label>Entrada *</label><input type="time" id="aEntrada"></div>
-      <div class="field"><label>Saída *</label><input type="time" id="aSaida"></div>
+      <div class="field"><label>Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
+      <div class="field"><label>Saída *</label><input type="time" id="aSaida" onchange="recalcExtra()"></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Valor Diária (R$)</label><input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
-      <div class="field"><label>Valor Extra (R$)</label><input type="number" id="aValorExtra" step="0.01" min="0" placeholder="0,00" oninput="atualizarValorTotalDia()"></div>
+      <div class="field">
+        <label>Valor Extra (R$) <span id="aExtraInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
+        <input type="text" id="aValorExtra" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
+      </div>
     </div>
     <div class="field"><label>Valor Total do Dia (R$)</label><input type="text" id="aValorTotal" readonly style="background:var(--surface2);color:var(--green);font-weight:700;cursor:not-allowed"></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-dim);cursor:pointer;margin-top:8px">
@@ -563,10 +566,56 @@ function calcValorDiaria(c){
   if(c.tipo==='fixo')return v/30;
   return 0;
 }
+function parseMoney(str){
+  return parseFloat((str||'').replace(/[^\d,.-]/g,'').replace('.','').replace(',','.'))||0;
+}
+function calcExtraAdicional(colab,dateStr,entrada,saida){
+  if(!colab||!dateStr||!entrada||!saida)return{extra:0,desc:''};
+  const diaria=calcValorDiaria(colab);
+  const hora=diaria/8;
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const dow=dt.getDay(); // 0=Dom, 6=Sab
+  const feriados=feriadosDoAno(y);
+  const isFeriado=!!feriados[dateStr];
+  // Acrescimo sobre a diaria
+  let diariaPct=0,diariaLabel='';
+  if(isFeriado){diariaPct=0.80;diariaLabel='Feriado +80%';}
+  else if(dow===0){diariaPct=0.80;diariaLabel='Domingo +80%';}
+  else if(dow===6){diariaPct=0.50;diariaLabel='Sábado +50%';}
+  const diariaExtra=diaria*diariaPct;
+  // Horas noturnas (22:00-24:00 e 00:00-05:00) dentro do turno
+  const [eh,em]=entrada.split(':').map(Number);
+  const [sh,sm]=saida.split(':').map(Number);
+  const eMin=eh*60+em,sMin=sh*60+sm;
+  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,300)-Math.max(eMin,0));
+  const nightH=nightMin/60;
+  let nightPct=0,nightLabel='';
+  if(nightH>0){
+    if(isFeriado||dow===0)nightPct=0.80;
+    else nightPct=0.50; // seg-sex e sabado
+    const pctStr=nightPct===0.80?'80%':'50%';
+    nightLabel=`Noturno ${nightH.toFixed(1)}h +${pctStr}`;
+  }
+  const nightExtra=hora*nightPct*nightH;
+  const total=diariaExtra+nightExtra;
+  const parts=[diariaLabel,nightLabel].filter(Boolean);
+  return{extra:total,desc:parts.join(' + ')};
+}
+function recalcExtra(){
+  if(!apontandoColabId){atualizarValorTotalDia();return;}
+  const c=colaboradores.find(x=>x.id===apontandoColabId);
+  const data=document.getElementById('aData').value;
+  const entrada=document.getElementById('aEntrada').value;
+  const saida=document.getElementById('aSaida').value;
+  const{extra,desc}=calcExtraAdicional(c,data,entrada,saida);
+  document.getElementById('aValorExtra').value=extra>0?('R$ '+extra.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})):'R$ 0,00';
+  document.getElementById('aExtraInfo').textContent=desc?`• ${desc}`:'• Dia útil diurno';
+  atualizarValorTotalDia();
+}
 function atualizarValorTotalDia(){
-  const diariaStr=(document.getElementById('aValorDiaria').value||'').replace(/[^\d,]/g,'').replace(',','.');
-  const diaria=parseFloat(diariaStr||0)||0;
-  const extra=parseFloat(document.getElementById('aValorExtra').value||0)||0;
+  const diaria=parseMoney(document.getElementById('aValorDiaria').value);
+  const extra=parseMoney(document.getElementById('aValorExtra').value);
   const total=diaria+extra;
   document.getElementById('aValorTotal').value='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
@@ -585,7 +634,8 @@ function openApontarModal(colabId,prefilledDate){
   const diaria=calcValorDiaria(c);
   document.getElementById('aValorDiaria').value='R$ '+diaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('aValorExtra').value='';
-  atualizarValorTotalDia();
+  document.getElementById('aExtraInfo').textContent='';
+  recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
 function closeApontarModal(){document.getElementById('apontarOverlay').classList.remove('open');}
@@ -606,7 +656,7 @@ function saveApontamento(){
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const colabAtual=colaboradores.find(x=>x.id===apontandoColabId);
   const valorDiaria=calcValorDiaria(colabAtual);
-  const valorExtra=parseFloat(document.getElementById('aValorExtra').value||0)||0;
+  const valorExtra=parseMoney(document.getElementById('aValorExtra').value);
   const valorTotal=valorDiaria+valorExtra;
   apontamentos.push({
     id:nextApontId++,
