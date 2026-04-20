@@ -717,6 +717,11 @@ function calcValorDiariaAjustado(c,entrada,saida){
   if(!entrada||!saida||!currentJornada)return{valor:0,label:''};
   const{eMin,sMin,totalMin}=calcHorasTrabalhadas(entrada,saida);
   if(totalMin<=0)return{valor:0,label:''};
+  // Regras especificas so para PJ. CLT usa diaria base integral.
+  const isPJ=c&&c.regime==='PJ (Pessoa Jurídica)';
+  if(!isPJ){
+    return{valor:base,label:'CLT — diária base'};
+  }
   if(currentJornada==='noturno'){
     const h=totalMin/60;
     return{valor:hora*h,label:`Noturno ${h.toFixed(1)}h (proporcional)`};
@@ -732,41 +737,44 @@ function parseMoney(str){
 }
 function calcExtraAdicional(colab,dateStr,entrada,saida){
   if(!colab||!dateStr||!entrada||!saida||!currentJornada)return{extra:0,desc:''};
-  const diaria=calcValorDiaria(colab);
-  const hora=diaria/8;
-  const [y,m,d]=dateStr.split('-').map(Number);
-  const dt=new Date(y,m-1,d);
-  const dow=dt.getDay(); // 0=Dom, 6=Sab
-  const feriados=feriadosDoAno(y);
-  const isFeriado=!!feriados[dateStr];
-  const{eMin,sMin,totalMin}=calcHorasTrabalhadas(entrada,saida);
   const parts=[];
   let total=0;
-  if(currentJornada==='diurno'){
-    // Acrescimo sobre a diaria: sab 50%, dom/feriado 80%
-    if(isFeriado){total+=diaria*0.80;parts.push('Feriado +80%');}
-    else if(dow===0){total+=diaria*0.80;parts.push('Domingo +80%');}
-    else if(dow===6){total+=diaria*0.50;parts.push('Sábado +50%');}
-    // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
-    if(sMin>17*60+30){
-      const otMin=sMin-17*60;
-      const otH=otMin/60;
-      total+=hora*otH;
-      parts.push(`Extra após 17:00 (${otH.toFixed(1)}h)`);
-    }
-  } else if(currentJornada==='noturno'){
-    // Noturno: acrescimo sobre o valor/hora para cada hora dentro da janela 22:00-04:00 (1320-1680 considerando overnight)
-    const nightMin=Math.max(0,Math.min(sMin,1680)-Math.max(eMin,1320));
-    const nightH=nightMin/60;
-    if(nightH>0){
-      let pct,pctStr;
-      if(isFeriado||dow===0){pct=0.80;pctStr='80%';}
-      else{pct=0.50;pctStr='50%';} // seg-sab
-      total+=hora*pct*nightH;
-      parts.push(`Noturno ${nightH.toFixed(1)}h +${pctStr}`);
+  const isPJ=colab&&colab.regime==='PJ (Pessoa Jurídica)';
+  if(isPJ){
+    const diaria=calcValorDiaria(colab);
+    const hora=diaria/8;
+    const [y,m,d]=dateStr.split('-').map(Number);
+    const dt=new Date(y,m-1,d);
+    const dow=dt.getDay(); // 0=Dom, 6=Sab
+    const feriados=feriadosDoAno(y);
+    const isFeriado=!!feriados[dateStr];
+    const{eMin,sMin}=calcHorasTrabalhadas(entrada,saida);
+    if(currentJornada==='diurno'){
+      // Acrescimo sobre a diaria: sab 50%, dom/feriado 80%
+      if(isFeriado){total+=diaria*0.80;parts.push('Feriado +80%');}
+      else if(dow===0){total+=diaria*0.80;parts.push('Domingo +80%');}
+      else if(dow===6){total+=diaria*0.50;parts.push('Sábado +50%');}
+      // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
+      if(sMin>17*60+30){
+        const otMin=sMin-17*60;
+        const otH=otMin/60;
+        total+=hora*otH;
+        parts.push(`Extra após 17:00 (${otH.toFixed(1)}h)`);
+      }
+    } else if(currentJornada==='noturno'){
+      // Noturno: acrescimo sobre o valor/hora para cada hora dentro da janela 22:00-04:00 (1320-1680 considerando overnight)
+      const nightMin=Math.max(0,Math.min(sMin,1680)-Math.max(eMin,1320));
+      const nightH=nightMin/60;
+      if(nightH>0){
+        let pct,pctStr;
+        if(isFeriado||dow===0){pct=0.80;pctStr='80%';}
+        else{pct=0.50;pctStr='50%';} // seg-sab
+        total+=hora*pct*nightH;
+        parts.push(`Noturno ${nightH.toFixed(1)}h +${pctStr}`);
+      }
     }
   }
-  // Viagem (para ambas)
+  // Viagem (para todos os regimes)
   if(currentViagem==='ida_volta'){total+=20;parts.push('Viagem ida/volta +R$20');}
   else if(currentViagem==='pernoite'){total+=10;parts.push('Pernoite +R$10');}
   return{extra:total,desc:parts.join(' + ')};
