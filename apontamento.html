@@ -128,6 +128,27 @@ body{
 .field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid #2e2818;color:var(--text);padding:9px 12px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;color-scheme:dark;margin-top:auto}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:stretch}
+.segmented{display:flex;gap:6px;flex-wrap:wrap}
+.segmented input{display:none}
+.segmented label{flex:1;min-width:120px;padding:9px 10px;border:1px solid #2e2818;border-radius:8px;text-align:center;cursor:pointer;font-size:.82rem;color:var(--text-dim);background:var(--bg);transition:all .15s;font-family:'Barlow',sans-serif}
+.segmented label:hover{border-color:#4a4028}
+.segmented input:checked+label{border-color:var(--orange);background:rgba(245,132,31,.12);color:var(--orange);font-weight:600}
+.resumo-card{background:var(--surface2);border-radius:10px;padding:14px 16px;margin:4px 0 10px}
+.resumo-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:.85rem;padding:5px 0}
+.resumo-row .res-label{color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-size:.72rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;padding-top:3px}
+.resumo-row .res-value{text-align:right;min-width:0;flex:1}
+.resumo-row .res-value strong{display:block;font-size:.95rem;color:var(--text)}
+.resumo-row .res-chip{display:inline-block;font-size:.68rem;background:rgba(245,132,31,.12);color:var(--orange);padding:2px 8px;border-radius:10px;margin-top:3px;max-width:100%;white-space:normal;line-height:1.4}
+.resumo-row .res-chip.muted{background:rgba(255,255,255,.04);color:var(--text-dim)}
+.resumo-divider{border-top:1px dashed #3a3020;margin:10px 0}
+.resumo-total{display:flex;justify-content:space-between;align-items:center;padding-top:2px}
+.resumo-total .rt-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.6px;font-size:.92rem}
+.resumo-total .rt-value{color:var(--green);font-weight:800;font-size:1.5rem;font-family:'Barlow Condensed',sans-serif}
+.btn-falta{background:#c0392b;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.3px}
+.btn-falta:hover{background:#a93226}
+.colab-pill{background:var(--surface2);padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:.9rem;display:flex;align-items:center;gap:10px}
+.colab-pill .pill-avatar{width:32px;height:32px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:.95rem;flex-shrink:0}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 .btn-cancel{background:none;border:1px solid #3a3020;color:var(--text-dim);padding:8px 20px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600}
 .btn-cancel:hover{border-color:var(--text);color:var(--text)}
@@ -201,6 +222,7 @@ body{
   .page-body{padding:16px}
   .modal{padding:20px 16px}
   .field-row{grid-template-columns:1fr}
+  .field-row-3{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -294,54 +316,59 @@ body{
 
 <!-- MODAL: Apontar -->
 <div class="modal-overlay" id="apontarOverlay">
-  <div class="modal" style="max-width:440px">
+  <div class="modal" style="max-width:500px">
     <div class="modal-header">
       <h2 class="modal-title">Apontar Hora</h2>
       <button class="modal-close" onclick="closeApontarModal()">&times;</button>
     </div>
-    <div id="apontarColabInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem"></div>
+
+    <div id="apontarColabInfo" class="colab-pill"></div>
+
     <div class="field"><label>Projeto</label>
-      <input type="text" id="aProjeto" list="aProjetosList" placeholder="Digite para buscar o projeto (opcional)" autocomplete="off">
+      <input type="text" id="aProjeto" list="aProjetosList" placeholder="Digite para buscar (opcional)" autocomplete="off">
       <datalist id="aProjetosList"></datalist>
     </div>
-    <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
-    <div class="field-row">
+
+    <div class="field-row-3">
+      <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
       <div class="field"><label>Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
       <div class="field"><label>Saída *</label><input type="time" id="aSaida" onchange="recalcExtra()"></div>
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input type="checkbox" id="aViagem" onchange="toggleViagem()" style="width:auto;cursor:pointer"> Teve viagem?
-        </label>
-      </div>
-      <div class="field" id="aViagemTipoField" style="display:none">
-        <label>Tipo de viagem</label>
-        <select id="aViagemTipo" onchange="recalcExtra()">
-          <option value="ida_volta">Ida e volta (retorno no dia) — +R$20</option>
-          <option value="pernoite">Com pernoite — +R$10</option>
-        </select>
+
+    <div class="field">
+      <label>Viagem</label>
+      <div class="segmented">
+        <input type="radio" name="viagem" id="viaSem" value="nao" checked onchange="setViagem('nao')"><label for="viaSem">Sem viagem</label>
+        <input type="radio" name="viagem" id="viaIda" value="ida_volta" onchange="setViagem('ida_volta')"><label for="viaIda">Ida e volta +R$20</label>
+        <input type="radio" name="viagem" id="viaPer" value="pernoite" onchange="setViagem('pernoite')"><label for="viaPer">Pernoite +R$10</label>
       </div>
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Valor Diária (R$) <span id="aDiariaInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
-        <input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
+
+    <div class="resumo-card">
+      <div class="resumo-row">
+        <span class="res-label">Diária</span>
+        <span class="res-value"><strong id="resDiaria">R$ 0,00</strong><span id="resDiariaChip" class="res-chip muted" style="display:none"></span></span>
       </div>
-      <div class="field">
-        <label>Valor Extra (R$) <span id="aExtraInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
-        <input type="text" id="aValorExtra" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
+      <div class="resumo-row">
+        <span class="res-label">Extra</span>
+        <span class="res-value"><strong id="resExtra">R$ 0,00</strong><span id="resExtraChip" class="res-chip" style="display:none"></span></span>
+      </div>
+      <div class="resumo-divider"></div>
+      <div class="resumo-total">
+        <span class="rt-label">Total do dia</span>
+        <span class="rt-value" id="resTotal">R$ 0,00</span>
       </div>
     </div>
-    <div class="field"><label>Valor Total do Dia (R$)</label><input type="text" id="aValorTotal" readonly style="background:var(--surface2);color:var(--green);font-weight:700;cursor:not-allowed"></div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-dim);cursor:pointer;margin-top:8px">
+
+    <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text-dim);cursor:pointer">
       <input type="checkbox" id="aManterAberto" style="width:auto;cursor:pointer">
       Manter aberto após salvar (apontar mais dias)
     </label>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeApontarModal()">Cancelar</button>
-      <button type="button" onclick="openFaltaModal()" style="background:#c0392b;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.3px">Marcar Falta</button>
-      <button class="btn-save" onclick="saveApontamento()">Salvar Apontamento</button>
+      <button type="button" class="btn-falta" onclick="openFaltaModal()">Marcar Falta</button>
+      <button class="btn-save" onclick="saveApontamento()">Salvar</button>
     </div>
   </div>
 </div>
@@ -482,6 +509,7 @@ let calYear=new Date().getFullYear();
 let calSelectedDate=null;
 let calQuinzena='all';
 let projects=[];
+let currentViagem='nao';
 
 db.ref('colaboradores').on('value',snap=>{
   const d=snap.val();
@@ -699,63 +727,56 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
   }
   // Viagem (nao cumulativa entre si)
   let viagemExtra=0,viagemLabel='';
-  const viagemOn=document.getElementById('aViagem');
-  if(viagemOn&&viagemOn.checked){
-    const tipo=document.getElementById('aViagemTipo').value;
-    if(tipo==='ida_volta'){viagemExtra=20;viagemLabel='Viagem ida e volta +R$20';}
-    else if(tipo==='pernoite'){viagemExtra=10;viagemLabel='Viagem c/ pernoite +R$10';}
-  }
+  if(currentViagem==='ida_volta'){viagemExtra=20;viagemLabel='Viagem ida/volta +R$20';}
+  else if(currentViagem==='pernoite'){viagemExtra=10;viagemLabel='Pernoite +R$10';}
   const total=diariaExtra+nightExtra+otExtra+viagemExtra;
   const parts=[diariaLabel,nightLabel,otLabel,viagemLabel].filter(Boolean);
   return{extra:total,desc:parts.join(' + ')};
 }
-function toggleViagem(){
-  const on=document.getElementById('aViagem').checked;
-  document.getElementById('aViagemTipoField').style.display=on?'block':'none';
-  recalcExtra();
-}
+function setViagem(v){currentViagem=v;recalcExtra();}
+function fmtMoney(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function recalcExtra(){
-  if(!apontandoColabId){atualizarValorTotalDia();return;}
+  if(!apontandoColabId)return;
   const c=colaboradores.find(x=>x.id===apontandoColabId);
   const data=document.getElementById('aData').value;
   const entrada=document.getElementById('aEntrada').value;
   const saida=document.getElementById('aSaida').value;
-  // Atualiza o valor da diaria ajustado (diurno ate 14h = meia; apos 14h = integral; noturno = proporcional)
   const ajust=calcValorDiariaAjustado(c,entrada,saida);
-  document.getElementById('aValorDiaria').value='R$ '+ajust.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const diariaInfo=document.getElementById('aDiariaInfo');
-  if(diariaInfo)diariaInfo.textContent=ajust.label?`• ${ajust.label}`:'';
   const{extra,desc}=calcExtraAdicional(c,data,entrada,saida);
-  document.getElementById('aValorExtra').value=extra>0?('R$ '+extra.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})):'R$ 0,00';
-  document.getElementById('aExtraInfo').textContent=desc?`• ${desc}`:'• Sem acréscimos';
-  atualizarValorTotalDia();
-}
-function atualizarValorTotalDia(){
-  const diaria=parseMoney(document.getElementById('aValorDiaria').value);
-  const extra=parseMoney(document.getElementById('aValorExtra').value);
-  const total=diaria+extra;
-  document.getElementById('aValorTotal').value='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const total=ajust.valor+extra;
+  const resDiaria=document.getElementById('resDiaria');
+  const resDiariaChip=document.getElementById('resDiariaChip');
+  const resExtra=document.getElementById('resExtra');
+  const resExtraChip=document.getElementById('resExtraChip');
+  const resTotal=document.getElementById('resTotal');
+  if(resDiaria)resDiaria.textContent=fmtMoney(ajust.valor);
+  if(resDiariaChip){
+    if(ajust.label){resDiariaChip.textContent=ajust.label;resDiariaChip.style.display='inline-block';}
+    else resDiariaChip.style.display='none';
+  }
+  if(resExtra)resExtra.textContent=fmtMoney(extra);
+  if(resExtraChip){
+    if(desc){resExtraChip.textContent=desc;resExtraChip.style.display='inline-block';}
+    else resExtraChip.style.display='none';
+  }
+  if(resTotal)resTotal.textContent=fmtMoney(total);
 }
 function openApontarModal(colabId,prefilledDate){
   const c=colaboradores.find(x=>x.id===colabId);
   if(!c)return;
   apontandoColabId=colabId;
-  document.getElementById('apontarColabInfo').innerHTML=`<strong>${escHtml(c.nome)}</strong> — ${escHtml(c.cargo)}`;
+  const inic=(c.nome||'').trim().split(/\s+/).map(s=>s[0]||'').slice(0,2).join('').toUpperCase()||'?';
+  document.getElementById('apontarColabInfo').innerHTML=`<div class="pill-avatar">${escHtml(inic)}</div><div><strong>${escHtml(c.nome)}</strong><div style="font-size:.78rem;color:var(--text-dim)">${escHtml(c.cargo||'')} • ${escHtml(c.regime||'—')}</div></div>`;
   document.getElementById('aData').value=prefilledDate||new Date().toISOString().slice(0,10);
-  // pre-preencher entrada/saida com base no ultimo apontamento desse colab
-  const meus=apontamentos.filter(a=>a.colaboradorId===colabId)
+  const meus=apontamentos.filter(a=>a.colaboradorId===colabId&&!a.falta)
     .sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.criadoEm||'').localeCompare(a.criadoEm||''));
   const ultimo=meus[0];
   document.getElementById('aEntrada').value=ultimo?ultimo.entrada||'':'';
   document.getElementById('aSaida').value=ultimo?ultimo.saida||'':'';
   popularProjetosSelect();
   document.getElementById('aProjeto').value='';
-  document.getElementById('aValorExtra').value='';
-  document.getElementById('aExtraInfo').textContent='';
-  document.getElementById('aDiariaInfo').textContent='';
-  document.getElementById('aViagem').checked=false;
-  document.getElementById('aViagemTipo').value='ida_volta';
-  document.getElementById('aViagemTipoField').style.display='none';
+  currentViagem='nao';
+  document.getElementById('viaSem').checked=true;
   recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
@@ -866,10 +887,11 @@ function saveApontamento(){
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const colabAtual=colaboradores.find(x=>x.id===apontandoColabId);
   const valorDiaria=calcValorDiariaAjustado(colabAtual,entrada,saida).valor;
-  const valorExtra=parseMoney(document.getElementById('aValorExtra').value);
+  const extraCalc=calcExtraAdicional(colabAtual,data,entrada,saida).extra;
+  const valorExtra=extraCalc;
   const valorTotal=valorDiaria+valorExtra;
-  const viagemOn=document.getElementById('aViagem').checked;
-  const viagemTipo=viagemOn?document.getElementById('aViagemTipo').value:null;
+  const viagemOn=currentViagem!=='nao';
+  const viagemTipo=viagemOn?currentViagem:null;
   const projeto=document.getElementById('aProjeto').value||null;
   apontamentos.push({
     id:nextApontId++,
