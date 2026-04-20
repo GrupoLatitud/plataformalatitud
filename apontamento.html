@@ -307,6 +307,20 @@ body{
     </div>
     <div class="field-row">
       <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="aViagem" onchange="toggleViagem()" style="width:auto;cursor:pointer"> Teve viagem?
+        </label>
+      </div>
+      <div class="field" id="aViagemTipoField" style="display:none">
+        <label>Tipo de viagem</label>
+        <select id="aViagemTipo" onchange="recalcExtra()">
+          <option value="ida_volta">Ida e volta (retorno no dia) — +R$20</option>
+          <option value="pernoite">Com pernoite — +R$10</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
         <label>Valor Diária (R$) <span id="aDiariaInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
         <input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
       </div>
@@ -631,9 +645,22 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
     otExtra=hora*otH;
     otLabel=`Extra após 17:00 (${otH.toFixed(1)}h)`;
   }
-  const total=diariaExtra+nightExtra+otExtra;
-  const parts=[diariaLabel,nightLabel,otLabel].filter(Boolean);
+  // Viagem (nao cumulativa entre si)
+  let viagemExtra=0,viagemLabel='';
+  const viagemOn=document.getElementById('aViagem');
+  if(viagemOn&&viagemOn.checked){
+    const tipo=document.getElementById('aViagemTipo').value;
+    if(tipo==='ida_volta'){viagemExtra=20;viagemLabel='Viagem ida e volta +R$20';}
+    else if(tipo==='pernoite'){viagemExtra=10;viagemLabel='Viagem c/ pernoite +R$10';}
+  }
+  const total=diariaExtra+nightExtra+otExtra+viagemExtra;
+  const parts=[diariaLabel,nightLabel,otLabel,viagemLabel].filter(Boolean);
   return{extra:total,desc:parts.join(' + ')};
+}
+function toggleViagem(){
+  const on=document.getElementById('aViagem').checked;
+  document.getElementById('aViagemTipoField').style.display=on?'block':'none';
+  recalcExtra();
 }
 function recalcExtra(){
   if(!apontandoColabId){atualizarValorTotalDia();return;}
@@ -672,6 +699,9 @@ function openApontarModal(colabId,prefilledDate){
   document.getElementById('aValorExtra').value='';
   document.getElementById('aExtraInfo').textContent='';
   document.getElementById('aDiariaInfo').textContent='';
+  document.getElementById('aViagem').checked=false;
+  document.getElementById('aViagemTipo').value='ida_volta';
+  document.getElementById('aViagemTipoField').style.display='none';
   recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
@@ -695,11 +725,14 @@ function saveApontamento(){
   const valorDiaria=calcValorDiariaAjustado(colabAtual,entrada,saida).valor;
   const valorExtra=parseMoney(document.getElementById('aValorExtra').value);
   const valorTotal=valorDiaria+valorExtra;
+  const viagemOn=document.getElementById('aViagem').checked;
+  const viagemTipo=viagemOn?document.getElementById('aViagemTipo').value:null;
   apontamentos.push({
     id:nextApontId++,
     colaboradorId:apontandoColabId,
     data,entrada,saida,
     valorDiaria,valorExtra,valorTotal,
+    viagem:viagemOn,viagemTipo,
     criadoEm:new Date().toISOString(),
     criadoPor:user
   });
