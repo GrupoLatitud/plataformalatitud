@@ -111,6 +111,20 @@ body{
 }
 .btn-edit-colab:hover{border-color:var(--blue);color:var(--blue)}
 .btn-del-colab:hover{border-color:#e74c3c;color:#e74c3c}
+.btn-menu-colab{
+  background:none;border:1px solid #3a3020;color:var(--text-dim);
+  padding:5px 9px;border-radius:6px;cursor:pointer;font-size:.9rem;line-height:1;
+  font-weight:700;letter-spacing:1px;
+}
+.btn-menu-colab:hover{border-color:var(--text);color:var(--text)}
+.colab-menu{position:relative}
+.colab-menu-panel{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid #2e2818;border-radius:8px;min-width:130px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;overflow:hidden}
+.colab-menu-panel.open{display:block}
+.colab-menu-opt{padding:9px 12px;font-size:.82rem;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:8px;border-bottom:1px solid #252016}
+.colab-menu-opt:last-child{border-bottom:none}
+.colab-menu-opt:hover{background:rgba(255,255,255,.05)}
+.colab-menu-opt.danger{color:#e74c3c}
+.colab-menu-opt.danger:hover{background:rgba(231,76,60,.12)}
 
 .empty{text-align:center;padding:60px 20px;color:var(--text-dim);font-size:.95rem}
 
@@ -620,14 +634,30 @@ function renderCards(){
       <div class="colab-valor">${valorFmt}${c.tipo==='diaria'?' / dia':' / mês'}</div>
       <div class="colab-actions" onclick="event.stopPropagation()">
         <button class="btn-apontar" onclick="openApontarModal(${c.id})">Apontar</button>
-        <button class="btn-edit-colab" onclick="editColab(${c.id})" title="Editar">✎</button>
-        <button class="btn-del-colab" onclick="deleteColab(${c.id})" title="Excluir">×</button>
+        <div class="colab-menu">
+          <button class="btn-menu-colab" onclick="toggleColabMenu(event,${c.id})" title="Mais opções">⋮</button>
+          <div class="colab-menu-panel" id="colabMenu${c.id}">
+            <div class="colab-menu-opt" onclick="editColab(${c.id});closeColabMenus()">✎ Editar</div>
+            <div class="colab-menu-opt danger" onclick="deleteColab(${c.id});closeColabMenus()">× Excluir</div>
+          </div>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
 function escHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function closeColabMenus(){document.querySelectorAll('.colab-menu-panel.open').forEach(el=>el.classList.remove('open'));}
+function toggleColabMenu(ev,id){
+  ev.stopPropagation();
+  const el=document.getElementById('colabMenu'+id);
+  const wasOpen=el.classList.contains('open');
+  closeColabMenus();
+  if(!wasOpen)el.classList.add('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.colab-menu'))closeColabMenus();
+});
 
 /* ── COLAB MODAL ─────────────────────────────── */
 function atualizarValorDiaria(){
