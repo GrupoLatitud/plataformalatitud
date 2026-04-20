@@ -757,16 +757,16 @@ function renderApontamentosMes(){
 
   let startDate=null,endDate=null;
   if(calQuinzena==='1'){
-    // 1a quinzena: do dia 21 do mes anterior ao dia anterior ao 5 dia util do mes atual
+    // 1a quinzena: do dia 21 do mes anterior ate o 5 dia util do mes atual (inclusive)
     const q5=quintoDiaUtil(calYear,calMonth,feriados);
     startDate=`${prevYear}-${String(prevMonth+1).padStart(2,'0')}-21`;
-    endDate=q5?`${calYear}-${mm}-${String(q5-1).padStart(2,'0')}`:`${calYear}-${mm}-04`;
+    endDate=q5?`${calYear}-${mm}-${String(q5).padStart(2,'0')}`:`${calYear}-${mm}-05`;
   } else if(calQuinzena==='2'){
-    // 2a quinzena: do 5 dia util ate o dia anterior ao dia 20 (ajustado)
+    // 2a quinzena: do dia seguinte ao 5 dia util ate o dia 20 (ajustado, inclusive)
     const q5=quintoDiaUtil(calYear,calMonth,feriados);
     const d20=dia20Ajustado(calYear,calMonth,feriados);
-    startDate=q5?`${calYear}-${mm}-${String(q5).padStart(2,'0')}`:`${calYear}-${mm}-05`;
-    endDate=d20?`${calYear}-${mm}-${String(d20-1).padStart(2,'0')}`:`${calYear}-${mm}-19`;
+    startDate=q5?`${calYear}-${mm}-${String(q5+1).padStart(2,'0')}`:`${calYear}-${mm}-06`;
+    endDate=d20?`${calYear}-${mm}-${String(d20).padStart(2,'0')}`:`${calYear}-${mm}-20`;
   }
 
   if(infoEl){
