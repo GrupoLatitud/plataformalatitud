@@ -398,6 +398,7 @@ body{
         <option value="saude">Impedimento de saúde</option>
         <option value="feriado">Feriado</option>
         <option value="obito">Óbito de familiar</option>
+        <option value="nao_comparecimento">Não comparecimento (sem justificativa)</option>
       </select>
     </div>
     <div class="field" id="fChuvaField" style="display:none">
@@ -857,6 +858,7 @@ function calcularFalta(colabId,dateStr,motivo,chuvaDemanda){
     return{valor:0,label:'Chuva sem aviso prévio — sem remuneração'};
   }
   if(motivo==='saude')return{valor:0,label:'Impedimento de saúde — sem remuneração'};
+  if(motivo==='nao_comparecimento')return{valor:0,label:'Não comparecimento sem justificativa — sem remuneração'};
   if(motivo==='feriado')return{valor:diariaBase,label:'Feriado — diária integral'};
   if(motivo==='obito'){
     const dias=contarDiasObitoConsecutivos(colabId,dateStr);
