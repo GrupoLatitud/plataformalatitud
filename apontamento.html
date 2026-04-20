@@ -123,11 +123,11 @@ body{
 .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.25rem}
 .modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.6rem;line-height:1;padding:0 4px}
 .modal-close:hover{color:var(--text)}
-.field{margin-bottom:14px}
+.field{margin-bottom:14px;display:flex;flex-direction:column}
 .field label{display:block;font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;font-weight:600}
-.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid #2e2818;color:var(--text);padding:9px 12px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;color-scheme:dark}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid #2e2818;color:var(--text);padding:9px 12px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;color-scheme:dark;margin-top:auto}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange)}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 .btn-cancel{background:none;border:1px solid #3a3020;color:var(--text-dim);padding:8px 20px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600}
 .btn-cancel:hover{border-color:var(--text);color:var(--text)}
