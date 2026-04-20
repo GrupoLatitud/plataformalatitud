@@ -125,6 +125,14 @@ body{
 .val-diaria{color:var(--text)}
 .val-extra{color:var(--orange)}
 .val-total{color:var(--green);font-weight:700}
+.data-dup{color:#e74c3c;font-weight:700}
+.tip-wrap{position:relative;display:inline-block}
+.tip-wrap .tip-bubble{visibility:hidden;opacity:0;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface2);border:1px solid #3a3020;border-radius:8px;padding:8px 10px;min-width:200px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:50;transition:opacity .12s;text-align:left;font-size:.78rem;color:var(--text);font-weight:normal}
+.tip-wrap:hover .tip-bubble{visibility:visible;opacity:1}
+.tip-row{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed #3a3020}
+.tip-row:last-child{border-bottom:none}
+.tip-row .tip-label{color:var(--text-dim)}
+.tip-row .tip-value{color:var(--orange);font-weight:700;white-space:nowrap}
 @media(max-width:720px){
   .history-table th.col-extra,.history-table td.col-extra,.history-table th.col-horario,.history-table td.col-horario{display:none}
 }
@@ -784,6 +792,13 @@ function renderHistorico(){
   document.getElementById('sortNomeArrow').textContent=histSort.col==='nome'?(histSort.dir==='asc'?'↑':'↓'):'';
   if(!items.length){body.innerHTML='';empty.style.display='block';totEl.textContent='';return;}
   empty.style.display='none';
+  // mapa de duplicidades: quantas vezes cada (colab+data) aparece na base completa
+  const dupMap={};
+  apontamentos.forEach(a=>{
+    if(!a.data||!a.colaboradorId)return;
+    const k=a.colaboradorId+'|'+a.data;
+    dupMap[k]=(dupMap[k]||0)+1;
+  });
   let totDiaria=0,totExtra=0,totTotal=0;
   body.innerHTML=items.map(a=>{
     const c=colaboradores.find(x=>x.id===a.colaboradorId);
@@ -792,15 +807,26 @@ function renderHistorico(){
     const tot=Number(a.valorTotal||0)||(diaria+extra);
     totDiaria+=diaria;totExtra+=extra;totTotal+=tot;
     const d=a.data?(a.data.slice(8,10)+'/'+a.data.slice(5,7)+'/'+a.data.slice(0,4)):'—';
+    const isDup=a.data&&a.colaboradorId&&(dupMap[a.colaboradorId+'|'+a.data]>1);
+    const dClass=isDup?'data-dup':'';
+    const dTitle=isDup?' title="Data duplicada para este colaborador"':'';
     const h=a.falta?'<span style="color:#e74c3c;font-weight:600">Falta</span>':(a.entrada&&a.saida?`${a.entrada} → ${a.saida}`:'—');
     const proj=a.projeto?escHtml(a.projeto):'<span style="color:var(--text-dim)">—</span>';
+    // Tooltip do Valor Extra
+    let extraCell;
+    if(extra>0&&Array.isArray(a.extraParts)&&a.extraParts.length){
+      const tipRows=a.extraParts.map(p=>`<div class="tip-row"><span class="tip-label">${escHtml(p.label||'')}</span><span class="tip-value">${fmtMoney(p.value||0)}</span></div>`).join('');
+      extraCell=`<span class="tip-wrap">${fmtMoney(extra)}<span class="tip-bubble">${tipRows}</span></span>`;
+    } else {
+      extraCell=fmtMoney(extra);
+    }
     return `<tr class="${a.falta?'falta':''}">
-      <td>${d}</td>
+      <td class="${dClass}"${dTitle}>${d}</td>
       <td class="col-horario">${h}</td>
       <td>${escHtml(c?c.nome:'—')}</td>
       <td>${proj}</td>
       <td style="text-align:right" class="val-diaria">${fmtMoney(diaria)}</td>
-      <td style="text-align:right" class="col-extra val-extra">${fmtMoney(extra)}</td>
+      <td style="text-align:right" class="col-extra val-extra">${extraCell}</td>
       <td style="text-align:right" class="val-total">${fmtMoney(tot)}</td>
     </tr>`;
   }).join('');
@@ -927,7 +953,7 @@ function parseMoney(str){
   return parseFloat((str||'').replace(/[^\d,.-]/g,'').replace('.','').replace(',','.'))||0;
 }
 function calcExtraAdicional(colab,dateStr,entrada,saida){
-  if(!colab||!dateStr||!entrada||!saida||!currentJornada)return{extra:0,desc:''};
+  if(!colab||!dateStr||!entrada||!saida||!currentJornada)return{extra:0,desc:'',parts:[]};
   const parts=[];
   let total=0;
   const isPJ=colab&&colab.regime==='PJ (Pessoa Jurídica)';
@@ -936,39 +962,37 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
     const hora=diaria/8;
     const [y,m,d]=dateStr.split('-').map(Number);
     const dt=new Date(y,m-1,d);
-    const dow=dt.getDay(); // 0=Dom, 6=Sab
+    const dow=dt.getDay();
     const feriados=feriadosDoAno(y);
     const isFeriado=!!feriados[dateStr];
     const{eMin,sMin}=calcHorasTrabalhadas(entrada,saida);
     if(currentJornada==='diurno'){
-      // Acrescimo sobre a diaria: sab 50%, dom/feriado 80%
-      if(isFeriado){total+=diaria*0.80;parts.push('Feriado +80%');}
-      else if(dow===0){total+=diaria*0.80;parts.push('Domingo +80%');}
-      else if(dow===6){total+=diaria*0.50;parts.push('Sábado +50%');}
-      // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
+      if(isFeriado){const v=diaria*0.80;total+=v;parts.push({label:'Feriado +80%',value:v});}
+      else if(dow===0){const v=diaria*0.80;total+=v;parts.push({label:'Domingo +80%',value:v});}
+      else if(dow===6){const v=diaria*0.50;total+=v;parts.push({label:'Sábado +50%',value:v});}
       if(sMin>17*60+30){
         const otMin=sMin-17*60;
         const otH=otMin/60;
-        total+=hora*otH;
-        parts.push(`Extra após 17:00 (${otH.toFixed(1)}h)`);
+        const v=hora*otH;
+        total+=v;
+        parts.push({label:`Extra após 17:00 (${otH.toFixed(1)}h)`,value:v});
       }
     } else if(currentJornada==='noturno'){
-      // Noturno: acrescimo sobre o valor/hora para cada hora dentro da janela 22:00-04:00 (1320-1680 considerando overnight)
       const nightMin=Math.max(0,Math.min(sMin,1680)-Math.max(eMin,1320));
       const nightH=nightMin/60;
       if(nightH>0){
         let pct,pctStr;
         if(isFeriado||dow===0){pct=0.80;pctStr='80%';}
-        else{pct=0.50;pctStr='50%';} // seg-sab
-        total+=hora*pct*nightH;
-        parts.push(`Noturno ${nightH.toFixed(1)}h +${pctStr}`);
+        else{pct=0.50;pctStr='50%';}
+        const v=hora*pct*nightH;
+        total+=v;
+        parts.push({label:`Noturno ${nightH.toFixed(1)}h +${pctStr}`,value:v});
       }
     }
   }
-  // Viagem (para todos os regimes)
-  if(currentViagem==='ida_volta'){total+=20;parts.push('Viagem ida/volta +R$20');}
-  else if(currentViagem==='pernoite'){total+=10;parts.push('Pernoite +R$10');}
-  return{extra:total,desc:parts.join(' + ')};
+  if(currentViagem==='ida_volta'){total+=20;parts.push({label:'Viagem ida/volta',value:20});}
+  else if(currentViagem==='pernoite'){total+=10;parts.push({label:'Pernoite',value:10});}
+  return{extra:total,desc:parts.map(p=>p.label).join(' + '),parts};
 }
 function setViagem(v){currentViagem=v;recalcExtra();}
 function setJornada(t){
@@ -1173,9 +1197,10 @@ function saveApontamento(){
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const colabAtual=colaboradores.find(x=>x.id===apontandoColabId);
   const valorDiaria=calcValorDiariaAjustado(colabAtual,entrada,saida).valor;
-  const extraCalc=calcExtraAdicional(colabAtual,data,entrada,saida).extra;
-  const valorExtra=extraCalc;
+  const extraInfo=calcExtraAdicional(colabAtual,data,entrada,saida);
+  const valorExtra=extraInfo.extra;
   const valorTotal=valorDiaria+valorExtra;
+  const extraParts=extraInfo.parts||[];
   const viagemOn=currentViagem!=='nao';
   const viagemTipo=viagemOn?currentViagem:null;
   const projeto=document.getElementById('aProjeto').value||null;
@@ -1183,7 +1208,7 @@ function saveApontamento(){
     id:nextApontId++,
     colaboradorId:apontandoColabId,
     data,entrada,saida,
-    valorDiaria,valorExtra,valorTotal,
+    valorDiaria,valorExtra,valorTotal,extraParts,
     viagem:viagemOn,viagemTipo,
     projeto,
     jornada:currentJornada,
