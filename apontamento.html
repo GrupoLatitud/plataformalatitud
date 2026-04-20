@@ -85,22 +85,43 @@ body{
 .search-bar input{flex:1;max-width:360px;background:var(--surface);border:1px solid #2e2818;color:var(--text);padding:9px 14px 9px 36px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.9rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239a9080' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center}
 .search-bar input:focus{outline:none;border-color:var(--orange)}
 
-/* CARDS */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.colab-card{
-  background:var(--surface);border:1px solid #2e2818;border-radius:10px;
-  padding:12px;cursor:pointer;transition:border-color .15s,transform .1s;
-  display:flex;flex-direction:column;gap:6px;
+/* LIST COLABS */
+.colab-list{display:flex;flex-direction:column;gap:6px}
+.colab-row{background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:1.6fr 1fr .8fr 1fr auto;gap:12px;align-items:center;cursor:pointer;transition:border-color .15s}
+.colab-row:hover{border-color:var(--orange)}
+.colab-row .c-nome{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--text);line-height:1.15}
+.colab-row .c-cargo{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-weight:600;font-family:'Barlow Condensed',sans-serif}
+.colab-row .c-meta{display:flex;flex-wrap:wrap;gap:4px}
+.colab-row .c-tag{background:var(--surface2);color:var(--text-dim);padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.colab-row .c-tag.tipo{background:rgba(107,175,212,.15);color:var(--blue)}
+.colab-row .c-valor{color:var(--green);font-weight:700;font-size:.9rem;font-family:'Barlow Condensed',sans-serif;text-align:right;white-space:nowrap}
+.colab-row .c-actions{display:flex;gap:6px;justify-self:end}
+@media(max-width:720px){
+  .colab-row{grid-template-columns:1fr auto;gap:8px}
+  .colab-row .c-cargo-wrap,.colab-row .c-meta,.colab-row .c-valor{display:none}
 }
-.colab-card:hover{border-color:var(--orange)}
-.colab-card:active{transform:scale(.99)}
-.colab-card .colab-nome{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:var(--text);line-height:1.1}
-.colab-card .colab-cargo{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-weight:600;font-family:'Barlow Condensed',sans-serif}
-.colab-card .colab-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
-.colab-card .colab-tag{background:var(--surface2);color:var(--text-dim);padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
-.colab-card .colab-tag.tipo{background:rgba(107,175,212,.15);color:var(--blue)}
-.colab-card .colab-valor{color:var(--green);font-weight:700;font-size:.9rem;font-family:'Barlow Condensed',sans-serif}
-.colab-card .colab-actions{display:flex;gap:6px;margin-top:4px;border-top:1px solid #2e2818;padding-top:8px}
+
+/* HISTORY */
+.history-card{background:var(--surface);border:1px solid #2e2818;border-radius:10px;padding:18px;margin-top:24px}
+.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.history-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.history-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.history-controls input,.history-controls select{background:var(--bg);border:1px solid #2e2818;color:var(--text);padding:7px 10px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:.82rem;color-scheme:dark}
+.history-controls input:focus,.history-controls select:focus{outline:none;border-color:var(--orange)}
+.history-table{width:100%;border-collapse:collapse}
+.history-table th{text-align:left;font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid #2e2818;font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.history-table th.sortable{cursor:pointer;user-select:none}
+.history-table th.sortable:hover{color:var(--orange)}
+.history-table td{padding:9px 10px;border-bottom:1px solid #252016;font-size:.84rem;color:var(--text)}
+.history-table tr:last-child td{border-bottom:none}
+.history-table tr.falta td{opacity:.85}
+.history-empty{text-align:center;padding:24px;color:var(--text-dim);font-size:.85rem}
+.val-diaria{color:var(--text)}
+.val-extra{color:var(--orange)}
+.val-total{color:var(--green);font-weight:700}
+@media(max-width:720px){
+  .history-table th.col-extra,.history-table td.col-extra,.history-table th.col-horario,.history-table td.col-horario{display:none}
+}
 .btn-apontar{flex:1;background:var(--orange);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.78rem;transition:background .2s}
 .btn-apontar:hover{background:#e0750f}
 .btn-apontar:disabled{background:#444;cursor:not-allowed}
@@ -296,8 +317,41 @@ body{
     <input type="text" id="searchInput" placeholder="Buscar por nome ou cargo..." oninput="renderCards()">
   </div>
 
-  <div id="cardsGrid" class="cards-grid"></div>
+  <div id="cardsGrid" class="colab-list"></div>
   <div id="emptyState" class="empty" style="display:none">Nenhum colaborador cadastrado. Clique em <strong>+ Novo Colaborador</strong> para começar.</div>
+
+  <!-- HISTORICO -->
+  <div class="history-card">
+    <div class="history-head">
+      <div class="history-title">Histórico de Apontamentos</div>
+      <div class="history-controls">
+        <input type="text" id="histSearch" placeholder="Buscar por nome, cargo, projeto..." oninput="renderHistorico()">
+        <input type="date" id="histFrom" onchange="renderHistorico()" title="Data inicial">
+        <input type="date" id="histTo" onchange="renderHistorico()" title="Data final">
+        <select id="histColab" onchange="renderHistorico()">
+          <option value="">Todos os colaboradores</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="setHistSort('data')">Data <span id="sortDataArrow"></span></th>
+            <th class="col-horario">Horário</th>
+            <th class="sortable" onclick="setHistSort('nome')">Colaborador <span id="sortNomeArrow"></span></th>
+            <th>Projeto</th>
+            <th style="text-align:right">Valor Diária</th>
+            <th class="col-extra" style="text-align:right">Valor Extra</th>
+            <th style="text-align:right">Valor Total</th>
+          </tr>
+        </thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+    <div id="histEmpty" class="history-empty" style="display:none">Nenhum apontamento encontrado.</div>
+    <div id="histTotals" style="margin-top:12px;padding-top:10px;border-top:1px dashed #2e2818;text-align:right;font-size:.85rem;color:var(--text-dim)"></div>
+  </div>
 </main>
 </div>
 
@@ -567,6 +621,7 @@ db.ref('apontamentos').on('value',snap=>{
     if(apontamentos.length) nextApontId=Math.max(...apontamentos.map(a=>a.id||0))+1;
   } else apontamentos=[];
   if(calColabId) renderCalendar();
+  if(typeof renderHistorico==='function')renderHistorico();
 });
 
 db.ref('projects').on('value',snap=>{
@@ -624,15 +679,18 @@ function renderCards(){
   grid.innerHTML=filtered.map(c=>{
     const tipoLabel=c.tipo==='fixo'?'Fixo':'Diária';
     const valorFmt='R$ '+Number(c.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    return `<div class="colab-card" onclick="openCalendar(${c.id})">
-      <div class="colab-nome">${escHtml(c.nome)}</div>
-      <div class="colab-cargo">${escHtml(c.cargo)}</div>
-      <div class="colab-meta">
-        <span class="colab-tag">${escHtml(c.regime||'—')}</span>
-        <span class="colab-tag tipo">${tipoLabel}</span>
+    return `<div class="colab-row" onclick="openCalendar(${c.id})">
+      <div>
+        <div class="c-nome">${escHtml(c.nome)}</div>
+        <div class="c-cargo c-cargo-wrap">${escHtml(c.cargo||'')}</div>
       </div>
-      <div class="colab-valor">${valorFmt}${c.tipo==='diaria'?' / dia':' / mês'}</div>
-      <div class="colab-actions" onclick="event.stopPropagation()">
+      <div class="c-meta">
+        <span class="c-tag">${escHtml(c.regime||'—')}</span>
+        <span class="c-tag tipo">${tipoLabel}</span>
+      </div>
+      <div></div>
+      <div class="c-valor">${valorFmt}${c.tipo==='diaria'?' / dia':' / mês'}</div>
+      <div class="c-actions" onclick="event.stopPropagation()">
         <button class="btn-apontar" onclick="openApontarModal(${c.id})">Apontar</button>
         <div class="colab-menu">
           <button class="btn-menu-colab" onclick="toggleColabMenu(event,${c.id})" title="Mais opções">⋮</button>
@@ -644,6 +702,83 @@ function renderCards(){
       </div>
     </div>`;
   }).join('');
+  popularHistColabSelect();
+  renderHistorico();
+}
+
+/* ── HISTORICO ───────────────────────────────── */
+let histSort={col:'data',dir:'desc'};
+function setHistSort(col){
+  if(histSort.col===col){histSort.dir=histSort.dir==='asc'?'desc':'asc';}
+  else{histSort.col=col;histSort.dir=col==='nome'?'asc':'desc';}
+  renderHistorico();
+}
+function popularHistColabSelect(){
+  const sel=document.getElementById('histColab');
+  if(!sel)return;
+  const atual=sel.value;
+  const opts=['<option value="">Todos os colaboradores</option>']
+    .concat(colaboradores.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''))
+      .map(c=>`<option value="${c.id}">${escHtml(c.nome||'')}</option>`));
+  sel.innerHTML=opts.join('');
+  if(atual)sel.value=atual;
+}
+function renderHistorico(){
+  const body=document.getElementById('histBody');
+  const empty=document.getElementById('histEmpty');
+  const totEl=document.getElementById('histTotals');
+  if(!body)return;
+  const q=(document.getElementById('histSearch').value||'').toLowerCase().trim();
+  const from=document.getElementById('histFrom').value||'';
+  const to=document.getElementById('histTo').value||'';
+  const colabId=document.getElementById('histColab').value;
+  let items=apontamentos.slice();
+  if(colabId)items=items.filter(a=>String(a.colaboradorId)===String(colabId));
+  if(from)items=items.filter(a=>(a.data||'')>=from);
+  if(to)items=items.filter(a=>(a.data||'')<=to);
+  if(q){
+    items=items.filter(a=>{
+      const c=colaboradores.find(x=>x.id===a.colaboradorId);
+      const hay=[c?.nome,c?.cargo,a.projeto,a.motivo].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  const dir=histSort.dir==='asc'?1:-1;
+  if(histSort.col==='nome'){
+    items.sort((a,b)=>{
+      const na=(colaboradores.find(x=>x.id===a.colaboradorId)?.nome||'');
+      const nb=(colaboradores.find(x=>x.id===b.colaboradorId)?.nome||'');
+      return na.localeCompare(nb)*dir||((a.data||'').localeCompare(b.data||''));
+    });
+  } else {
+    items.sort((a,b)=>((a.data||'').localeCompare(b.data||'')*dir)||((a.entrada||'').localeCompare(b.entrada||'')*dir));
+  }
+  // setas de sort
+  document.getElementById('sortDataArrow').textContent=histSort.col==='data'?(histSort.dir==='asc'?'↑':'↓'):'';
+  document.getElementById('sortNomeArrow').textContent=histSort.col==='nome'?(histSort.dir==='asc'?'↑':'↓'):'';
+  if(!items.length){body.innerHTML='';empty.style.display='block';totEl.textContent='';return;}
+  empty.style.display='none';
+  let totDiaria=0,totExtra=0,totTotal=0;
+  body.innerHTML=items.map(a=>{
+    const c=colaboradores.find(x=>x.id===a.colaboradorId);
+    const diaria=Number(a.valorDiaria||0)||0;
+    const extra=Number(a.valorExtra||0)||0;
+    const tot=Number(a.valorTotal||0)||(diaria+extra);
+    totDiaria+=diaria;totExtra+=extra;totTotal+=tot;
+    const d=a.data?(a.data.slice(8,10)+'/'+a.data.slice(5,7)+'/'+a.data.slice(0,4)):'—';
+    const h=a.falta?'<span style="color:#e74c3c;font-weight:600">Falta</span>':(a.entrada&&a.saida?`${a.entrada} → ${a.saida}`:'—');
+    const proj=a.projeto?escHtml(a.projeto):'<span style="color:var(--text-dim)">—</span>';
+    return `<tr class="${a.falta?'falta':''}">
+      <td>${d}</td>
+      <td class="col-horario">${h}</td>
+      <td>${escHtml(c?c.nome:'—')}</td>
+      <td>${proj}</td>
+      <td style="text-align:right" class="val-diaria">${fmtMoney(diaria)}</td>
+      <td style="text-align:right" class="col-extra val-extra">${fmtMoney(extra)}</td>
+      <td style="text-align:right" class="val-total">${fmtMoney(tot)}</td>
+    </tr>`;
+  }).join('');
+  totEl.innerHTML=`${items.length} apontamento(s) • Diária: <strong style="color:var(--text)">${fmtMoney(totDiaria)}</strong> • Extra: <strong style="color:var(--orange)">${fmtMoney(totExtra)}</strong> • <strong style="color:var(--green)">Total: ${fmtMoney(totTotal)}</strong>`;
 }
 
 function escHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
