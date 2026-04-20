@@ -340,7 +340,40 @@ body{
     </label>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeApontarModal()">Cancelar</button>
+      <button type="button" onclick="openFaltaModal()" style="background:#c0392b;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.3px">Marcar Falta</button>
       <button class="btn-save" onclick="saveApontamento()">Salvar Apontamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Marcar Falta -->
+<div class="modal-overlay" id="faltaOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h2 class="modal-title">Marcar Falta</h2>
+      <button class="modal-close" onclick="closeFaltaModal()">&times;</button>
+    </div>
+    <div id="faltaColabInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem"></div>
+    <div class="field"><label>Data *</label><input type="date" id="fData"></div>
+    <div class="field"><label>Motivo *</label>
+      <select id="fMotivo" onchange="onFaltaMotivoChange()">
+        <option value="">— Selecione —</option>
+        <option value="chuva">Chuva / sem frente de serviço</option>
+        <option value="saude">Impedimento de saúde</option>
+        <option value="feriado">Feriado</option>
+        <option value="obito">Óbito de familiar</option>
+      </select>
+    </div>
+    <div class="field" id="fChuvaField" style="display:none">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="fChuvaDemanda" style="width:auto;cursor:pointer"> Havia demanda (comunicação prévia)
+      </label>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-top:4px">Marcado = diária integral. Desmarcado = sem remuneração.</div>
+    </div>
+    <div id="fResumo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin:10px 0;font-size:.82rem;color:var(--text-dim);display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeFaltaModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveFalta()">Registrar Falta</button>
     </div>
   </div>
 </div>
@@ -727,6 +760,95 @@ function openApontarModal(colabId,prefilledDate){
   document.getElementById('apontarOverlay').classList.add('open');
 }
 function closeApontarModal(){document.getElementById('apontarOverlay').classList.remove('open');}
+
+/* ── MARCAR FALTA ────────────────────────────── */
+function openFaltaModal(){
+  if(!apontandoColabId){alert('Abra um colaborador antes.');return;}
+  const c=colaboradores.find(x=>x.id===apontandoColabId);
+  document.getElementById('faltaColabInfo').innerHTML=`<strong>${escHtml(c.nome)}</strong> — ${escHtml(c.cargo)}`;
+  const dataAt=document.getElementById('aData').value||new Date().toISOString().slice(0,10);
+  document.getElementById('fData').value=dataAt;
+  document.getElementById('fMotivo').value='';
+  document.getElementById('fChuvaDemanda').checked=false;
+  document.getElementById('fChuvaField').style.display='none';
+  document.getElementById('fResumo').style.display='none';
+  document.getElementById('faltaOverlay').classList.add('open');
+}
+function closeFaltaModal(){document.getElementById('faltaOverlay').classList.remove('open');}
+function onFaltaMotivoChange(){
+  const m=document.getElementById('fMotivo').value;
+  document.getElementById('fChuvaField').style.display=m==='chuva'?'block':'none';
+  atualizarResumoFalta();
+}
+function contarDiasObitoConsecutivos(colabId,dateStr){
+  // conta quantos dias consecutivos (incluindo o atual) estao marcados como obito para este colab, terminando em dateStr
+  const dt=new Date(dateStr+'T00:00:00');
+  let count=1;
+  for(let i=1;i<10;i++){
+    const d=new Date(dt);d.setDate(dt.getDate()-i);
+    const k=d.toISOString().slice(0,10);
+    const hit=apontamentos.some(a=>a.colaboradorId===colabId&&a.data===k&&a.falta&&a.motivo==='obito');
+    if(hit)count++;else break;
+  }
+  return count;
+}
+function calcularFalta(colabId,dateStr,motivo,chuvaDemanda){
+  const c=colaboradores.find(x=>x.id===colabId);
+  const diariaBase=calcValorDiaria(c);
+  if(motivo==='chuva'){
+    if(chuvaDemanda)return{valor:diariaBase,label:'Chuva c/ demanda — diária integral'};
+    return{valor:0,label:'Chuva sem aviso prévio — sem remuneração'};
+  }
+  if(motivo==='saude')return{valor:0,label:'Impedimento de saúde — sem remuneração'};
+  if(motivo==='feriado')return{valor:diariaBase,label:'Feriado — diária integral'};
+  if(motivo==='obito'){
+    const dias=contarDiasObitoConsecutivos(colabId,dateStr);
+    if(dias<=3)return{valor:diariaBase,label:`Óbito (dia ${dias}/3) — diária integral`};
+    return{valor:0,label:`Óbito (dia ${dias}, excede 3 dias) — desconto da diária`};
+  }
+  return{valor:0,label:''};
+}
+function atualizarResumoFalta(){
+  const motivo=document.getElementById('fMotivo').value;
+  const data=document.getElementById('fData').value;
+  const resumo=document.getElementById('fResumo');
+  if(!motivo||!data){resumo.style.display='none';return;}
+  const chuvaDemanda=document.getElementById('fChuvaDemanda').checked;
+  const{valor,label}=calcularFalta(apontandoColabId,data,motivo,chuvaDemanda);
+  resumo.style.display='block';
+  const fmt='R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  resumo.innerHTML=`${escHtml(label)}<br><strong style="color:var(--green)">Valor do dia: ${fmt}</strong>`;
+}
+document.addEventListener('change',e=>{
+  if(e.target&&(e.target.id==='fData'||e.target.id==='fChuvaDemanda'))atualizarResumoFalta();
+});
+function saveFalta(){
+  const data=document.getElementById('fData').value;
+  const motivo=document.getElementById('fMotivo').value;
+  if(!data){alert('Informe a data.');return;}
+  if(!motivo){alert('Selecione o motivo.');return;}
+  const chuvaDemanda=document.getElementById('fChuvaDemanda').checked;
+  const jaExiste=apontamentos.some(a=>a.colaboradorId===apontandoColabId&&a.data===data);
+  if(jaExiste){
+    if(!confirm('Já existe apontamento para este dia. Registrar falta mesmo assim?'))return;
+  }
+  const{valor,label}=calcularFalta(apontandoColabId,data,motivo,chuvaDemanda);
+  const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
+  apontamentos.push({
+    id:nextApontId++,
+    colaboradorId:apontandoColabId,
+    data,entrada:'',saida:'',
+    valorDiaria:valor,valorExtra:0,valorTotal:valor,
+    falta:true,motivo,chuvaDemanda:motivo==='chuva'?chuvaDemanda:null,
+    faltaDesc:label,
+    criadoEm:new Date().toISOString(),
+    criadoPor:user
+  });
+  saveApontamentos();
+  if(calColabId===apontandoColabId){renderCalendar();if(calSelectedDate)showDayDetail(calSelectedDate);}
+  closeFaltaModal();
+  closeApontarModal();
+}
 function saveApontamento(){
   const data=document.getElementById('aData').value;
   const entrada=document.getElementById('aEntrada').value;
@@ -956,12 +1078,15 @@ function renderApontamentosMes(){
     const totalDia=(typeof a.valorTotal==='number'?a.valorTotal:(diariaCalc+extraCalc))||0;
     totalValor+=totalDia;
     const totalFmt='R$ '+totalDia.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const titulo=a.falta?`${d}/${m} • Falta: ${escHtml(a.motivo||'')}`:`${d}/${m} • ${a.entrada} → ${a.saida}`;
+    const sub=a.falta?escHtml(a.faltaDesc||'')+' • por '+escHtml(a.criadoPor||'—'):`${horas} • por ${escHtml(a.criadoPor||'—')}`;
+    const corValor=a.falta&&totalDia===0?'#e74c3c':'var(--green)';
     return `<div class="apontamento-item">
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600">${d}/${m} • ${a.entrada} → ${a.saida}</div>
-        <div class="ap-time">${horas} • por ${escHtml(a.criadoPor||'—')}</div>
+        <div style="font-weight:600">${titulo}</div>
+        <div class="ap-time">${sub}</div>
       </div>
-      <div style="color:var(--green);font-weight:700;font-size:.85rem;margin:0 12px;white-space:nowrap">${totalFmt}</div>
+      <div style="color:${corValor};font-weight:700;font-size:.85rem;margin:0 12px;white-space:nowrap">${totalFmt}</div>
       <button class="ap-del" onclick="deleteApontamento(${a.id})" title="Excluir">×</button>
     </div>`;
   }).join('');
