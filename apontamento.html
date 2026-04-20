@@ -149,6 +149,13 @@ body{
 .btn-falta:hover{background:#a93226}
 .colab-pill{background:var(--surface2);padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:.9rem;display:flex;align-items:center;gap:10px}
 .colab-pill .pill-avatar{width:32px;height:32px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:.95rem;flex-shrink:0}
+.combo{position:relative}
+.combo-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid #2e2818;border-radius:8px;max-height:220px;overflow-y:auto;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
+.combo-panel.open{display:block}
+.combo-opt{padding:9px 12px;font-size:.88rem;cursor:pointer;border-bottom:1px solid #252016}
+.combo-opt:last-child{border-bottom:none}
+.combo-opt:hover,.combo-opt.active{background:rgba(245,132,31,.12);color:var(--orange)}
+.combo-empty{padding:10px 12px;font-size:.82rem;color:var(--text-dim);text-align:center}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 .btn-cancel{background:none;border:1px solid #3a3020;color:var(--text-dim);padding:8px 20px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600}
 .btn-cancel:hover{border-color:var(--text);color:var(--text)}
@@ -325,8 +332,10 @@ body{
     <div id="apontarColabInfo" class="colab-pill"></div>
 
     <div class="field"><label>Projeto</label>
-      <input type="text" id="aProjeto" list="aProjetosList" placeholder="Digite para buscar (opcional)" autocomplete="off">
-      <datalist id="aProjetosList"></datalist>
+      <div class="combo">
+        <input type="text" id="aProjeto" placeholder="Digite para buscar (opcional)" autocomplete="off" oninput="filtrarProjetos()" onfocus="abrirProjetosPanel()">
+        <div class="combo-panel" id="aProjetosPanel"></div>
+      </div>
     </div>
 
     <div class="field-row-3">
@@ -540,10 +549,37 @@ db.ref('projects').on('value',snap=>{
   popularProjetosSelect();
 });
 function popularProjetosSelect(){
-  const list=document.getElementById('aProjetosList');
-  if(!list)return;
-  list.innerHTML=projects.map(p=>`<option value="${escHtml(p.name||'')}">`).join('');
+  // renderiza o painel do combo com base no filtro atual
+  filtrarProjetos();
 }
+function filtrarProjetos(){
+  const inp=document.getElementById('aProjeto');
+  const panel=document.getElementById('aProjetosPanel');
+  if(!inp||!panel)return;
+  const q=(inp.value||'').toLowerCase().trim();
+  const arr=projects
+    .map(p=>p.name||'')
+    .filter(n=>n&&(!q||n.toLowerCase().includes(q)))
+    .sort((a,b)=>a.localeCompare(b));
+  if(!arr.length){
+    panel.innerHTML='<div class="combo-empty">Nenhum projeto encontrado</div>';
+  } else {
+    panel.innerHTML=arr.map(n=>`<div class="combo-opt" onmousedown="selecionarProjeto('${escAttr(n)}')">${escHtml(n)}</div>`).join('');
+  }
+  panel.classList.add('open');
+}
+function escAttr(s){return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function abrirProjetosPanel(){filtrarProjetos();}
+function selecionarProjeto(nome){
+  document.getElementById('aProjeto').value=nome;
+  document.getElementById('aProjetosPanel').classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('aProjetosPanel');
+  const inp=document.getElementById('aProjeto');
+  if(!panel||!inp)return;
+  if(e.target!==inp&&!panel.contains(e.target))panel.classList.remove('open');
+});
 
 function saveColabs(){db.ref('colaboradores').set(colaboradores.filter(c=>c!=null));}
 function saveApontamentos(){db.ref('apontamentos').set(apontamentos.filter(a=>a!=null));}
