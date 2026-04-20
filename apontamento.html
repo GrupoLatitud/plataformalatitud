@@ -791,7 +791,7 @@ function renderApontamentosMes(){
     totEl.textContent='';
     return;
   }
-  let totalMin=0;
+  let totalMin=0,totalValor=0;
   list.innerHTML=items.map(a=>{
     const [y,m,d]=a.data.split('-');
     const horas=calcHoras(a.entrada,a.saida);
@@ -799,16 +799,24 @@ function renderApontamentosMes(){
     const [h2,m2]=(a.saida||'00:00').split(':').map(Number);
     const mins=(h2*60+m2)-(h1*60+m1);
     if(mins>0)totalMin+=mins;
+    const colab=colaboradores.find(x=>x.id===a.colaboradorId);
+    const diariaCalc=(typeof a.valorDiaria==='number'?a.valorDiaria:calcValorDiaria(colab))||0;
+    const extraCalc=Number(a.valorExtra||0)||0;
+    const totalDia=(typeof a.valorTotal==='number'?a.valorTotal:(diariaCalc+extraCalc))||0;
+    totalValor+=totalDia;
+    const totalFmt='R$ '+totalDia.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     return `<div class="apontamento-item">
-      <div>
+      <div style="flex:1;min-width:0">
         <div style="font-weight:600">${d}/${m} • ${a.entrada} → ${a.saida}</div>
         <div class="ap-time">${horas} • por ${escHtml(a.criadoPor||'—')}</div>
       </div>
+      <div style="color:var(--green);font-weight:700;font-size:.85rem;margin:0 12px;white-space:nowrap">${totalFmt}</div>
       <button class="ap-del" onclick="deleteApontamento(${a.id})" title="Excluir">×</button>
     </div>`;
   }).join('');
   const th=Math.floor(totalMin/60),tm=totalMin%60;
-  totEl.textContent=`${items.length} apontamento(s) — Total: ${th}h${String(tm).padStart(2,'0')}`;
+  const totalValorFmt='R$ '+totalValor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  totEl.innerHTML=`${items.length} apontamento(s) — Total: ${th}h${String(tm).padStart(2,'0')} • <span style="color:var(--green);font-weight:700">${totalValorFmt}</span>`;
 }
 
 function showDayDetail(dateStr){
