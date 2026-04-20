@@ -333,7 +333,7 @@ body{
 
     <div class="field"><label>Projeto</label>
       <div class="combo">
-        <input type="text" id="aProjeto" placeholder="Digite para buscar (opcional)" autocomplete="off" oninput="filtrarProjetos()" onfocus="abrirProjetosPanel()">
+        <input type="text" id="aProjeto" placeholder="Digite para buscar (opcional)" autocomplete="off" oninput="filtrarProjetos()">
         <div class="combo-panel" id="aProjetosPanel"></div>
       </div>
     </div>
@@ -345,10 +345,12 @@ body{
     </div>
 
     <div class="field">
-      <label>Viagem</label>
-      <div class="segmented">
-        <input type="radio" name="viagem" id="viaSem" value="nao" checked onchange="setViagem('nao')"><label for="viaSem">Sem viagem</label>
-        <input type="radio" name="viagem" id="viaIda" value="ida_volta" onchange="setViagem('ida_volta')"><label for="viaIda">Ida e volta +R$20</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="aViagemOn" onchange="toggleViagemOn()" style="width:auto;cursor:pointer">
+        Teve viagem?
+      </label>
+      <div class="segmented" id="aViagemOpcoes" style="display:none;margin-top:8px">
+        <input type="radio" name="viagem" id="viaIda" value="ida_volta" checked onchange="setViagem('ida_volta')"><label for="viaIda">Ida e volta +R$20</label>
         <input type="radio" name="viagem" id="viaPer" value="pernoite" onchange="setViagem('pernoite')"><label for="viaPer">Pernoite +R$10</label>
       </div>
     </div>
@@ -549,18 +551,17 @@ db.ref('projects').on('value',snap=>{
   } else projects=[];
   popularProjetosSelect();
 });
-function popularProjetosSelect(){
-  // renderiza o painel do combo com base no filtro atual
-  filtrarProjetos();
-}
+function popularProjetosSelect(){}
 function filtrarProjetos(){
   const inp=document.getElementById('aProjeto');
   const panel=document.getElementById('aProjetosPanel');
   if(!inp||!panel)return;
   const q=(inp.value||'').toLowerCase().trim();
+  // so abre o painel se o usuario digitou algo
+  if(!q){panel.classList.remove('open');return;}
   const arr=projects
     .map(p=>p.name||'')
-    .filter(n=>n&&(!q||n.toLowerCase().includes(q)))
+    .filter(n=>n&&n.toLowerCase().includes(q))
     .sort((a,b)=>a.localeCompare(b));
   if(!arr.length){
     panel.innerHTML='<div class="combo-empty">Nenhum projeto encontrado</div>';
@@ -570,7 +571,6 @@ function filtrarProjetos(){
   panel.classList.add('open');
 }
 function escAttr(s){return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
-function abrirProjetosPanel(){filtrarProjetos();}
 function selecionarProjeto(nome){
   document.getElementById('aProjeto').value=nome;
   document.getElementById('aProjetosPanel').classList.remove('open');
@@ -771,6 +771,18 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
   return{extra:total,desc:parts.join(' + ')};
 }
 function setViagem(v){currentViagem=v;recalcExtra();}
+function toggleViagemOn(){
+  const on=document.getElementById('aViagemOn').checked;
+  document.getElementById('aViagemOpcoes').style.display=on?'flex':'none';
+  if(on){
+    // ativa a opcao marcada (default ida_volta)
+    const sel=document.querySelector('input[name="viagem"]:checked');
+    currentViagem=sel?sel.value:'ida_volta';
+  } else {
+    currentViagem='nao';
+  }
+  recalcExtra();
+}
 function fmtMoney(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function recalcExtra(){
   if(!apontandoColabId)return;
@@ -813,7 +825,9 @@ function openApontarModal(colabId,prefilledDate){
   popularProjetosSelect();
   document.getElementById('aProjeto').value='';
   currentViagem='nao';
-  document.getElementById('viaSem').checked=true;
+  document.getElementById('aViagemOn').checked=false;
+  document.getElementById('aViagemOpcoes').style.display='none';
+  document.getElementById('viaIda').checked=true;
   recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
