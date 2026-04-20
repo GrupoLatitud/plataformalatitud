@@ -338,10 +338,21 @@ body{
       </div>
     </div>
 
-    <div class="field-row-3">
-      <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
-      <div class="field"><label>Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
-      <div class="field"><label>Saída *</label><input type="time" id="aSaida" onchange="recalcExtra()"></div>
+    <div class="field">
+      <label>Tipo de jornada *</label>
+      <div class="segmented">
+        <input type="radio" name="jornada" id="jorDiu" value="diurno" onchange="setJornada('diurno')"><label for="jorDiu">Diurno</label>
+        <input type="radio" name="jornada" id="jorNot" value="noturno" onchange="setJornada('noturno')"><label for="jorNot">Noturno (22h ➝ 04h)</label>
+      </div>
+    </div>
+
+    <div id="aHorarioFields" style="display:none">
+      <div class="field-row-3">
+        <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
+        <div class="field"><label id="aEntradaLabel">Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
+        <div class="field"><label id="aSaidaLabel">Saída *</label><input type="time" id="aSaida" onchange="recalcExtra()"></div>
+      </div>
+      <div id="aNoturnoAviso" style="display:none;font-size:.72rem;color:var(--text-dim);margin-top:-4px;margin-bottom:10px">Jornada noturna: entrada na data selecionada, saída no dia seguinte (22:00 → 04:00).</div>
     </div>
 
     <div class="field">
@@ -522,6 +533,7 @@ let calSelectedDate=null;
 let calQuinzena='all';
 let projects=[];
 let currentViagem='nao';
+let currentJornada=null; // 'diurno' | 'noturno'
 
 db.ref('colaboradores').on('value',snap=>{
   const d=snap.val();
@@ -700,20 +712,14 @@ function calcValorDiaria(c){
   return 0;
 }
 function calcValorDiariaAjustado(c,entrada,saida){
-  // Valor diaria do apontamento baseado nas horas efetivamente trabalhadas
   const base=calcValorDiaria(c);
   const hora=base/8;
-  if(!entrada||!saida)return{valor:base,label:''};
-  const [eh,em]=entrada.split(':').map(Number);
-  const [sh,sm]=saida.split(':').map(Number);
-  const eMin=eh*60+em,sMin=sh*60+sm;
-  const totalMin=sMin-eMin;
+  if(!entrada||!saida||!currentJornada)return{valor:0,label:''};
+  const{eMin,sMin,totalMin}=calcHorasTrabalhadas(entrada,saida);
   if(totalMin<=0)return{valor:0,label:''};
-  // Horario noturno: 22:00 (1320) as 04:00 (240) do dia seguinte
-  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,240)-Math.max(eMin,0));
-  const isNoturno=(nightMin===totalMin); // turno todo dentro de 22:00-04:00
-  if(isNoturno){
-    return{valor:hora*(totalMin/60),label:`Noturno ${(totalMin/60).toFixed(1)}h (proporcional)`};
+  if(currentJornada==='noturno'){
+    const h=totalMin/60;
+    return{valor:hora*h,label:`Noturno ${h.toFixed(1)}h (proporcional)`};
   }
   // Diurno: saida <= 14:00 => meia diaria; saida > 14:00 => integral
   if(sMin<=14*60){
@@ -725,7 +731,7 @@ function parseMoney(str){
   return parseFloat((str||'').replace(/[^\d,.-]/g,'').replace('.','').replace(',','.'))||0;
 }
 function calcExtraAdicional(colab,dateStr,entrada,saida){
-  if(!colab||!dateStr||!entrada||!saida)return{extra:0,desc:''};
+  if(!colab||!dateStr||!entrada||!saida||!currentJornada)return{extra:0,desc:''};
   const diaria=calcValorDiaria(colab);
   const hora=diaria/8;
   const [y,m,d]=dateStr.split('-').map(Number);
@@ -733,43 +739,58 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
   const dow=dt.getDay(); // 0=Dom, 6=Sab
   const feriados=feriadosDoAno(y);
   const isFeriado=!!feriados[dateStr];
-  // Acrescimo sobre a diaria
-  let diariaPct=0,diariaLabel='';
-  if(isFeriado){diariaPct=0.80;diariaLabel='Feriado +80%';}
-  else if(dow===0){diariaPct=0.80;diariaLabel='Domingo +80%';}
-  else if(dow===6){diariaPct=0.50;diariaLabel='Sábado +50%';}
-  const diariaExtra=diaria*diariaPct;
-  // Horas noturnas: 22:00 as 04:00 (do dia seguinte) dentro do turno
-  const [eh,em]=entrada.split(':').map(Number);
-  const [sh,sm]=saida.split(':').map(Number);
-  const eMin=eh*60+em,sMin=sh*60+sm;
-  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,240)-Math.max(eMin,0));
-  const nightH=nightMin/60;
-  let nightPct=0,nightLabel='';
-  if(nightH>0){
-    if(isFeriado||dow===0)nightPct=0.80; // domingo ou feriado
-    else nightPct=0.50; // seg-sex e sabado
-    const pctStr=nightPct===0.80?'80%':'50%';
-    nightLabel=`Noturno ${nightH.toFixed(1)}h +${pctStr}`;
+  const{eMin,sMin,totalMin}=calcHorasTrabalhadas(entrada,saida);
+  const parts=[];
+  let total=0;
+  if(currentJornada==='diurno'){
+    // Acrescimo sobre a diaria: sab 50%, dom/feriado 80%
+    if(isFeriado){total+=diaria*0.80;parts.push('Feriado +80%');}
+    else if(dow===0){total+=diaria*0.80;parts.push('Domingo +80%');}
+    else if(dow===6){total+=diaria*0.50;parts.push('Sábado +50%');}
+    // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
+    if(sMin>17*60+30){
+      const otMin=sMin-17*60;
+      const otH=otMin/60;
+      total+=hora*otH;
+      parts.push(`Extra após 17:00 (${otH.toFixed(1)}h)`);
+    }
+  } else if(currentJornada==='noturno'){
+    // Noturno: acrescimo sobre o valor/hora para cada hora dentro da janela 22:00-04:00 (1320-1680 considerando overnight)
+    const nightMin=Math.max(0,Math.min(sMin,1680)-Math.max(eMin,1320));
+    const nightH=nightMin/60;
+    if(nightH>0){
+      let pct,pctStr;
+      if(isFeriado||dow===0){pct=0.80;pctStr='80%';}
+      else{pct=0.50;pctStr='50%';} // seg-sab
+      total+=hora*pct*nightH;
+      parts.push(`Noturno ${nightH.toFixed(1)}h +${pctStr}`);
+    }
   }
-  const nightExtra=hora*nightPct*nightH;
-  // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
-  let otExtra=0,otLabel='';
-  if(sMin>17*60+30){
-    const otMin=sMin-17*60;
-    const otH=otMin/60;
-    otExtra=hora*otH;
-    otLabel=`Extra após 17:00 (${otH.toFixed(1)}h)`;
-  }
-  // Viagem (nao cumulativa entre si)
-  let viagemExtra=0,viagemLabel='';
-  if(currentViagem==='ida_volta'){viagemExtra=20;viagemLabel='Viagem ida/volta +R$20';}
-  else if(currentViagem==='pernoite'){viagemExtra=10;viagemLabel='Pernoite +R$10';}
-  const total=diariaExtra+nightExtra+otExtra+viagemExtra;
-  const parts=[diariaLabel,nightLabel,otLabel,viagemLabel].filter(Boolean);
+  // Viagem (para ambas)
+  if(currentViagem==='ida_volta'){total+=20;parts.push('Viagem ida/volta +R$20');}
+  else if(currentViagem==='pernoite'){total+=10;parts.push('Pernoite +R$10');}
   return{extra:total,desc:parts.join(' + ')};
 }
 function setViagem(v){currentViagem=v;recalcExtra();}
+function setJornada(t){
+  currentJornada=t;
+  document.getElementById('aHorarioFields').style.display='block';
+  document.getElementById('aNoturnoAviso').style.display=(t==='noturno')?'block':'none';
+  if(t==='noturno'){
+    const e=document.getElementById('aEntrada'),s=document.getElementById('aSaida');
+    if(!e.value)e.value='22:00';
+    if(!s.value)s.value='04:00';
+  }
+  recalcExtra();
+}
+function calcHorasTrabalhadas(entrada,saida){
+  if(!entrada||!saida)return{eMin:0,sMin:0,totalMin:0};
+  const [eh,em]=entrada.split(':').map(Number);
+  const [sh,sm]=saida.split(':').map(Number);
+  let eMin=eh*60+em,sMin=sh*60+sm;
+  if(sMin<=eMin)sMin+=1440; // overnight (noturno)
+  return{eMin,sMin,totalMin:sMin-eMin};
+}
 function toggleViagemOn(){
   const on=document.getElementById('aViagemOn').checked;
   document.getElementById('aViagemOpcoes').style.display=on?'flex':'none';
@@ -833,6 +854,13 @@ function openApontarModal(colabId,prefilledDate){
   document.getElementById('aViagemOn').checked=false;
   document.getElementById('aViagemOpcoes').style.display='none';
   document.getElementById('viaIda').checked=true;
+  // reset jornada
+  currentJornada=null;
+  const jd=document.getElementById('jorDiu'),jn=document.getElementById('jorNot');
+  if(jd)jd.checked=false;
+  if(jn)jn.checked=false;
+  document.getElementById('aHorarioFields').style.display='none';
+  document.getElementById('aNoturnoAviso').style.display='none';
   recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
@@ -932,10 +960,12 @@ function saveApontamento(){
   const entrada=document.getElementById('aEntrada').value;
   const saida=document.getElementById('aSaida').value;
   const manter=document.getElementById('aManterAberto').checked;
+  if(!currentJornada){alert('Selecione o tipo de jornada (Diurno/Noturno).');return;}
   if(!data){alert('Informe a data.');return;}
   if(!entrada){alert('Informe horário de entrada.');return;}
   if(!saida){alert('Informe horário de saída.');return;}
-  if(saida<=entrada){alert('Saída deve ser posterior à entrada.');return;}
+  if(currentJornada==='diurno'&&saida<=entrada){alert('Saída deve ser posterior à entrada.');return;}
+  if(currentJornada==='noturno'&&saida===entrada){alert('Entrada e saída não podem ser iguais.');return;}
   // verifica se ja existe apontamento nesse dia para esse colab
   const jaExiste=apontamentos.some(a=>a.colaboradorId===apontandoColabId&&a.data===data);
   if(jaExiste){
@@ -957,6 +987,7 @@ function saveApontamento(){
     valorDiaria,valorExtra,valorTotal,
     viagem:viagemOn,viagemTipo,
     projeto,
+    jornada:currentJornada,
     criadoEm:new Date().toISOString(),
     criadoPor:user
   });
