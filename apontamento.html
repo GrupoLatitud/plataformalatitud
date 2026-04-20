@@ -300,7 +300,10 @@ body{
       <button class="modal-close" onclick="closeApontarModal()">&times;</button>
     </div>
     <div id="apontarColabInfo" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:.85rem"></div>
-    <div class="field"><label>Projeto</label><select id="aProjeto"><option value="">— Selecione (opcional) —</option></select></div>
+    <div class="field"><label>Projeto</label>
+      <input type="text" id="aProjeto" list="aProjetosList" placeholder="Digite para buscar o projeto (opcional)" autocomplete="off">
+      <datalist id="aProjetosList"></datalist>
+    </div>
     <div class="field"><label>Data *</label><input type="date" id="aData" onchange="recalcExtra()"></div>
     <div class="field-row">
       <div class="field"><label>Entrada *</label><input type="time" id="aEntrada" onchange="recalcExtra()"></div>
@@ -476,13 +479,9 @@ db.ref('projects').on('value',snap=>{
   popularProjetosSelect();
 });
 function popularProjetosSelect(){
-  const sel=document.getElementById('aProjeto');
-  if(!sel)return;
-  const atual=sel.value;
-  const opts=['<option value="">— Selecione (opcional) —</option>']
-    .concat(projects.map(p=>`<option value="${escHtml(p.name||'')}">${escHtml(p.name||'')}</option>`));
-  sel.innerHTML=opts.join('');
-  if(atual)sel.value=atual;
+  const list=document.getElementById('aProjetosList');
+  if(!list)return;
+  list.innerHTML=projects.map(p=>`<option value="${escHtml(p.name||'')}">`).join('');
 }
 
 function saveColabs(){db.ref('colaboradores').set(colaboradores.filter(c=>c!=null));}
