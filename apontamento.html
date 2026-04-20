@@ -281,7 +281,10 @@ body{
       </div>
       <div class="field"><label>Valor (R$) *</label><input type="number" id="cValor" step="0.01" min="0" placeholder="0,00" oninput="atualizarValorDiaria()"></div>
     </div>
-    <div class="field"><label>Valor Diária (R$)</label><input type="text" id="cValorDiaria" readonly placeholder="Preenchido automaticamente para PJ" style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
+    <div class="field-row">
+      <div class="field"><label>Valor Diária (R$)</label><input type="text" id="cValorDiaria" readonly placeholder="Preenchido automaticamente para PJ" style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
+      <div class="field"><label>Valor Hora (R$)</label><input type="text" id="cValorHora" readonly placeholder="Diária ÷ 8" style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeColabModal()">Cancelar</button>
       <button class="btn-save" onclick="saveColab()">Salvar</button>
@@ -484,11 +487,15 @@ function atualizarValorDiaria(){
   const regime=document.getElementById('cRegime').value;
   const valor=parseFloat(document.getElementById('cValor').value||0);
   const out=document.getElementById('cValorDiaria');
+  const outHora=document.getElementById('cValorHora');
   if(regime==='PJ (Pessoa Jurídica)'&&valor>0){
     const diaria=valor/30;
+    const hora=diaria/8;
     out.value='R$ '+diaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    outHora.value='R$ '+hora.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   } else {
     out.value='';
+    outHora.value='';
   }
 }
 function openColabModal(){
@@ -500,6 +507,7 @@ function openColabModal(){
   document.getElementById('cTipo').value='';
   document.getElementById('cValor').value='';
   document.getElementById('cValorDiaria').value='';
+  document.getElementById('cValorHora').value='';
   document.getElementById('colabOverlay').classList.add('open');
 }
 function editColab(id){
