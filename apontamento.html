@@ -306,7 +306,10 @@ body{
       <div class="field"><label>Saída *</label><input type="time" id="aSaida" onchange="recalcExtra()"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Valor Diária (R$)</label><input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
+      <div class="field">
+        <label>Valor Diária (R$) <span id="aDiariaInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
+        <input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
+      </div>
       <div class="field">
         <label>Valor Extra (R$) <span id="aExtraInfo" style="color:var(--text-dim);font-weight:400;font-size:.72rem;margin-left:6px"></span></label>
         <input type="text" id="aValorExtra" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed">
@@ -560,11 +563,33 @@ function deleteColab(id){
 
 /* ── APONTAR MODAL ───────────────────────────── */
 function calcValorDiaria(c){
+  // Valor diaria BASE (pactuado)
   if(!c)return 0;
   const v=Number(c.valor||0);
   if(c.tipo==='diaria')return v;
   if(c.tipo==='fixo')return v/30;
   return 0;
+}
+function calcValorDiariaAjustado(c,entrada,saida){
+  // Valor diaria do apontamento baseado nas horas efetivamente trabalhadas
+  const base=calcValorDiaria(c);
+  const hora=base/8;
+  if(!entrada||!saida)return{valor:base,label:''};
+  const [eh,em]=entrada.split(':').map(Number);
+  const [sh,sm]=saida.split(':').map(Number);
+  const eMin=eh*60+em,sMin=sh*60+sm;
+  const totalMin=sMin-eMin;
+  if(totalMin<=0)return{valor:0,label:''};
+  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,300)-Math.max(eMin,0));
+  const isNoturno=(nightMin===totalMin); // turno todo dentro de 22:00-05:00
+  if(isNoturno){
+    return{valor:hora*(totalMin/60),label:`Noturno ${(totalMin/60).toFixed(1)}h (proporcional)`};
+  }
+  // Diurno: saida <= 14:00 => meia diaria; saida > 14:00 => integral
+  if(sMin<=14*60){
+    return{valor:base*0.5,label:'Diurno até 14h (meia diária)'};
+  }
+  return{valor:base,label:'Diurno após 14h (diária integral)'};
 }
 function parseMoney(str){
   return parseFloat((str||'').replace(/[^\d,.-]/g,'').replace('.','').replace(',','.'))||0;
@@ -598,8 +623,16 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
     nightLabel=`Noturno ${nightH.toFixed(1)}h +${pctStr}`;
   }
   const nightExtra=hora*nightPct*nightH;
-  const total=diariaExtra+nightExtra;
-  const parts=[diariaLabel,nightLabel].filter(Boolean);
+  // Hora extra: so conta quando saida > 17:30; computa a partir de 17:00
+  let otExtra=0,otLabel='';
+  if(sMin>17*60+30){
+    const otMin=sMin-17*60;
+    const otH=otMin/60;
+    otExtra=hora*otH;
+    otLabel=`Extra após 17:00 (${otH.toFixed(1)}h)`;
+  }
+  const total=diariaExtra+nightExtra+otExtra;
+  const parts=[diariaLabel,nightLabel,otLabel].filter(Boolean);
   return{extra:total,desc:parts.join(' + ')};
 }
 function recalcExtra(){
@@ -608,9 +641,14 @@ function recalcExtra(){
   const data=document.getElementById('aData').value;
   const entrada=document.getElementById('aEntrada').value;
   const saida=document.getElementById('aSaida').value;
+  // Atualiza o valor da diaria ajustado (diurno ate 14h = meia; apos 14h = integral; noturno = proporcional)
+  const ajust=calcValorDiariaAjustado(c,entrada,saida);
+  document.getElementById('aValorDiaria').value='R$ '+ajust.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const diariaInfo=document.getElementById('aDiariaInfo');
+  if(diariaInfo)diariaInfo.textContent=ajust.label?`• ${ajust.label}`:'';
   const{extra,desc}=calcExtraAdicional(c,data,entrada,saida);
   document.getElementById('aValorExtra').value=extra>0?('R$ '+extra.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})):'R$ 0,00';
-  document.getElementById('aExtraInfo').textContent=desc?`• ${desc}`:'• Dia útil diurno';
+  document.getElementById('aExtraInfo').textContent=desc?`• ${desc}`:'• Sem acréscimos';
   atualizarValorTotalDia();
 }
 function atualizarValorTotalDia(){
@@ -631,10 +669,9 @@ function openApontarModal(colabId,prefilledDate){
   const ultimo=meus[0];
   document.getElementById('aEntrada').value=ultimo?ultimo.entrada||'':'';
   document.getElementById('aSaida').value=ultimo?ultimo.saida||'':'';
-  const diaria=calcValorDiaria(c);
-  document.getElementById('aValorDiaria').value='R$ '+diaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('aValorExtra').value='';
   document.getElementById('aExtraInfo').textContent='';
+  document.getElementById('aDiariaInfo').textContent='';
   recalcExtra();
   document.getElementById('apontarOverlay').classList.add('open');
 }
@@ -655,7 +692,7 @@ function saveApontamento(){
   }
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
   const colabAtual=colaboradores.find(x=>x.id===apontandoColabId);
-  const valorDiaria=calcValorDiaria(colabAtual);
+  const valorDiaria=calcValorDiariaAjustado(colabAtual,entrada,saida).valor;
   const valorExtra=parseMoney(document.getElementById('aValorExtra').value);
   const valorTotal=valorDiaria+valorExtra;
   apontamentos.push({
