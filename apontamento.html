@@ -302,6 +302,11 @@ body{
       <div class="field"><label>Entrada *</label><input type="time" id="aEntrada"></div>
       <div class="field"><label>Saída *</label><input type="time" id="aSaida"></div>
     </div>
+    <div class="field-row">
+      <div class="field"><label>Valor Diária (R$)</label><input type="text" id="aValorDiaria" readonly style="background:var(--surface2);color:var(--text-dim);cursor:not-allowed"></div>
+      <div class="field"><label>Valor Extra (R$)</label><input type="number" id="aValorExtra" step="0.01" min="0" placeholder="0,00" oninput="atualizarValorTotalDia()"></div>
+    </div>
+    <div class="field"><label>Valor Total do Dia (R$)</label><input type="text" id="aValorTotal" readonly style="background:var(--surface2);color:var(--green);font-weight:700;cursor:not-allowed"></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-dim);cursor:pointer;margin-top:8px">
       <input type="checkbox" id="aManterAberto" style="width:auto;cursor:pointer">
       Manter aberto após salvar (apontar mais dias)
@@ -543,6 +548,20 @@ function deleteColab(id){
 }
 
 /* ── APONTAR MODAL ───────────────────────────── */
+function calcValorDiaria(c){
+  if(!c)return 0;
+  const v=Number(c.valor||0);
+  if(c.tipo==='diaria')return v;
+  if(c.tipo==='fixo')return v/30;
+  return 0;
+}
+function atualizarValorTotalDia(){
+  const diariaStr=(document.getElementById('aValorDiaria').value||'').replace(/[^\d,]/g,'').replace(',','.');
+  const diaria=parseFloat(diariaStr||0)||0;
+  const extra=parseFloat(document.getElementById('aValorExtra').value||0)||0;
+  const total=diaria+extra;
+  document.getElementById('aValorTotal').value='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function openApontarModal(colabId,prefilledDate){
   const c=colaboradores.find(x=>x.id===colabId);
   if(!c)return;
@@ -555,6 +574,10 @@ function openApontarModal(colabId,prefilledDate){
   const ultimo=meus[0];
   document.getElementById('aEntrada').value=ultimo?ultimo.entrada||'':'';
   document.getElementById('aSaida').value=ultimo?ultimo.saida||'':'';
+  const diaria=calcValorDiaria(c);
+  document.getElementById('aValorDiaria').value='R$ '+diaria.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('aValorExtra').value='';
+  atualizarValorTotalDia();
   document.getElementById('apontarOverlay').classList.add('open');
 }
 function closeApontarModal(){document.getElementById('apontarOverlay').classList.remove('open');}
@@ -573,10 +596,15 @@ function saveApontamento(){
     if(!confirm('Já existe apontamento para este dia. Deseja registrar mesmo assim?'))return;
   }
   const user=(JSON.parse(localStorage.getItem('loggedUser')||'{}').username)||'—';
+  const colabAtual=colaboradores.find(x=>x.id===apontandoColabId);
+  const valorDiaria=calcValorDiaria(colabAtual);
+  const valorExtra=parseFloat(document.getElementById('aValorExtra').value||0)||0;
+  const valorTotal=valorDiaria+valorExtra;
   apontamentos.push({
     id:nextApontId++,
     colaboradorId:apontandoColabId,
     data,entrada,saida,
+    valorDiaria,valorExtra,valorTotal,
     criadoEm:new Date().toISOString(),
     criadoPor:user
   });
