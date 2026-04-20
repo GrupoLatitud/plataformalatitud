@@ -709,8 +709,9 @@ function calcValorDiariaAjustado(c,entrada,saida){
   const eMin=eh*60+em,sMin=sh*60+sm;
   const totalMin=sMin-eMin;
   if(totalMin<=0)return{valor:0,label:''};
-  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,300)-Math.max(eMin,0));
-  const isNoturno=(nightMin===totalMin); // turno todo dentro de 22:00-05:00
+  // Horario noturno: 22:00 (1320) as 04:00 (240) do dia seguinte
+  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,240)-Math.max(eMin,0));
+  const isNoturno=(nightMin===totalMin); // turno todo dentro de 22:00-04:00
   if(isNoturno){
     return{valor:hora*(totalMin/60),label:`Noturno ${(totalMin/60).toFixed(1)}h (proporcional)`};
   }
@@ -738,15 +739,15 @@ function calcExtraAdicional(colab,dateStr,entrada,saida){
   else if(dow===0){diariaPct=0.80;diariaLabel='Domingo +80%';}
   else if(dow===6){diariaPct=0.50;diariaLabel='Sábado +50%';}
   const diariaExtra=diaria*diariaPct;
-  // Horas noturnas (22:00-24:00 e 00:00-05:00) dentro do turno
+  // Horas noturnas: 22:00 as 04:00 (do dia seguinte) dentro do turno
   const [eh,em]=entrada.split(':').map(Number);
   const [sh,sm]=saida.split(':').map(Number);
   const eMin=eh*60+em,sMin=sh*60+sm;
-  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,300)-Math.max(eMin,0));
+  const nightMin=Math.max(0,Math.min(sMin,1440)-Math.max(eMin,1320))+Math.max(0,Math.min(sMin,240)-Math.max(eMin,0));
   const nightH=nightMin/60;
   let nightPct=0,nightLabel='';
   if(nightH>0){
-    if(isFeriado||dow===0)nightPct=0.80;
+    if(isFeriado||dow===0)nightPct=0.80; // domingo ou feriado
     else nightPct=0.50; // seg-sex e sabado
     const pctStr=nightPct===0.80?'80%':'50%';
     nightLabel=`Noturno ${nightH.toFixed(1)}h +${pctStr}`;
