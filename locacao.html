@@ -190,6 +190,22 @@ body{
 .filter-menu-sep{height:1px;background:#2e2818;margin:2px 0;padding:0!important;cursor:default!important}
 .filter-menu-sep:hover{background:#2e2818!important}
 
+.projeto-combo{position:relative}
+.projeto-options{
+  display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;
+  background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+  max-height:220px;overflow-y:auto;z-index:100;box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.projeto-options.show{display:block}
+.projeto-options > div{
+  padding:9px 12px;font-size:.85rem;cursor:pointer;color:var(--text);
+  border-bottom:1px solid rgba(46,40,24,.5);
+}
+.projeto-options > div:last-child{border-bottom:none}
+.projeto-options > div:hover{background:rgba(245,132,31,.12);color:var(--orange)}
+.projeto-options > div.empty{color:var(--text-dim);cursor:default;font-style:italic}
+.projeto-options > div.empty:hover{background:transparent;color:var(--text-dim)}
+
 /* TABLE */
 .loc-table-wrap{
   background:var(--surface);border:1px solid #2e2818;border-radius:10px;
@@ -555,8 +571,11 @@ body{
 
     <div class="field">
       <label>Projeto *</label>
-      <input type="text" id="fProjeto" list="fProjetoList" placeholder="Digite ou selecione..." autocomplete="off">
-      <datalist id="fProjetoList"></datalist>
+      <div class="projeto-combo">
+        <input type="text" id="fProjeto" placeholder="Digite ou selecione..." autocomplete="off"
+               oninput="filterProjetos()" onfocus="showProjetos()" onblur="hideProjetosDelayed()">
+        <div id="fProjetoList" class="projeto-options"></div>
+      </div>
     </div>
 
     <div class="field">
@@ -798,9 +817,41 @@ function saveData(){
 }
 
 function populateProjectSelect(){
-  const dl=document.getElementById('fProjetoList');
-  if(!dl)return;
-  dl.innerHTML=projects.map(p=>`<option value="${p.name}">`).join('');
+  renderProjetosOptions('');
+}
+function renderProjetosOptions(query){
+  const list=document.getElementById('fProjetoList');
+  if(!list)return;
+  const q=(query||'').toLowerCase().trim();
+  const filtrados=q?projects.filter(p=>(p.name||'').toLowerCase().includes(q)):projects;
+  if(!filtrados.length){
+    list.innerHTML='<div class="empty">Nenhum projeto encontrado</div>';
+    return;
+  }
+  list.innerHTML=filtrados.map(p=>{
+    const nome=(p.name||'').replace(/"/g,'&quot;');
+    return `<div onmousedown="selectProjeto('${nome.replace(/'/g,"\\'")}')">${p.name}</div>`;
+  }).join('');
+}
+function filterProjetos(){
+  const v=document.getElementById('fProjeto').value;
+  renderProjetosOptions(v);
+  document.getElementById('fProjetoList').classList.add('show');
+}
+function showProjetos(){
+  const v=document.getElementById('fProjeto').value;
+  renderProjetosOptions(v);
+  document.getElementById('fProjetoList').classList.add('show');
+}
+function hideProjetosDelayed(){
+  setTimeout(()=>{
+    const list=document.getElementById('fProjetoList');
+    if(list)list.classList.remove('show');
+  },150);
+}
+function selectProjeto(nome){
+  document.getElementById('fProjeto').value=nome;
+  document.getElementById('fProjetoList').classList.remove('show');
 }
 
 /* ── RENDER ───────────────────────────────────── */
