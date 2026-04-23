@@ -174,6 +174,21 @@ body{
   padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem;
 }
 .search-bar .btn-clear-dates:hover{color:var(--text);border-color:var(--orange)}
+.dropdown-wrap{position:relative;display:inline-block}
+.filter-menu{
+  display:none;position:absolute;top:100%;left:0;margin-top:4px;
+  background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
+  min-width:180px;z-index:50;box-shadow:0 6px 18px rgba(0,0,0,.35);overflow:hidden;
+}
+.filter-menu.show{display:block}
+.filter-menu>div{
+  padding:9px 12px;font-size:.82rem;cursor:pointer;color:var(--text);
+  white-space:nowrap;
+}
+.filter-menu>div:hover{background:rgba(245,132,31,.12);color:var(--orange)}
+.filter-menu>div.active{color:var(--orange);background:rgba(245,132,31,.1);font-weight:600}
+.filter-menu-sep{height:1px;background:#2e2818;margin:2px 0;padding:0!important;cursor:default!important}
+.filter-menu-sep:hover{background:#2e2818!important}
 
 /* TABLE */
 .loc-table-wrap{
@@ -447,7 +462,25 @@ body{
       <span>até</span>
       <input type="date" id="dateTo" onchange="render()">
       <button class="btn-clear-dates" onclick="clearDateFilter()">Limpar</button>
-      <button class="btn-clear-dates" onclick="filtroSemana()" style="border-color:var(--orange);color:var(--orange)">Filtro Personalizado</button>
+      <div class="dropdown-wrap">
+        <button class="btn-clear-dates" id="btnCustomFilter" onclick="toggleCustomFilterMenu(event)" style="border-color:var(--orange);color:var(--orange)">Filtro Personalizado</button>
+        <div id="customFilterMenu" class="filter-menu">
+          <div data-cf="conferencia" onclick="aplicarCustomFilter('conferencia')">Conferência de Data</div>
+          <div data-cf="nfaberto" onclick="aplicarCustomFilter('nfaberto')">NF em Aberto</div>
+          <div class="filter-menu-sep"></div>
+          <div onclick="aplicarCustomFilter(null)" style="color:var(--text-dim)">Limpar filtro</div>
+        </div>
+      </div>
+      <div class="dropdown-wrap">
+        <button class="btn-clear-dates" onclick="toggleSortMenu(event)">Ordenar</button>
+        <div id="sortMenu" class="filter-menu">
+          <div data-sort="default" class="active" onclick="aplicarSort('default')">Padrão</div>
+          <div data-sort="projeto" onclick="aplicarSort('projeto')">Projeto</div>
+          <div data-sort="tempo-desc" onclick="aplicarSort('tempo-desc')">Tempo de locação (maior)</div>
+          <div data-sort="tempo-asc" onclick="aplicarSort('tempo-asc')">Tempo de locação (menor)</div>
+          <div data-sort="equipamento" onclick="aplicarSort('equipamento')">Equipamento (A-Z)</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -697,7 +730,7 @@ db.ref('projects').on('value',snap=>{
   const d=snap.val();
   if(d){
     const arr=(Array.isArray(d)?d:Object.values(d)).filter(p=>p!=null);
-    projects=arr.filter(p=>p.stage==='andamento');
+    projects=arr;
   }
   populateProjectSelect();
 });
@@ -805,6 +838,7 @@ function render(){
            (l.fornecedor||'').toLowerCase().includes(q)||
            (l.projeto||'').toLowerCase().includes(q)||
            (l.codigo||'').toLowerCase().includes(q)||
+           (l.obs||'').toLowerCase().includes(q)||
            displayNum.includes(q)||
            displayNum.includes(qNum)||
            String(l.numeroInterno||'').includes(qNum);
@@ -813,14 +847,42 @@ function render(){
     if(!dFrom&&!dTo)return true;
     const ini=l.dataInicio||'';
     const fim=l.dataFinal||'';
+    // Conferência de Data: filtra SOMENTE pela data final estar dentro do intervalo
+    if(customFilter==='conferencia'){
+      if(!fim)return false;
+      if(dFrom&&fim<dFrom)return false;
+      if(dTo&&fim>dTo)return false;
+      return true;
+    }
     if(dFrom&&fim&&fim<dFrom)return false;
     if(dTo&&ini&&ini>dTo)return false;
     if(!ini&&!fim)return false;
     return true;
   }
+  function matchCustom(l){
+    if(customFilter==='nfaberto'){
+      const arquivos=l.arquivos||[];
+      const hasNF=arquivos.length>0||!!l.nfData;
+      return !hasNF;
+    }
+    return true;
+  }
 
-  const ativos=locacoes.filter(l=>!l.finalizado&&matchQ(l)&&matchDate(l));
-  const finalizados=locacoes.filter(l=>l.finalizado&&matchQ(l)&&matchDate(l));
+  let ativos=locacoes.filter(l=>!l.finalizado&&matchQ(l)&&matchDate(l)&&matchCustom(l));
+  let finalizados=locacoes.filter(l=>l.finalizado&&matchQ(l)&&matchDate(l)&&matchCustom(l));
+
+  // Ordenação
+  if(sortMode!=='default'){
+    const cmp=(a,b)=>{
+      if(sortMode==='projeto')return (a.projeto||'').localeCompare(b.projeto||'','pt-BR');
+      if(sortMode==='equipamento')return (a.equipamento||'').localeCompare(b.equipamento||'','pt-BR');
+      if(sortMode==='tempo-desc')return calcTempo(b.dataInicio,b.dataFinal)-calcTempo(a.dataInicio,a.dataFinal);
+      if(sortMode==='tempo-asc')return calcTempo(a.dataInicio,a.dataFinal)-calcTempo(b.dataInicio,b.dataFinal);
+      return 0;
+    };
+    ativos.sort(cmp);
+    finalizados.sort(cmp);
+  }
 
   const totalAtivos=locacoes.filter(l=>!l.finalizado).length;
   document.getElementById('totalCount').textContent=totalAtivos;
@@ -1252,9 +1314,12 @@ function clearDateFilter(){
   render();
 }
 
-function filtroSemana(){
+let customFilter=null; // 'conferencia' | 'nfaberto' | null
+let sortMode='default';
+
+function preencherSegASeg(){
   const hoje=new Date();
-  const dow=hoje.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+  const dow=hoje.getDay();
   const diff=dow===0?-6:1-dow;
   const segAtual=new Date(hoje);
   segAtual.setDate(hoje.getDate()+diff);
@@ -1263,8 +1328,64 @@ function filtroSemana(){
   const fmt=d=>d.toISOString().slice(0,10);
   document.getElementById('dateFrom').value=fmt(segAtual);
   document.getElementById('dateTo').value=fmt(segProxima);
+}
+
+function toggleCustomFilterMenu(e){
+  if(e)e.stopPropagation();
+  const m=document.getElementById('customFilterMenu');
+  const other=document.getElementById('sortMenu');
+  if(other)other.classList.remove('show');
+  m.classList.toggle('show');
+}
+function toggleSortMenu(e){
+  if(e)e.stopPropagation();
+  const m=document.getElementById('sortMenu');
+  const other=document.getElementById('customFilterMenu');
+  if(other)other.classList.remove('show');
+  m.classList.toggle('show');
+}
+function aplicarCustomFilter(tipo){
+  customFilter=tipo;
+  // marcar ativo no menu
+  document.querySelectorAll('#customFilterMenu > div[data-cf]').forEach(el=>{
+    el.classList.toggle('active',el.dataset.cf===tipo);
+  });
+  // estilo do botão
+  const btn=document.getElementById('btnCustomFilter');
+  if(btn){
+    if(tipo){
+      btn.style.background='rgba(245,132,31,.15)';
+      btn.textContent=tipo==='conferencia'?'Conferência de Data ✓':'NF em Aberto ✓';
+    }else{
+      btn.style.background='transparent';
+      btn.textContent='Filtro Personalizado';
+    }
+  }
+  // Conferência: preencher semana; NF em Aberto: limpar datas
+  if(tipo==='conferencia'){
+    preencherSegASeg();
+  }else if(tipo==='nfaberto'){
+    document.getElementById('dateFrom').value='';
+    document.getElementById('dateTo').value='';
+  }
+  document.getElementById('customFilterMenu').classList.remove('show');
   render();
 }
+function aplicarSort(mode){
+  sortMode=mode;
+  document.querySelectorAll('#sortMenu > div[data-sort]').forEach(el=>{
+    el.classList.toggle('active',el.dataset.sort===mode);
+  });
+  document.getElementById('sortMenu').classList.remove('show');
+  render();
+}
+// Fecha dropdowns ao clicar fora
+document.addEventListener('click',()=>{
+  const a=document.getElementById('customFilterMenu');
+  const b=document.getElementById('sortMenu');
+  if(a)a.classList.remove('show');
+  if(b)b.classList.remove('show');
+});
 
 let finalizadasVisible=false;
 function toggleFinalizadas(){
