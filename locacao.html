@@ -472,8 +472,10 @@ body{
         </div>
       </div>
       <div class="dropdown-wrap">
-        <button class="btn-clear-dates" onclick="toggleSortMenu(event)">Ordenar</button>
-        <div id="sortMenu" class="filter-menu">
+        <button class="btn-clear-dates" id="btnSort" onclick="toggleSortMenu(event)" title="Ordenar" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16"/><polyline points="3 8 7 4 11 8"/><path d="M17 20V4"/><polyline points="13 16 17 20 21 16"/></svg>
+        </button>
+        <div id="sortMenu" class="filter-menu" style="left:auto;right:0">
           <div data-sort="default" class="active" onclick="aplicarSort('default')">Padrão</div>
           <div data-sort="projeto" onclick="aplicarSort('projeto')">Projeto</div>
           <div data-sort="tempo-desc" onclick="aplicarSort('tempo-desc')">Tempo de locação (maior)</div>
@@ -553,9 +555,8 @@ body{
 
     <div class="field">
       <label>Projeto *</label>
-      <select id="fProjeto">
-        <option value="">Selecione...</option>
-      </select>
+      <input type="text" id="fProjeto" list="fProjetoList" placeholder="Digite ou selecione..." autocomplete="off">
+      <datalist id="fProjetoList"></datalist>
     </div>
 
     <div class="field">
@@ -797,12 +798,9 @@ function saveData(){
 }
 
 function populateProjectSelect(){
-  const sel=document.getElementById('fProjeto');
-  if(!sel)return;
-  const val=sel.value;
-  sel.innerHTML='<option value="">Selecione...</option>'+
-    projects.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
-  sel.value=val;
+  const dl=document.getElementById('fProjetoList');
+  if(!dl)return;
+  dl.innerHTML=projects.map(p=>`<option value="${p.name}">`).join('');
 }
 
 /* ── RENDER ───────────────────────────────────── */
@@ -1376,6 +1374,11 @@ function aplicarSort(mode){
   document.querySelectorAll('#sortMenu > div[data-sort]').forEach(el=>{
     el.classList.toggle('active',el.dataset.sort===mode);
   });
+  const b=document.getElementById('btnSort');
+  if(b){
+    if(mode!=='default'){b.style.color='var(--orange)';b.style.borderColor='var(--orange)';}
+    else{b.style.color='';b.style.borderColor='';}
+  }
   document.getElementById('sortMenu').classList.remove('show');
   render();
 }
