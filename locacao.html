@@ -191,6 +191,16 @@ body{
 .filter-menu-sep:hover{background:#2e2818!important}
 
 .projeto-combo{position:relative}
+.projeto-combo input{padding-right:32px}
+.projeto-clear{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.08);color:var(--text-dim);
+  cursor:pointer;font-size:16px;line-height:1;
+  display:none;align-items:center;justify-content:center;padding:0;
+}
+.projeto-clear.show{display:flex}
+.projeto-clear:hover{background:rgba(245,132,31,.2);color:var(--orange)}
 .projeto-options{
   display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;
   background:var(--surface2);border:1px solid #2e2818;border-radius:8px;
@@ -574,6 +584,7 @@ body{
       <div class="projeto-combo">
         <input type="text" id="fProjeto" placeholder="Digite ou selecione..." autocomplete="off"
                oninput="filterProjetos()" onfocus="showProjetos()" onblur="hideProjetosDelayed()">
+        <button type="button" id="fProjetoClear" class="projeto-clear" onclick="clearProjeto()" title="Limpar" aria-label="Limpar">&times;</button>
         <div id="fProjetoList" class="projeto-options"></div>
       </div>
     </div>
@@ -833,15 +844,23 @@ function renderProjetosOptions(query){
     return `<div onmousedown="selectProjeto('${nome.replace(/'/g,"\\'")}')">${p.name}</div>`;
   }).join('');
 }
+function updateProjetoClearBtn(){
+  const inp=document.getElementById('fProjeto');
+  const btn=document.getElementById('fProjetoClear');
+  if(!inp||!btn)return;
+  btn.classList.toggle('show',!!inp.value);
+}
 function filterProjetos(){
   const v=document.getElementById('fProjeto').value;
   renderProjetosOptions(v);
   document.getElementById('fProjetoList').classList.add('show');
+  updateProjetoClearBtn();
 }
 function showProjetos(){
   const v=document.getElementById('fProjeto').value;
   renderProjetosOptions(v);
   document.getElementById('fProjetoList').classList.add('show');
+  updateProjetoClearBtn();
 }
 function hideProjetosDelayed(){
   setTimeout(()=>{
@@ -852,6 +871,15 @@ function hideProjetosDelayed(){
 function selectProjeto(nome){
   document.getElementById('fProjeto').value=nome;
   document.getElementById('fProjetoList').classList.remove('show');
+  updateProjetoClearBtn();
+}
+function clearProjeto(){
+  const inp=document.getElementById('fProjeto');
+  inp.value='';
+  renderProjetosOptions('');
+  document.getElementById('fProjetoList').classList.add('show');
+  updateProjetoClearBtn();
+  inp.focus();
 }
 
 /* ── RENDER ───────────────────────────────────── */
@@ -1079,6 +1107,7 @@ function openModal(loc){
   renderNfList(isFaturado);
   populateProjectSelect();
   if(loc) document.getElementById('fProjeto').value=loc.projeto;
+  updateProjetoClearBtn();
   document.getElementById('modalOverlay').classList.add('open');
 }
 
